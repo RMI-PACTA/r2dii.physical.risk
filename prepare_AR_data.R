@@ -1,3 +1,5 @@
+source("physical_risk_functions.R")
+
 # load ald
 ald <- vroom::vroom(
   fs::path(
