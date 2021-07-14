@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+### MacOS specific ###
+# Folder view configuration files
+# Mac files
+.DS_STORE
+**/.DS_STORE
+Desktop.ini
+*.icloud
