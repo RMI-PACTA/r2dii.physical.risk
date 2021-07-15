@@ -1,4 +1,4 @@
-source("physical_risk/physical_risk_functions.R")
+source("physical_risk_functions.R")
 
 # =================================
 # load distinct_geo_data which will subset the raw climate data
