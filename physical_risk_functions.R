@@ -205,6 +205,8 @@ load_climate_data <- function(relevant_climate_data) {
             )
           )
 
+          Sys.sleep(0.5)
+
         }
       )
 
@@ -395,7 +397,7 @@ save_climate_data <- function(
             delim = ","
           )
 
-          Sys.sleep(0.2)
+          Sys.sleep(0.5)
         }
       }
     }
