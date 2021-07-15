@@ -389,7 +389,7 @@ save_climate_data <- function(
             scenario_scenario_sub_hazard_sub_model_sub_period_sub,
             fs::path(
               path_db_pr_climate_data_provider_scenario_hazards_models,
-              paste(scenario_sub, hazard_sub, model_sub, period_sub, "cdf", "ald", sep = "_"),
+              paste(scenario_sub, hazard_sub, model_sub, period_sub, "ald", sep = "_"),
               ext = "csv"
             ),
             delim = ","
