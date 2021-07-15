@@ -191,10 +191,10 @@ load_climate_data <- function(relevant_climate_data) {
               relevant_climate_data[[i]]$data_path, x),
 
             col_types = c(
+              provider = "c",
               model = "c",
               period = "c",
               scenario = "c",
-              type = "c",
               geometry_id = "c",
               asset_id = "c",
               hazard = "c",
