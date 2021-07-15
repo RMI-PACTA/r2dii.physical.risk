@@ -87,7 +87,7 @@ climate_data <- load_climate_data(
       prepare_script_path = "physical_risk/prepare_CDF_data.R",
       load_data = TRUE,
       parameter = list(
-        scenarios = c("RCP8.5"),
+        scenarios = c("RCP85"),
         hazards = c(
           "cold_days_percent_wrt_10th_percentile_of_reference_period",
           #"heavy_precipitation_days_index_per_time_period",
