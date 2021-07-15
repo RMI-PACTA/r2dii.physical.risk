@@ -82,7 +82,7 @@ climate_data <- load_climate_data(
 
     # cdf data
     list(
-      data_path = fs::path(path_db_pr_climate_data_CDF),
+      data_path = fs::path(path_db_pr_climate_data, "CDF"),
       run_prepare_script_before_loading = FALSE,
       prepare_script_path = "physical_risk/prepare_CDF_data.R",
       load_data = TRUE,
