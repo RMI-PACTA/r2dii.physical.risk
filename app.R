@@ -201,6 +201,7 @@ server = function(input, output, session) {
 
       if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
 
+      if(isTruthy(input$scenario)) {sub_analysis <- sub_analysis %>% filter(scenario == input$scenario)}
       if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
       if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
       if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
