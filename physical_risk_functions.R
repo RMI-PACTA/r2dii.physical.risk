@@ -245,7 +245,7 @@ load_asset_level_owners <- function(
   # make sure asset owners are unique (can be different if one asset uses different technologies)
   asset_level_owners <- asset_level_owners %>%
     dplyr::distinct() %>%
-    show_diff_nrows(initial_n_rows = nrow(asset_level_owners), cause = "after calling distinct()")
+    show_diff_rows(initial_n_rows = nrow(asset_level_owners), cause = "after calling distinct()")
 
   return(asset_level_owners)
 }
@@ -269,7 +269,7 @@ load_company_financial_data <- function(
   # ensure company IDs are unique
   company_financial_data <- company_financial_data %>%
     dplyr::distinct(company_id, .keep_all = T) %>%
-    show_diff_nrows(initial_n_rows = nrow(company_financial_data), cause = "after calling distinct(company_id)")
+    show_diff_rows(initial_n_rows = nrow(company_financial_data), cause = "after calling distinct(company_id)")
 
   return(company_financial_data)
 
@@ -294,7 +294,7 @@ load_company_ownership_tree <- function(
   # ensure that total column structure is unique
   ownership_tree <- ownership_tree %>%
     dplyr::distinct() %>%
-    show_diff_nrows(initial_n_rows = nrow(ownership_tree), cause = "after calling distinct()")
+    show_diff_rows(initial_n_rows = nrow(ownership_tree), cause = "after calling distinct()")
 
   return(ownership_tree)
 
