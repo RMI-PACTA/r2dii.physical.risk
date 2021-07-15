@@ -394,6 +394,8 @@ save_climate_data <- function(
             ),
             delim = ","
           )
+
+          Sys.sleep(0.2)
         }
       }
     }
