@@ -191,80 +191,8 @@ eq_portfolio <- total_portfolio %>%
   dplyr::slice_sample(n = 400)
 
 
-
-results <- readr::read_rds(
-  fs::path(
-    path_db_pacta_project,
-    "40_Results",
-    "Blackrock",
-    "Equity_results_portfolio",
-    ext = "rda"
-  )
-) %>%
-  dplyr::filter(investor_name == "BlackRock") %>%
-  dplyr::filter(portfolio_name %in% c("IE00BF4RFH31", "IE00B4L5Y983"))
-
-
 # =================================
 # QA
 # =================================
 
-company_ownership_tree <- company_ownership_tree %>%
-  semi_join(total_portfolio, by = c("target_company_id" = "company_id"))
-
-
-asset_level_owners <- asset_level_owners %>%
-  semi_join(company_ownership_tree, by = "company_id")
-
-ald <- ald %>%
-  semi_join(asset_level_owners, by = "asset_id") %>%
-  filter(between(year, 2020, 2025))
-
-climate_data <- climate_data %>%
-  semi_join(asset_level_owners, by = "asset_id")
-
-
-ald_test <- ald %>%
-  #left_join(climate_data %>% select(scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id), by = "asset_id") %>%
-  mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0)))
-
-
-ald_test <- ald_test %>%
-  left_join(asset_level_owners, by = "asset_id") %>%
-  mutate(direct_owned_economic_value = economic_value*(ownership_share/100))
-
-
-ald_test <- ald_test %>%
-  left_join(company_ownership_tree %>% filter(ownership_level >= 0), by = "company_id")
-
-ald_test <- ald_test %>%
-  filter(year == 2020) %>%
-  mutate(linking_stake = if_else(is.na(linking_stake), 100, linking_stake)) %>%
-  mutate(final_owned_economic_value = linking_stake/100*direct_owned_economic_value)
-
-test <- ald_test %>%
-  group_by(target_company_id, year, sector) %>%
-  summarise(final_owned_economic_value = sum(final_owned_economic_value, na.rm = T))
-
-
-
-
-masterdata <- vroom::vroom(
-  fs::path(
-    path_db_datastore_export,
-    "masterdata_ownership",
-    ext = "csv"
-  )
-) %>%
-  group_by(company_id, sector) %>%
-  summarise(production = sum(`_2020`, na.rm = T))
-
-test <- test %>%
-  left_join(masterdata %>% transmute(sector, target_company_id = company_id, production)) %>%
-  mutate(diff = round(final_owned_economic_value,0) - round(production,0)) %>%
-  mutate(diff_perc = if_else(final_owned_economic_value == 0, 1, diff/final_owned_economic_value))
-
-test %>%
-  ggplot2::ggplot() +
-  ggplot2::geom_histogram(ggplot2::aes(x = diff_perc), bins = 100)
-
+check_roll_up <- check_roll_up()
