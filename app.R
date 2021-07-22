@@ -217,7 +217,6 @@ server = function(input, output, session) {
     Encoding(sub_analysis$asset_name) <- "latin1"
 
     return(sub_analysis)
-
   })
 
   output$map = renderTmap({
