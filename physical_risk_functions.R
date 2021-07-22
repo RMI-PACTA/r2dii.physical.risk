@@ -598,3 +598,81 @@ plot_company_risk_distribution <- function(data) {
 }
 
 
+check_roll_up <- function() {
+
+  company_ownership_tree <- company_ownership_tree %>%
+    semi_join(total_portfolio, by = c("target_company_id" = "company_id"))
+
+
+  asset_level_owners <- asset_level_owners %>%
+    semi_join(company_ownership_tree, by = "company_id")
+
+  ald <- ald %>%
+    semi_join(asset_level_owners, by = "asset_id")
+
+  climate_data <- climate_data %>%
+    semi_join(asset_level_owners, by = "asset_id")
+
+
+  test <- ald %>%
+    left_join(asset_level_owners, by = "asset_id") %>%
+    mutate(direct_owned_economic_value = economic_value*(ownership_share/100))
+
+
+  test <- test %>%
+    left_join(company_ownership_tree %>% filter(ownership_level >= 0), by = "company_id")
+
+  test <- test %>%
+    filter(year == 2021) %>%
+    mutate(linking_stake = if_else(is.na(linking_stake), 100, linking_stake)) %>%
+    mutate(final_owned_economic_value = linking_stake/100*direct_owned_economic_value)
+
+  test <- test %>%
+    group_by(target_company_id, year, sector, technology) %>%
+    summarise(new_roll_up_production = sum(final_owned_economic_value, na.rm = T))
+
+  masterdata <- vroom::vroom(
+    fs::path(
+      path_db_datastore_export,
+      "masterdata_ownership",
+      ext = "csv"
+    )
+  ) %>%
+    group_by(company_id, company_name, sector, technology) %>%
+    summarise(ar_roll_up_production = sum(`_2021`, na.rm = T))
+
+  results <- readr::read_rds(
+    fs::path(
+      path_db_pacta_project,
+      "40_Results",
+      "Meta Investor",
+      "Equity_results_company",
+      ext = "rda"
+    )
+  ) %>%
+    filter(year == 2021) %>%
+    distinct(company_name, ald_sector, technology, plan_tech_prod,.keep_all = T)
+
+
+  test <- test %>%
+    left_join(masterdata %>% transmute(sector, technology, target_company_id = company_id, ar_roll_up_production)) %>%
+    left_join(results %>% transmute(sector = ald_sector, technology, company_name, results_production = plan_tech_prod), by = c("sector", "technology", "company_name")) %>%
+    mutate(diff_ar_results = round(results_production,0) - round(ar_roll_up_production,0)) %>%
+    mutate(diff_ar_new = round(new_roll_up_production,0) - round(ar_roll_up_production,0)) %>%
+    mutate(diff_ar_new_perc = if_else(new_roll_up_production == 0, 1, diff_ar_new/new_roll_up_production))
+
+  test <- test %>%
+    select(company_id, company_name, year, sector, technology,results_production, ar_roll_up_production, diff_ar_results, new_roll_up_production, diff_ar_new, diff_ar_new_perc)
+
+  plot <- test %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_histogram(ggplot2::aes(x = diff_ar_new_perc), binwidth = 0.1)
+
+  print(plot)
+
+  View(test)
+
+  return(test)
+}
+
+
