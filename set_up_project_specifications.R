@@ -122,26 +122,6 @@ climate_data <- load_climate_data(
           "2100"
         )
       )
-    ),
-
-    # climate analytics data
-    list(
-      data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"),
-      run_prepare_script_before_loading = FALSE,
-      prepare_script_path = "prepare_climate_analytics_data.R",
-      load_data = TRUE,
-      parameter = list(
-        scenarios = c("rcp45","rcp26"),
-        hazards = c(
-          "tasAdjust"
-        ),
-        models = c("GFDL-ESM2M,HadGEM2-ES,IPSL-CM5A-LR,MIROC5"),
-        periods = c(
-          "2030",
-          "2050",
-          "2100"
-        )
-      )
     )
   )
 )
