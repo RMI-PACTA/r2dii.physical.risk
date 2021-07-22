@@ -72,38 +72,6 @@ analysis <-  eq_portfolio %>%
 # add final indicators
 # ========
 
-eq_portfolio <- eq_portfolio %>%
-  left_join(
-    eq_portfolio %>%
-      distinct(holding_id, .keep_all = T) %>%
-      group_by(portfolio_name) %>%
-      mutate(
-        portfolio_market_value = sum(value_usd, na.rm = T),
-        port_weight = value_usd / portfolio_market_value
-      ) %>%
-      ungroup() %>%
-      select(holding_id, port_weight),
-    by = "holding_id"
-  )
-
-# calculate ownership weight
-analysis <- analysis %>%
-  mutate(ownership_weight = number_of_shares / current_shares_outstanding_all_classes)
-
-analysis <- analysis %>%
-  left_join(
-    analysis %>%
-      distinct(holding_id, .keep_all = T) %>%
-      group_by(portfolio_name) %>%
-      mutate(
-        portfolio_market_value = sum(value_usd, na.rm = T),
-        port_weight = value_usd / portfolio_market_value
-      ) %>%
-      ungroup() %>%
-      select(holding_id, port_weight),
-    by = "holding_id"
-  )
-
 # calculate port weight
 analysis <- analysis %>%
   mutate(portfolio_final_owned_economic_value = if_else(stringr::str_detect(sector, financial_sector), ownership_weight*company_final_owned_economic_value, 0))
