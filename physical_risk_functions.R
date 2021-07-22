@@ -186,6 +186,8 @@ load_climate_data <- function(relevant_climate_data) {
       climate_data <- purrr::map(
         file_list, function(x) {
           cat(crayon::green("Processing ", stringr::str_replace_all(x, "/", " => "), "\n"))
+          Sys.sleep(0.5)
+
           data <- vroom::vroom(
             fs::path(
               relevant_climate_data[[i]]$data_path, x),
@@ -204,7 +206,7 @@ load_climate_data <- function(relevant_climate_data) {
               relative_change = "d"
             )
           )
-
+          Sys.sleep(0.5)
         }
       )
 
@@ -337,7 +339,7 @@ save_climate_data <- function(
     scenario_sub <- unique(climate_data$scenario)[scenario]
     cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
-    scenario_scenario_sub <- climate_data %>%
+    climate_data_scenario_sub <- climate_data %>%
       filter(scenario == scenario_sub)
 
     path_db_pr_climate_data_provider_scenario <- fs::path(path_db_pr_climate_data_provider, scenario_sub)
@@ -347,12 +349,12 @@ save_climate_data <- function(
       cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
     }
 
-    for(hazard in 1:length(unique(scenario_scenario_sub$hazard))) {
+    for(hazard in 1:length(unique(climate_data_scenario_sub$hazard))) {
 
-      hazard_sub <- unique(scenario_scenario_sub$hazard)[hazard]
+      hazard_sub <- unique(climate_data_scenario_sub$hazard)[hazard]
       cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
-      scenario_scenario_sub_hazard_sub <- scenario_scenario_sub %>%
+      climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
         filter(hazard == hazard_sub)
 
       path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
@@ -362,12 +364,12 @@ save_climate_data <- function(
         cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
       }
 
-      for(model in 1:length(unique(scenario_scenario_sub_hazard_sub$model))) {
+      for(model in 1:length(unique(climate_data_scenario_sub_hazard_sub$model))) {
 
-        model_sub <- unique(scenario_scenario_sub_hazard_sub$model)[model]
+        model_sub <- unique(climate_data_scenario_sub_hazard_sub$model)[model]
         cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
-        scenario_scenario_sub_hazard_sub_model_sub <- scenario_scenario_sub_hazard_sub %>%
+        climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
           filter(model == model_sub)
 
         path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
@@ -377,27 +379,206 @@ save_climate_data <- function(
           cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
         }
 
-        for(period in 1:length(unique(scenario_scenario_sub_hazard_sub_model_sub$period))) {
+        for(period in 1:length(unique(climate_data_scenario_sub_hazard_sub_model_sub$period))) {
 
-          period_sub <- unique(scenario_scenario_sub_hazard_sub_model_sub$period)[period]
+          period_sub <- unique(climate_data_scenario_sub_hazard_sub_model_sub$period)[period]
           cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
-          scenario_scenario_sub_hazard_sub_model_sub_period_sub <- scenario_scenario_sub_hazard_sub_model_sub %>%
+          climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
             filter(period == period_sub)
 
-          vroom::vroom_write(
-            scenario_scenario_sub_hazard_sub_model_sub_period_sub,
+          readr::write_csv(
+            climate_data_scenario_sub_hazard_sub_model_sub_period_sub,
             fs::path(
               path_db_pr_climate_data_provider_scenario_hazards_models,
               paste(scenario_sub, hazard_sub, model_sub, period_sub, "cdf", "ald", sep = "_"),
               ext = "csv"
-            ),
-            delim = ","
+            )
           )
         }
       }
     }
   }
+}
+
+for_loops_climate_data <- function(data, parent_path, fns) {
+
+  climate_data <- data
+
+  for(scenario in 1:length(unique(climate_data$scenario))) {
+
+    scenario_sub <<- unique(climate_data$scenario)[scenario]
+    cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
+
+    climate_data_scenario_sub <- climate_data %>%
+      filter(scenario == scenario_sub)
+
+    path_db_pr_climate_data_provider_scenario <- fs::path(parent_path, scenario_sub)
+
+    if(!dir.exists(path_db_pr_climate_data_provider_scenario)) {
+      fs::dir_create(path_db_pr_climate_data_provider_scenario)
+      cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
+    }
+
+    for(hazard in 1:length(unique(climate_data_scenario_sub$hazard))) {
+
+      hazard_sub <<- unique(climate_data_scenario_sub$hazard)[hazard]
+      cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
+
+      climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
+        filter(hazard == hazard_sub)
+
+      path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
+
+      if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards)) {
+        fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards)
+        cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
+      }
+
+      for(model in 1:length(unique(climate_data_scenario_sub_hazard_sub$model))) {
+
+        model_sub <<- unique(climate_data_scenario_sub_hazard_sub$model)[model]
+        cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+
+        climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
+          filter(model == model_sub)
+
+        path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
+
+        if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards_models)) {
+          fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards_models)
+          cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
+        }
+
+        for(period in 1:length(unique(climate_data_scenario_sub_hazard_sub_model_sub$period))) {
+
+          period_sub <<- unique(climate_data_scenario_sub_hazard_sub_model_sub$period)[period]
+          cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+
+          climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
+            filter(period == period_sub)
+
+          climate_data_scenario_sub_hazard_sub_model_sub_period_sub %>%
+            fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
+        }
+      }
+    }
+  }
+}
+
+scale_fill_relative_risk <- function() {
+  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1))
+}
+
+plot_sector_absolute_portfolio_final_owned_economic_value <- function(data) {
+  data %>%
+    arrange(relative_change) %>%
+    ggplot() +
+    geom_col(aes(x = as.character(year), y = portfolio_final_owned_economic_value, fill = relative_change)) +
+    theme_minimal() +
+    facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
+    labs(
+      x = "Year",
+      caption = paste(
+        "Parameter:",
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ),
+      y = "",
+      title = "Absolute Sector Production"
+    )
+}
+
+plot_sector_relative_portfolio_final_owned_economic_value <- function(data) {
+  data %>%
+    arrange(relative_change) %>%
+    ggplot() +
+    geom_col(aes(x = as.character(year), y = portfolio_final_owned_economic_value_share_sector, fill = relative_change)) +
+    scale_y_continuous(labels = scales::percent) +
+    facet_grid(portfolio_name ~ sector)  +
+    theme_minimal() +
+    labs(
+      x = "Year",
+      caption = paste(
+        "Parameter:",
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ),
+      y = "",
+      title = "Share Sector Production"
+    )
+}
+
+plot_sector_number_of_assets <- function(data) {
+  data %>%
+    distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>% # some assets producing different technologies (automotive!!)
+    count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
+    arrange(relative_change) %>%
+    ggplot() +
+    geom_col(aes(x = as.character(year), y = n, fill = relative_change)) +
+    theme_minimal() +
+    facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
+    labs(
+      x = "Year",
+      caption = paste(
+        "Parameter:",
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ),
+      y = "",
+      title = "Number of assets"
+    )
+}
+
+plot_portfolio_company_risk_distribution <- function(data) {
+  data %>%
+    ggplot() +
+    geom_col(aes(x = reorder(company_name, port_weight), y = new_metric, fill = relative_change)) +
+    scale_y_continuous(labels = scales::percent) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 90)
+    ) +
+    labs(
+      x = "Year",
+      caption = paste(
+        "Parameter:",
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ),
+      y = "% Portfolio Weight",
+      title = "Risk distribution among the biggest companies in the portfolio"
+    )
+}
+
+
+plot_company_risk_distribution <- function(data) {
+  data %>%
+    ggplot() +
+    geom_col(aes(x = reorder(company_name, port_weight), y = portfolio_final_owned_economic_value_share_sector_company, fill = relative_change)) +
+    scale_y_continuous(labels = scales::percent) +
+    coord_flip() +
+    theme_minimal() +
+    labs(
+      x = "Year",
+      caption = paste(
+        "Parameter:",
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ),
+      y = "",
+      title = "Risk distribution among the biggest companies in the portfolio"
+    )
 }
 
 
