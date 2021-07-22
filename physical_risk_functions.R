@@ -221,7 +221,6 @@ load_climate_data <- function(relevant_climate_data) {
               relative_change = "d"
             )
           )
-          Sys.sleep(0.5)
         }
       )
 
