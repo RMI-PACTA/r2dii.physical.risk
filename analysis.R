@@ -59,10 +59,10 @@ analysis <- analysis %>%
   mutate(company_final_owned_economic_value = linking_stake/100*direct_owned_economic_value)
 
 
-analysis <-  analysis %>%
-  inner_join(
-    eq_portfolio %>%
-      rename(target_company_id = company_id),
+analysis <-  eq_portfolio %>%
+  rename(target_company_id = company_id) %>%
+  left_join(
+    analysis,
     by = "target_company_id"
   )
 
@@ -71,6 +71,20 @@ analysis <-  analysis %>%
 # ========
 # add final indicators
 # ========
+
+eq_portfolio <- eq_portfolio %>%
+  left_join(
+    eq_portfolio %>%
+      distinct(holding_id, .keep_all = T) %>%
+      group_by(portfolio_name) %>%
+      mutate(
+        portfolio_market_value = sum(value_usd, na.rm = T),
+        port_weight = value_usd / portfolio_market_value
+      ) %>%
+      ungroup() %>%
+      select(holding_id, port_weight),
+    by = "holding_id"
+  )
 
 # calculate ownership weight
 analysis <- analysis %>%
@@ -92,7 +106,7 @@ analysis <- analysis %>%
 
 # calculate port weight
 analysis <- analysis %>%
-  mutate(portfolio_final_owned_economic_value = ownership_weight*company_final_owned_economic_value)
+  mutate(portfolio_final_owned_economic_value = if_else(stringr::str_detect(sector, financial_sector), ownership_weight*company_final_owned_economic_value, 0))
 
 # calculate portfolio_final_owned_economic_value_share_technology
 analysis <- analysis %>%
@@ -100,10 +114,22 @@ analysis <- analysis %>%
   mutate(portfolio_final_owned_economic_value_share_technology = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
+# calculate portfolio_final_owned_economic_value_share_technology_company
+analysis <- analysis %>%
+  group_by(portfolio_name, company_name, hazard, model, period, sector, technology, year) %>%
+  mutate(portfolio_final_owned_economic_value_share_technology_company = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+  ungroup()
+
 # calculate portfolio_final_owned_economic_value_share_sector
 analysis <- analysis %>%
   group_by(portfolio_name, hazard, model, period, sector, year) %>%
   mutate(portfolio_final_owned_economic_value_share_sector = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+  ungroup()
+
+# calculate portfolio_final_owned_economic_value_share_sector_company
+analysis <- analysis %>%
+  group_by(portfolio_name, company_name, hazard, model, period, sector, year) %>%
+  mutate(portfolio_final_owned_economic_value_share_sector_company = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 
@@ -129,6 +155,7 @@ eq_portfolio <- eq_portfolio %>%
   left_join(has_ald_with_geo_data, by = c("portfolio_name", "company_name")) %>%
   mutate(has_geo_ald = if_else(is.na(has_geo_ald), FALSE, TRUE)) %>%
   assertr::verify(nrow(.) == nrow(eq_portfolio))
+
 
 # plot overview stats
 eq_portfolio %>%
@@ -242,25 +269,18 @@ for(hazard in unique(analysis$hazard)[!is.na(unique(analysis$hazard))]) {
 
 }
 
-# create plots for
-for(hazard in unique(analysis$hazard)[!is.na(unique(analysis$hazard))]) {
 
-  sub_hazard <- hazard
+analysis %>%
+  filter(!is.na(model)) %>%
+  for_loops_climate_data(
+    parent_path = fs::path(here::here(), "test"),
+    fns = function(x, final_path) {
+      plot <- x %>%
+        plot_sector_absolute_portfolio_final_owned_economic_value() +
+        scale_fill_relative_risk()
 
-  plot <- analysis %>%
-    filter(hazard == sub_hazard, model == "MIROC5", period == "2071-2100") %>%
-    arrange(relative_change) %>%
-    ggplot() +
-    geom_col(aes(x = year, y = portfolio_final_owned_economic_value, fill = relative_change)) +
-    scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-    theme_minimal() +
-    facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 2) +
-    labs(
-      x = "Year",
-      y = "portfolio_final_owned_economic_value"
-    )
+      ggsave(fs::path(final_path, paste(scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"))
 
-  print(plot)
-
-}
+    }
+  )
 
