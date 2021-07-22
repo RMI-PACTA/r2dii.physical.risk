@@ -86,6 +86,9 @@ ald <- load_ald_data(
   )
 )
 
+ald <- ald %>%
+  filter(between(year, 2020, 2020))
+
 # =================================
 # load climate data
 # =================================
@@ -138,6 +141,12 @@ climate_data <- load_climate_data(
     )
   )
 )
+
+climate_data <- climate_data %>%
+  mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0))) # qestionable
+
+climate_data <- climate_data %>%
+  select(provider, scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id)
 
 # =================================
 # load portfolio
