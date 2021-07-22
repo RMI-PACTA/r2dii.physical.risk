@@ -51,7 +51,7 @@ create_db_pr_paths()
 
 # visualise folder structure
 show_folder_structure(path_pattern = "path_")
-fs::dir_tree(path_db_pr_parent, type = "directory")
+#fs::dir_tree(path_db_pr_parent, type = "directory") #to many entries to be Understandable
 
 # =================================
 # load financial data
