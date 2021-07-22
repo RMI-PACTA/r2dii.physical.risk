@@ -98,14 +98,14 @@ climate_data <- load_climate_data(
       data_path = fs::path(path_db_pr_climate_data, "CDF"),
       run_prepare_script_before_loading = FALSE,
       prepare_script_path = "prepare_CDF_data.R",
-      load_data = FALSE,
+      load_data = TRUE,
       parameter = list(
         scenarios = c("RCP85"),
         hazards = c(
           "cold_days_percent_wrt_10th_percentile_of_reference_period",
           #"heavy_precipitation_days_index_per_time_period",
-          "number_of_5day_heavy_precipitation_periods_per_time_period",
-          "number_of_cdd_periods_with_more_than_5days_per_time_period",
+          #"number_of_5day_heavy_precipitation_periods_per_time_period",
+          #"number_of_cdd_periods_with_more_than_5days_per_time_period",
           "warm_spell_periods_per_time_period"
           #"dry_days_index_per_time_period"
         ),
@@ -131,8 +131,8 @@ climate_data <- load_climate_data(
         models = NULL,
         periods = c(
           "2030",
-          "2050",
-          "2100"
+          "2050"
+          #"2100"
         )
       )
     )
