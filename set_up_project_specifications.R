@@ -44,10 +44,12 @@ path_db_pacta_project <-                                fs::path(r2dii.utils::db
 # ===============
 # set output paths
 # ===============
-path_db_pacta_project_pr_output <-                      fs::path(path_db_pacta_project, "06_Physical_Risk")
 
-# create non existing folders
-create_db_pr_paths()
+# PACTA project output path
+path_db_pacta_project_pr_output <-                      fs::path(path_db_pacta_project, "06_Physical_Risk")
+# create PACTA project output path
+create_db_pr_paths(paths = path_db_pacta_project_pr_output)
+
 
 # visualise folder structure
 show_folder_structure(path_pattern = "path_")
