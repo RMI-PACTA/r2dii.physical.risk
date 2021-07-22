@@ -9,11 +9,11 @@ if(TRUE) {
   ## climate data directory
   path_db_pr_climate_data <-                             fs::path(path_db_pr_parent, "climate_data")
   ### CDF climate data
-  path_db_pr_climate_data_CDF <-                         fs::path(path_db_pr_climate_data, "CDF_data")
-  path_db_pr_climate_data_CDF_raw <-                     fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk", "Climate Data Factory")
-  path_db_pr_climate_data_CDF_raw_geotiff <-             fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
-  path_db_pr_climate_data_CDF_raw_geotiff_indices <-     fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
-  path_db_pr_climate_data_CDF_raw_geotiff_variables <-   fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
+  path_db_pr_climate_data_CDF <-                          fs::path(path_db_pr_climate_data, "CDF")
+  path_db_pr_climate_data_CDF_raw <-                      fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk", "Climate Data Factory")
+  path_db_pr_climate_data_CDF_raw_geotiff <-              fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
+  path_db_pr_climate_data_CDF_raw_geotiff_indices <-      fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
+  path_db_pr_climate_data_CDF_raw_geotiff_variables <-    fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
   ### WRI climate data
   path_db_pr_climate_data_WRI <-                         fs::path(path_db_pr_climate_data, "WRI_data")
   ## ALD directory
@@ -84,8 +84,8 @@ climate_data <- load_climate_data(
     list(
       data_path = fs::path(path_db_pr_climate_data, "CDF"),
       run_prepare_script_before_loading = FALSE,
-      prepare_script_path = "physical_risk/prepare_CDF_data.R",
-      load_data = TRUE,
+      prepare_script_path = "prepare_CDF_data.R",
+      load_data = F,
       parameter = list(
         scenarios = c("RCP85"),
         hazards = c(
@@ -99,9 +99,27 @@ climate_data <- load_climate_data(
         models = c("MIROC5", "GFDL-ESM2M"),
         periods = c(
           "1991-2020",
-          "2021-2050",
-          "2051-2080",
-          "2071-2100"
+          "2021-2050"
+          #"2051-2080",
+          #"2071-2100"
+        )
+      )
+    ),
+
+    # climate analytics data
+    list(
+      data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"),
+      run_prepare_script_before_loading = FALSE,
+      prepare_script_path = "prepare_climate_analytics_data.R",
+      load_data = TRUE,
+      parameter = list(
+        scenarios = NULL,
+        hazards = "prsnAdjust",
+        models = NULL,
+        periods = c(
+          "2030",
+          "2050",
+          "2100"
         )
       )
     )
@@ -143,9 +161,25 @@ eq_portfolio <- vroom::vroom(
   )
 ) %>%
   dplyr::filter(investor_name == "BlackRock") %>%
-  dplyr::filter(portfolio_name %in% c("IE00BF4RFH31", "IE00B4L5Y983")) %>%
-  dplyr::filter(financial_sector != "Other") %>%
-  dplyr::slice_max(value_usd, n = 50)
+  dplyr::filter(
+    portfolio_name %in% c(
+      #"IE00BF4RFH31",
+      "IE00B4L5Y983")
+  ) %>%
+  #dplyr::filter(financial_sector != "Other") %>%
+  dplyr::slice_sample(n = 400)
+
+eq_portfolio <- eq_portfolio %>%
+  group_by(portfolio_name) %>%
+  mutate(portfolio_value = sum(value_usd, na.rm = TRUE)) %>%
+  group_by(portfolio_name, financial_sector) %>%
+  mutate(
+    sector_value = sum(value_usd, na.rm = TRUE),
+  ) %>%
+  ungroup() %>%
+  mutate(
+    sector_share = sector_value/portfolio_value
+  )
 
 total_portfolio <- total_portfolio %>%
   dplyr::group_by(portfolio_name) %>%
