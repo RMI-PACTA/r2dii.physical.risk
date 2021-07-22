@@ -91,14 +91,12 @@ ui = fluidPage(
              choices = c("raw_model_output", "relative_change", "absolute_change"),
              multiple = FALSE
            ),
-
            sliderInput(
-             "change",
+             "indicator_range",
              label = "Indicator Range",
              min = round(min(analysis$relative_change, na.rm = T),2),
              max = round(max(analysis$relative_change, na.rm = T),2),
              value = c(round(min(analysis$relative_change, na.rm = T),2), round(max(analysis$relative_change, na.rm = T),2))
-
            )
     ),
     column(9,
@@ -160,15 +158,6 @@ server = function(input, output, session) {
       choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(period) %>% pull(period)
     )
 
-    updateSliderInput(
-      session, "change",
-      label = "Hazard Change",
-      min = round(min(sub_analysis$relative_change, na.rm = T),2),
-      max = round(max(sub_analysis$relative_change, na.rm = T),2),
-      value = c(round(min(sub_analysis$relative_change, na.rm = T),2), round(max(sub_analysis$relative_change, na.rm = T),2))
-
-    )
-
     })
 
 
@@ -197,10 +186,10 @@ server = function(input, output, session) {
     if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
     if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
     if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
-    if(isTruthy(input$change)) {
-      if(input$indicator == "relative_change") sub_analysis <- sub_analysis %>% filter(between(relative_change, input$change[1], input$change[2]))
-      if(input$indicator == "raw_model_output") sub_analysis <- sub_analysis %>% filter(between(raw_model_output, input$change[1], input$change[2]))
-      if(input$indicator == "absolute_change") sub_analysis <- sub_analysis %>% filter(between(absolute_change, input$change[1], input$change[2]))
+    if(isTruthy(input$indicator_range)) {
+      if(input$indicator == "relative_change") sub_analysis <- sub_analysis %>% filter(between(relative_change, input$indicator_range[1], input$indicator_range[2]))
+      if(input$indicator == "raw_model_output") sub_analysis <- sub_analysis %>% filter(between(raw_model_output, input$indicator_range[1], input$indicator_range[2]))
+      if(input$indicator == "absolute_change") sub_analysis <- sub_analysis %>% filter(between(absolute_change, input$indicator_range[1], input$indicator_range[2]))
     }
 
     return(sub_analysis)
