@@ -137,7 +137,7 @@ server = function(input, output, session) {
     updateSelectInput(
       session, "scenario",
       label = "Scenario",
-      choices = sub_analysis %>% filter(has_geo_data == TRUE)%>% distinct(scenario) %>% pull(scenario)
+      choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(scenario) %>% pull(scenario)
     )
 
     updateSelectInput(
@@ -149,7 +149,7 @@ server = function(input, output, session) {
     updateSelectInput(
       session, "model",
       label = "Model",
-      choices = sub_analysis %>% filter(has_geo_data == TRUE)%>% distinct(model) %>% pull(model)
+      choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(model) %>% pull(model)
     )
 
     updateSelectInput(
@@ -160,12 +160,42 @@ server = function(input, output, session) {
 
     })
 
+  observeEvent(input$indicator, {
+
+    if (input$indicator == "relative_change") {
+      updateSliderInput(
+        session, "indicator_range",
+        min = round(min(analysis$relative_change, na.rm = T),2),
+        max = round(max(analysis$relative_change, na.rm = T),2),
+        value = c(round(min(analysis$relative_change, na.rm = T),2), round(max(analysis$relative_change, na.rm = T),2))
+      )
+    }
+
+    if (input$indicator == "absolute_change") {
+      updateSliderInput(
+        session, "indicator_range",
+        min = round(min(analysis$absolute_change, na.rm = T),2),
+        max = round(max(analysis$absolute_change, na.rm = T),2),
+        value = c(round(min(analysis$absolute_change, na.rm = T),2), round(max(analysis$absolute_change, na.rm = T),2))
+      )
+    }
+
+    if (input$indicator == "raw_model_output") {
+      updateSliderInput(
+        session, "indicator_range",
+        min = round(min(analysis$risk_level, na.rm = T),2),
+        max = round(max(analysis$risk_level, na.rm = T),2),
+        value = c(round(min(analysis$risk_level, na.rm = T),2), round(max(analysis$risk_level, na.rm = T),2))
+      )
+    }
+  })
+
 
   sub_analysis_financial_parameter <- reactive({
 
     sub_analysis_financial_parameter <- analysis
 
-    sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(year == 2020) %>% rename(raw_model_output = risk_level)
+    sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% rename(raw_model_output = risk_level)
 
     if(isTruthy(input$portfolio)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(portfolio_name == input$portfolio)}
     if(isTruthy(input$sector)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(sector == input$sector)}
