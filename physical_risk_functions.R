@@ -421,9 +421,9 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
   climate_data <- data
 
-  for(scenario in 1:length(unique(climate_data$scenario))) {
+  for(scenario in na.omit(unique(climate_data$scenario))) {
 
-    scenario_sub <<- unique(climate_data$scenario)[scenario]
+    scenario_sub <<- scenario
     cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
     climate_data_scenario_sub <- climate_data %>%
@@ -436,9 +436,9 @@ for_loops_climate_data <- function(data, parent_path, fns) {
       cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
     }
 
-    for(hazard in 1:length(unique(climate_data_scenario_sub$hazard))) {
+    for(hazard in unique(climate_data_scenario_sub$hazard)) {
 
-      hazard_sub <<- unique(climate_data_scenario_sub$hazard)[hazard]
+      hazard_sub <<- hazard
       cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
       climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
@@ -451,9 +451,9 @@ for_loops_climate_data <- function(data, parent_path, fns) {
         cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
       }
 
-      for(model in 1:length(unique(climate_data_scenario_sub_hazard_sub$model))) {
+      for(model in unique(climate_data_scenario_sub_hazard_sub$model)) {
 
-        model_sub <<- unique(climate_data_scenario_sub_hazard_sub$model)[model]
+        model_sub <<- model
         cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
         climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
@@ -466,9 +466,9 @@ for_loops_climate_data <- function(data, parent_path, fns) {
           cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
         }
 
-        for(period in 1:length(unique(climate_data_scenario_sub_hazard_sub_model_sub$period))) {
+        for(period in unique(climate_data_scenario_sub_hazard_sub_model_sub$period)) {
 
-          period_sub <<- unique(climate_data_scenario_sub_hazard_sub_model_sub$period)[period]
+          period_sub <<- period
           cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
           climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
