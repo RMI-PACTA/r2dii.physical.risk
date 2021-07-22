@@ -37,7 +37,7 @@ climate_data <- climate_data %>%
 # merge ALD with Climate Data
 # ========
 analysis <- ald %>%
-  left_join(climate_data %>% select(scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id), by = "asset_id") %>%
+  left_join(climate_data %>% select(provider, scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id), by = "asset_id") %>%
   mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0)))
 
 # ========
@@ -169,77 +169,11 @@ eq_portfolio %>%
   ) +
   theme_minimal()
 
+
 #
-
-for(hazard in unique(analysis$hazard)[!is.na(unique(analysis$hazard))]) {
-
-  sub_hazard <- hazard
-
-  plot <- analysis %>%
-    filter(hazard == sub_hazard, model == "MIROC5", period == "2071-2100") %>%
-    arrange(relative_change) %>%
-    ggplot() +
-    geom_col(aes(x = year, y = portfolio_final_owned_economic_value_share_technology, fill = relative_change)) +
-    scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-    scale_y_continuous(labels = scales::percent) +
-    facet_grid(portfolio_name ~ sector)  +
-    theme_minimal() +
-    theme(
-      text = element_text(size = 12)
-    ) +
-    labs(title = sub_hazard)
-
-  print(plot)
-
-}
-
-for(hazard in unique(analysis$hazard)[!is.na(unique(analysis$hazard))]) {
-
-  sub_hazard <- hazard
-
-  plot <- analysis %>%
-    filter(hazard == sub_hazard, model == "MIROC5", period == "2071-2100") %>%
-    arrange(relative_change) %>%
-    ggplot() +
-    geom_col(aes(x = year, y = portfolio_final_owned_economic_value_share_sector, fill = relative_change)) +
-    scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-    scale_y_continuous(labels = scales::percent) +
-    facet_grid(portfolio_name ~ sector)  +
-    theme_minimal() +
-    theme(
-      text = element_text(size = 12)
-    )
-  print(plot)
-
-}
-
-
-for(hazard in unique(analysis$hazard)[!is.na(unique(analysis$hazard))]) {
-
-  sub_hazard <- hazard
-
-  plot <- analysis %>%
-    filter(hazard == sub_hazard, model == "MIROC5", period == "2071-2100") %>%
-    distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>%
-    count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
-    arrange(relative_change) %>%
-    ggplot() +
-    geom_col(aes(x = year, y = n, fill = relative_change)) +
-    scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-    theme_minimal() +
-    facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 2) +
-    labs(
-      x = "Year",
-      y = "Number of assets"
-    )
-
-  print(plot)
-
-}
 
 
 analysis %>%
-  filter(!is.na(model)) %>%
   for_loops_climate_data(
     parent_path = fs::path(here::here(), "test"),
     fns = function(x, final_path) {
