@@ -1,8 +1,12 @@
 source("physical_risk_functions.R")
 
 # =================================
-# set project paths
+# set paths # naming convention (path_*, followed by location (e.g. db = dropbox / gh = github), followed by individual folder structures)
 # =================================
+
+# ================
+# set input paths
+# ===============
 
 # parent directory
 path_db_pr_parent <-                                    fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
@@ -24,16 +28,23 @@ path_db_pr_ald_prepared <-                              fs::path(path_db_pr_ald,
 path_db_pr_ald_distinct_geo_data <-                     fs::path(path_db_pr_ald, "distinct_geo_data")
 # Analysis Inputs Path
 path_db_analysis_inputs <-                              fs::path(r2dii.utils::dbox_port_00(),"07_AnalysisInputs", "2019Q4_05172021_2021")
+# data store path
+path_db_datastore_export <-                             fs::path(r2dii.utils::dbox_port_00(),"06_DataStore", "DataStore_export_05172021", "2020Q4")
 # Github Path
 path_gh_pr <-                                           fs::path(here::here(), "physical_risk")
+
+# ===============
+# set project paths
+# ===============
 
 # PACTA project path
 pacta_project <-                                        "mfm_v7"
 path_db_pacta_project <-                                fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
 
-# data store path
-ds_dropbox_path <-                                      fs::path(r2dii.utils::dbox_port_00(),"06_DataStore/DataStore_export_05172021/2020Q4")
-
+# ===============
+# set output paths
+# ===============
+path_db_pacta_project_pr_output <-                      fs::path(path_db_pacta_project, "06_Physical_Risk")
 
 # create non existing folders
 create_db_pr_paths()
@@ -46,8 +57,8 @@ fs::dir_tree(path_db_pr_parent, type = "directory")
 # load financial data
 # =================================
 
-asset_level_owners <- load_asset_level_owners(ds_dropbox_path = ds_dropbox_path)
-company_ownership_tree <- load_company_ownership_tree(ds_dropbox_path = ds_dropbox_path)
+asset_level_owners <- load_asset_level_owners(ds_dropbox_path = path_db_datastore_export)
+company_ownership_tree <- load_company_ownership_tree(ds_dropbox_path = path_db_datastore_export)
 
 # =================================
 # load ALD (all files + preparation script should follow the same name convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
@@ -246,7 +257,7 @@ test <- ald_test %>%
 
 masterdata <- vroom::vroom(
   fs::path(
-    ds_dropbox_path,
+    path_db_datastore_export,
     "masterdata_ownership",
     ext = "csv"
   )
