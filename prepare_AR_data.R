@@ -3,7 +3,7 @@ source("physical_risk_functions.R")
 # load ald
 ald <- vroom::vroom(
   fs::path(
-    ds_dropbox_path,
+    path_db_datastore_export,
     "credit_methodology_asset_production",
     ext = "csv"
   )
