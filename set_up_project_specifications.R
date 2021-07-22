@@ -164,9 +164,22 @@ total_portfolio <- total_portfolio %>%
   ) %>%
   ungroup() %>%
   mutate(
-    portfolio_sector_share = sector_value / portfolio_value,
+    portfolio_sector_share = portfolio_sector_value / portfolio_value,
     port_weight = value_usd / portfolio_value,
     ownership_weight = number_of_shares / current_shares_outstanding_all_classes
+  )
+
+total_portfolio <- total_portfolio %>%
+  group_by(portfolio_name, asset_type) %>%
+  mutate(portfolio_asset_type_value = sum(value_usd, na.rm = TRUE)) %>%
+  group_by(portfolio_name, asset_type, security_mapped_sector) %>%
+  mutate(
+    portfolio_asset_type_sector_value = sum(value_usd, na.rm = TRUE),
+  ) %>%
+  ungroup() %>%
+  mutate(
+    portfolio_asset_type_sector_share = portfolio_asset_type_sector_value / portfolio_asset_type_value,
+    asset_type_port_weight = value_usd / portfolio_asset_type_value
   )
 
 
