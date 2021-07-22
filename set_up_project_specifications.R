@@ -154,50 +154,29 @@ total_portfolio <- vroom::vroom(
   dplyr::filter(investor_name == "BlackRock") %>%
   dplyr::filter(portfolio_name %in% c("IE00BF4RFH31", "IE00B4L5Y983"))
 
-cb_portfolio <- vroom::vroom(
-  fs::path(
-    path_db_pacta_project,
-    "30_Processed_Inputs",
-    base::paste0(pacta_project, "_bonds_portfolio"),
-    ext = "csv"
-  )
-) %>%
-  dplyr::filter(investor_name == "BlackRock") %>%
-  dplyr::filter(portfolio_name %in% c("IE00BF4RFH31", "IE00B4L5Y983"))
 
-eq_portfolio <- vroom::vroom(
-  fs::path(
-    path_db_pacta_project,
-    "30_Processed_Inputs",
-    base::paste0(pacta_project, "_equity_portfolio"),
-    ext = "csv"
-  )
-) %>%
-  dplyr::filter(investor_name == "BlackRock") %>%
-  dplyr::filter(
-    portfolio_name %in% c(
-      #"IE00BF4RFH31",
-      "IE00B4L5Y983")
-  ) %>%
-  #dplyr::filter(financial_sector != "Other") %>%
-  dplyr::slice_sample(n = 400)
-
-eq_portfolio <- eq_portfolio %>%
+total_portfolio <- total_portfolio %>%
   group_by(portfolio_name) %>%
   mutate(portfolio_value = sum(value_usd, na.rm = TRUE)) %>%
-  group_by(portfolio_name, financial_sector) %>%
+  group_by(portfolio_name, security_mapped_sector) %>%
   mutate(
-    sector_value = sum(value_usd, na.rm = TRUE),
+    portfolio_sector_value = sum(value_usd, na.rm = TRUE),
   ) %>%
   ungroup() %>%
   mutate(
-    sector_share = sector_value/portfolio_value
+    portfolio_sector_share = sector_value / portfolio_value,
+    port_weight = value_usd / portfolio_value,
+    ownership_weight = number_of_shares / current_shares_outstanding_all_classes
   )
 
-total_portfolio <- total_portfolio %>%
-  dplyr::group_by(portfolio_name) %>%
-  dplyr::mutate(total_market_value = sum(value_usd, na.rm = T)) %>%
-  dplyr::mutate(holding_share = value_usd/total_market_value)
+
+cb_portfolio <- total_portfolio %>%
+  filter(asset_type == "Bonds")
+
+eq_portfolio <- total_portfolio %>%
+  filter(asset_type == "Equity") %>%
+  dplyr::slice_sample(n = 400)
+
 
 
 results <- readr::read_rds(
