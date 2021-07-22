@@ -279,7 +279,13 @@ analysis %>%
         plot_sector_absolute_portfolio_final_owned_economic_value() +
         scale_fill_relative_risk()
 
-      ggsave(fs::path(final_path, paste(scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"))
+      ggsave(fs::path(final_path, paste("absolute_sector_production", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"))
+
+      plot <- x %>%
+        plot_company_risk_distribution() +
+        scale_fill_relative_risk()
+
+      ggsave(fs::path(final_path, paste("company_risk_distribution",scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"))
 
     }
   )
