@@ -3,18 +3,31 @@ library(dplyr)
 library(ggplot2)
 
 
-###### too risky to create something unwanted (hasnt happend yet, but function should be handled with care)
-# create_db_pr_paths <- function() {
-#
-#   for(i in 1:length(ls(envir = .GlobalEnv)[stringr::str_detect(ls(envir = .GlobalEnv), "path_db_pr")])) {
-#     current_path <- get(envir = .GlobalEnv, ls(envir = .GlobalEnv)[stringr::str_detect(ls(envir = .GlobalEnv), "path_db_pr")][i])
-#
-#     if(!fs::dir_exists(current_path)) {
-#       fs::dir_create(current_path)
-#       message(paste("Just created", current_path))
-#     }
-#   }
-# }
+create_db_pr_paths <- function(paths = NULL) {
+
+  ###### too risky to create something unwanted (hasnt happend yet, but function should be handled with care)
+  # if (is.null(paths)) {
+  #   for(path in ls(envir = .GlobalEnv)[stringr::str_detect(ls(envir = .GlobalEnv), "path_db_pr")]) {
+  #     current_path <- get(envir = .GlobalEnv, path)
+  #
+  #     if(!fs::dir_exists(current_path)) {
+  #       fs::dir_create(current_path)
+  #       message(paste("Just created", current_path))
+  #     }
+  #   }
+  # }
+
+  if (!is.null(paths)) {
+    for(path in paths) {
+      current_path <- path
+
+      if(!fs::dir_exists(current_path)) {
+        fs::dir_create(current_path)
+        message(paste("Just created", current_path))
+      }
+    }
+  }
+}
 
 show_folder_structure <- function(path_pattern = "path") {
 
