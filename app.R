@@ -100,16 +100,21 @@ ui = fluidPage(
   ),
 
   linebreaks(4),
+  plotOutput(outputId = "asset_risk_histgram"),
 
+  plotOutput(outputId = "company_risk_distribution", height = 800),
+  plotOutput(outputId = "portfolio_company_risk_distribution", height = 800),
 
+  linebreaks(4),
 
-  plotOutput(outputId = "plot1"),
+  plotOutput(outputId = "number_of_assets"),
+
+  plotOutput(outputId = "relative_sector_production"),
   br(),
 
-  plotOutput(outputId = "plot3"),
   br(),
 
-  plotOutput(outputId = "plot4")
+  plotOutput(outputId = "absolute_sector_production")
 
 
 )
@@ -186,41 +191,47 @@ server = function(input, output, session) {
   #
   # })
 
+  sub_analysis <- reactive({
+
+    sub_analysis <- analysis
+
+    sub_analysis <- sub_analysis %>% filter(year == 2020) %>% rename(raw_model_output = risk_level)
+
+    if(isTruthy(input$portfolio)) {sub_analysis <- sub_analysis %>% filter(portfolio_name == input$portfolio)}
+    if(isTruthy(input$sector)) {sub_analysis <- sub_analysis %>% filter(sector == input$sector)}
+    if(isTruthy(input$company_name)) {sub_analysis <- sub_analysis %>% filter(company_name == input$company_name)}
+    if(isTruthy(input$ownership_level)) {sub_analysis <- sub_analysis %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
+
+    if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
+
+    if(isTruthy(input$scenario)) {sub_analysis <- sub_analysis %>% filter(scenario == input$scenario)}
+    if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
+    if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
+    if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
+    if(isTruthy(input$change)) {
+      if(input$indicator == "relative_change") sub_analysis <- sub_analysis %>% filter(between(relative_change, input$change[1], input$change[2]))
+      if(input$indicator == "raw_model_output") sub_analysis <- sub_analysis %>% filter(between(raw_model_output, input$change[1], input$change[2]))
+      if(input$indicator == "absolute_change") sub_analysis <- sub_analysis %>% filter(between(absolute_change, input$change[1], input$change[2]))
+    }
+
+    Encoding(sub_analysis$asset_name) <- "latin1"
+
+    return(sub_analysis)
+
+  })
+
   output$map = renderTmap({
 
+    sub_analysis <- sub_analysis()
+
     if(isTruthy(input$portfolio)) {
-
-      sub_analysis <- analysis
-
-      sub_analysis <- sub_analysis %>% filter(year == 2020) %>% rename(raw_model_output = risk_level)
-
-      if(isTruthy(input$portfolio)) {sub_analysis <- sub_analysis %>% filter(portfolio_name == input$portfolio)}
-      if(isTruthy(input$sector)) {sub_analysis <- sub_analysis %>% filter(sector == input$sector)}
-      if(isTruthy(input$company_name)) {sub_analysis <- sub_analysis %>% filter(company_name == input$company_name)}
-      if(isTruthy(input$ownership_level)) {sub_analysis <- sub_analysis %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
-
-      if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
-
-      if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
-      if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
-      if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
-      if(isTruthy(input$change)) {
-
-        if(input$indicator == "relative_change") sub_analysis <- sub_analysis %>% filter(between(relative_change, input$change[1], input$change[2]))
-        if(input$indicator == "raw_model_output") sub_analysis <- sub_analysis %>% filter(between(raw_model_output, input$change[1], input$change[2]))
-        if(input$indicator == "absolute_change") sub_analysis <- sub_analysis %>% filter(between(absolute_change, input$change[1], input$change[2]))
-
-      }
-
-      Encoding(sub_analysis$asset_name) <- "latin1"
-
 
       tm_shape(distinct_geo_data %>% inner_join(sub_analysis, by = "asset_id")) +
         tm_dots(
           id = "asset_name",
           col = input$indicator,
           size = 0.04,
-          popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit"),
+          popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
           #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
           style = "cont"
@@ -245,107 +256,122 @@ server = function(input, output, session) {
     }
   })
 
-  output$plot1 <- renderPlot({
+  output$asset_risk_histgram <- renderPlot({
+    sub_analysis <- sub_analysis()
 
-    sub_analysis <- analysis
+    if(isTruthy(input$portfolio)) {
+      sub_analysis %>%
+        #filter(sector == financial_sector) %>%
+        mutate(relative_change = round(relative_change, 1)) %>%
+        count(sector, relative_change) %>%
+        ggplot() +
+        geom_col(aes(x = relative_change, y = n, fill = sector), position = "dodge") +
+        #scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
+        scale_x_continuous(labels = scales::percent, limits = c(-1,1)) +
+        theme_minimal() +
+        theme(
+          text = element_text(size = 20)
+        ) +
+        labs()
+    }
+  })
 
-    if(isTruthy(input$portfolio)) {sub_analysis <- sub_analysis %>% filter(portfolio_name == input$portfolio)}
-    if(isTruthy(input$sector)) {sub_analysis <- sub_analysis %>% filter(sector == input$sector)}
-    if(isTruthy(input$company_name)) {sub_analysis <- sub_analysis %>% filter(company_name == input$company_name)}
-    if(isTruthy(input$ownership_level)) {sub_analysis <- sub_analysis %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
+  output$company_risk_distribution <- renderPlot({
+    sub_analysis <- sub_analysis()
 
-    if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
-    if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
-    if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
-    if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
-    if(isTruthy(input$change)) {sub_analysis <- sub_analysis %>% filter(between(relative_change, input$change[1], input$change[2]))}
+    sub_analysis <- sub_analysis %>%
+      semi_join(
+        sub_analysis %>%
+          filter(sector == financial_sector) %>%
+          distinct(company_name, .keep_all = T) %>%
+          slice_max(port_weight, n = 10),
+        by = "company_name"
+      )
+
+    sub_analysis <- sub_analysis %>%
+      mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
+      filter(sector == financial_sector) %>%
+      group_by(company_name, port_weight, relative_change) %>%
+      summarise(
+        portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
+      ) %>%
+      arrange(relative_change)
 
     sub_analysis %>%
-      arrange(relative_change) %>%
-      ggplot() +
-      geom_col(aes(x = as.character(year), y = portfolio_final_owned_economic_value_share_sector, fill = relative_change)) +
-      scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-      #scale_y_continuous(labels = scales::percent) +
-      facet_grid(portfolio_name ~ sector)  +
-      theme_minimal() +
-      theme(
-        text = element_text(size = 20)
-      ) +
-      labs(
-        title = "Share Sector Production",
-        y = "",
-        x = "Year"
-      )
+      plot_company_risk_distribution() +
+      scale_fill_relative_risk()
+
+  })
+
+  output$portfolio_company_risk_distribution <- renderPlot({
+    sub_analysis <- sub_analysis()
+
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
+
+    sub_analysis <- sub_analysis %>%
+      filter(sector == financial_sector) %>%
+      group_by(company_name, port_weight, relative_change) %>%
+      summarise(
+        portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
+      ) %>%
+      mutate(new_metric = port_weight*portfolio_final_owned_economic_value_share_sector_company) %>%
+      arrange(relative_change)
+
+    sub_analysis %>%
+      plot_portfolio_company_risk_distribution() +
+      scale_fill_relative_risk()
   })
 
 
-  output$plot3 <- renderPlot({
+  output$relative_sector_production <- renderPlot({
 
-    sub_analysis <- analysis
+    sub_analysis <- sub_analysis()
 
-    if(isTruthy(input$portfolio)) {sub_analysis <- sub_analysis %>% filter(portfolio_name == input$portfolio)}
-    if(isTruthy(input$sector)) {sub_analysis <- sub_analysis %>% filter(sector == input$sector)}
-    if(isTruthy(input$company_name)) {sub_analysis <- sub_analysis %>% filter(company_name == input$company_name)}
-    if(isTruthy(input$ownership_level)) {sub_analysis <- sub_analysis %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
-
-    if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
-
-    if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
-    if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
-    if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
-    if(isTruthy(input$change)) {sub_analysis <- sub_analysis %>% filter(between(relative_change, input$change[1], input$change[2]))}
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
-      distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>%
-      count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
-      arrange(relative_change) %>%
-      ggplot() +
-      geom_col(aes(x = as.character(year), y = n, fill = relative_change)) +
-      scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-      theme_minimal() +
-      facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
-      theme(
-        text = element_text(size = 20)
-      ) +
-      labs(
-        x = "Year",
-        title = "Number of assets",
-        y = ""
-      )
+      plot_sector_relative_portfolio_final_owned_economic_value() +
+      scale_fill_relative_risk()
   })
 
-  output$plot4 <- renderPlot({
 
-    sub_analysis <- analysis
+  output$number_of_assets <- renderPlot({
 
-    if(isTruthy(input$portfolio)) {sub_analysis <- sub_analysis %>% filter(portfolio_name == input$portfolio)}
-    if(isTruthy(input$sector)) {sub_analysis <- sub_analysis %>% filter(sector == input$sector)}
-    if(isTruthy(input$company_name)) {sub_analysis <- sub_analysis %>% filter(company_name == input$company_name)}
-    if(isTruthy(input$ownership_level)) {sub_analysis <- sub_analysis %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
+    sub_analysis <- sub_analysis()
 
-    if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
-
-    if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
-    if(isTruthy(input$period)) {sub_analysis <- sub_analysis %>% filter(period == input$period)}
-    if(isTruthy(input$hazard)) {sub_analysis <- sub_analysis %>% filter(hazard == input$hazard)}
-    if(isTruthy(input$change)) {sub_analysis <- sub_analysis %>% filter(between(relative_change, input$change[1], input$change[2]))}
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
-      arrange(relative_change) %>%
-      ggplot() +
-      geom_col(aes(x = as.character(year), y = portfolio_final_owned_economic_value, fill = relative_change)) +
-      scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-      theme_minimal() +
-      facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
-      theme(
-        text = element_text(size = 20)
-      ) +
-      labs(
-        x = "Year",
-        title = "Absolute Sector Production",
-        y = ""
-      )
+      plot_sector_number_of_assets() +
+      scale_fill_relative_risk()
+  })
+
+  output$absolute_sector_production <- renderPlot({
+
+    sub_analysis <- sub_analysis()
+
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
+
+    sub_analysis %>%
+      plot_sector_absolute_portfolio_final_owned_economic_value() +
+      scale_fill_relative_risk()
   })
 
 }
