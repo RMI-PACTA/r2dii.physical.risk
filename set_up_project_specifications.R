@@ -3,37 +3,37 @@ source("physical_risk_functions.R")
 # =================================
 # set project paths
 # =================================
-if(TRUE) {
-  # parent directory
-  path_db_pr_parent <-                                    fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
-  ## climate data directory
-  path_db_pr_climate_data <-                              fs::path(path_db_pr_parent, "climate_data")
-  ### CDF climate data
-  path_db_pr_climate_data_CDF <-                          fs::path(path_db_pr_climate_data, "CDF")
-  path_db_pr_climate_data_CDF_raw <-                      fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk", "Climate Data Factory")
-  path_db_pr_climate_data_CDF_raw_geotiff <-              fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
-  path_db_pr_climate_data_CDF_raw_geotiff_indices <-      fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
-  path_db_pr_climate_data_CDF_raw_geotiff_variables <-    fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
-  ### WRI climate data
-  path_db_pr_climate_data_WRI <-                          fs::path(path_db_pr_climate_data, "WRI_data")
-  ## ALD directory
-  path_db_pr_ald <-                                       fs::path(path_db_pr_parent, "asset_level_data")
-  ### full ALD data
-  path_db_pr_ald_prepared <-                              fs::path(path_db_pr_ald, "prepared_ald")
-  ### OSM data
-  path_db_pr_ald_distinct_geo_data <-                     fs::path(path_db_pr_ald, "distinct_geo_data")
-  # Analysis Inputs Path
-  path_db_analysis_inputs <-                              fs::path(r2dii.utils::dbox_port_00(),"07_AnalysisInputs", "2019Q4_05172021_2021")
-  # Github Path
-  path_gh_pr <-                                           fs::path(here::here(), "physical_risk")
 
-  # PACTA project path
-  pacta_project <-                                        "mfm_v7"
-  path_db_pacta_project <-                                fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
+# parent directory
+path_db_pr_parent <-                                    fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
+## climate data directory
+path_db_pr_climate_data <-                              fs::path(path_db_pr_parent, "climate_data")
+### CDF climate data
+path_db_pr_climate_data_CDF <-                          fs::path(path_db_pr_climate_data, "CDF")
+path_db_pr_climate_data_CDF_raw <-                      fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk", "Climate Data Factory")
+path_db_pr_climate_data_CDF_raw_geotiff <-              fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
+path_db_pr_climate_data_CDF_raw_geotiff_indices <-      fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
+path_db_pr_climate_data_CDF_raw_geotiff_variables <-    fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
+### WRI climate data
+path_db_pr_climate_data_WRI <-                          fs::path(path_db_pr_climate_data, "WRI_data")
+## ALD directory
+path_db_pr_ald <-                                       fs::path(path_db_pr_parent, "asset_level_data")
+### full ALD data
+path_db_pr_ald_prepared <-                              fs::path(path_db_pr_ald, "prepared_ald")
+### OSM data
+path_db_pr_ald_distinct_geo_data <-                     fs::path(path_db_pr_ald, "distinct_geo_data")
+# Analysis Inputs Path
+path_db_analysis_inputs <-                              fs::path(r2dii.utils::dbox_port_00(),"07_AnalysisInputs", "2019Q4_05172021_2021")
+# Github Path
+path_gh_pr <-                                           fs::path(here::here(), "physical_risk")
 
-  # data store path
-  ds_dropbox_path <-                                      fs::path(r2dii.utils::dbox_port_00(),"06_DataStore/DataStore_export_05172021/2020Q4")
-}
+# PACTA project path
+pacta_project <-                                        "mfm_v7"
+path_db_pacta_project <-                                fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
+
+# data store path
+ds_dropbox_path <-                                      fs::path(r2dii.utils::dbox_port_00(),"06_DataStore/DataStore_export_05172021/2020Q4")
+
 
 # create non existing folders
 create_db_pr_paths()
