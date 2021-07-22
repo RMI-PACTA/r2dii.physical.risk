@@ -50,6 +50,14 @@ ui = fluidPage(
            h2("Climate Parameter"),
 
            selectInput(
+             "provider",
+             label = "Climate Data Provider",
+             choices = analysis %>% filter(has_geo_data == TRUE) %>% distinct(provider) %>% pull(provider),
+             multiple = FALSE,
+             selected = (analysis %>% filter(has_geo_data == TRUE) %>% distinct(provider) %>% pull(provider))[1]
+           ),
+
+           selectInput(
              "scenario",
              label = "Scenario",
              choices = analysis %>% filter(has_geo_data == TRUE) %>% distinct(scenario) %>% pull(scenario),
@@ -123,86 +131,67 @@ ui = fluidPage(
 
 server = function(input, output, session) {
 
+  observeEvent(input$provider, {
 
-  # observeEvent(input$company_name, {
-  #
-  #   sub_company_name <- input$company_name
-  #
-  #   sub_analysis <- analysis %>%
-  #     filter(company_name %in% sub_company_name)
-  #
-  #   updateSelectInput(
-  #     session, "portfolio",
-  #     label = "Portfolio",
-  #     choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(portfolio_name) %>% pull(portfolio_name),
-  #     selected = (sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(portfolio_name) %>% pull(portfolio_name))[1]
-  #   )
-  #
-  #   updateSelectInput(
-  #     session,"sector",
-  #     label = "Sector",
-  #     choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(sector) %>% pull(sector),
-  #   )
-  #
-  #   updateSelectInput(
-  #     session,"country",
-  #     label = "Asset Location",
-  #     choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(asset_location) %>% pull(asset_location),
-  #   )
-  #
-  #   updateSliderInput(
-  #     session, "ownership_level",
-  #     label = "Ownership Level",
-  #     min = min(sub_analysis %>% distinct(asset_location, .keep_all = T) %>% pull(ownership_level), na.rm = T),
-  #     max = max(sub_analysis %>% distinct(asset_location, .keep_all = T) %>% pull(ownership_level), na.rm = T),
-  #     value = c(
-  #       min(sub_analysis %>% distinct(asset_location, .keep_all = T) %>% pull(ownership_level), na.rm = T),
-  #       max(sub_analysis %>% distinct(asset_location,  .keep_all = T) %>% pull(ownership_level), na.rm = T)
-  #     )
-  #   )
-  #
-  #   # updateSelectInput(
-  #   #   session, "hazard",
-  #   #   label = "Hazard",
-  #   #   choices = analysis %>% filter(has_geo_data == TRUE) %>% distinct(hazard) %>% pull(hazard),
-  #   #   selected = (analysis %>% filter(has_geo_data == TRUE) %>% distinct(hazard) %>% pull(hazard))[1]
-  #   # )
-  #   #
-  #   # updateSelectInput(
-  #   #   session, "model",
-  #   #   label = "Model",
-  #   #   choices = analysis %>% filter(has_geo_data == TRUE)%>% distinct(model)  %>% pull(model)
-  #   # )
-  #   #
-  #   # updateSelectInput(
-  #   #   session, "period",
-  #   #   label = "Period",
-  #   #   choices = analysis %>% filter(has_geo_data == TRUE) %>% distinct(period) %>% pull(period)
-  #   # )
-  #
-  #   updateSliderInput(
-  #     session, "change",
-  #     label = "Hazard Change",
-  #     min = round(min(sub_analysis$relative_change, na.rm = T),2),
-  #     max = round(max(sub_analysis$relative_change, na.rm = T),2),
-  #     value = c(round(min(sub_analysis$relative_change, na.rm = T),2), round(max(sub_analysis$relative_change, na.rm = T),2))
-  #
-  #   )
-  #
-  # })
+    sub_analysis <- analysis %>%
+      filter(provider %in% input$provider)
+
+    updateSelectInput(
+      session, "scenario",
+      label = "Scenario",
+      choices = sub_analysis %>% filter(has_geo_data == TRUE)%>% distinct(scenario) %>% pull(scenario)
+    )
+
+    updateSelectInput(
+      session, "hazard",
+      label = "Hazard",
+      choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(hazard) %>% pull(hazard),
+    )
+
+    updateSelectInput(
+      session, "model",
+      label = "Model",
+      choices = sub_analysis %>% filter(has_geo_data == TRUE)%>% distinct(model) %>% pull(model)
+    )
+
+    updateSelectInput(
+      session, "period",
+      label = "Period",
+      choices = sub_analysis %>% filter(has_geo_data == TRUE) %>% distinct(period) %>% pull(period)
+    )
+
+    updateSliderInput(
+      session, "change",
+      label = "Hazard Change",
+      min = round(min(sub_analysis$relative_change, na.rm = T),2),
+      max = round(max(sub_analysis$relative_change, na.rm = T),2),
+      value = c(round(min(sub_analysis$relative_change, na.rm = T),2), round(max(sub_analysis$relative_change, na.rm = T),2))
+
+    )
+
+    })
+
+
+  sub_analysis_financial_parameter <- reactive({
+
+    sub_analysis_financial_parameter <- analysis
+
+    sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(year == 2020) %>% rename(raw_model_output = risk_level)
+
+    if(isTruthy(input$portfolio)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(portfolio_name == input$portfolio)}
+    if(isTruthy(input$sector)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(sector == input$sector)}
+    if(isTruthy(input$company_name)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(company_name == input$company_name)}
+    if(isTruthy(input$ownership_level)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
+    if(isTruthy(input$country)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(asset_location == input$country)}
+
+    Encoding(sub_analysis_financial_parameter$asset_name) <- "latin1"
+
+    return(sub_analysis_financial_parameter)
+  })
 
   sub_analysis <- reactive({
 
-    sub_analysis <- analysis
-
-    sub_analysis <- sub_analysis %>% filter(year == 2020) %>% rename(raw_model_output = risk_level)
-
-    if(isTruthy(input$portfolio)) {sub_analysis <- sub_analysis %>% filter(portfolio_name == input$portfolio)}
-    if(isTruthy(input$sector)) {sub_analysis <- sub_analysis %>% filter(sector == input$sector)}
-    if(isTruthy(input$company_name)) {sub_analysis <- sub_analysis %>% filter(company_name == input$company_name)}
-    if(isTruthy(input$ownership_level)) {sub_analysis <- sub_analysis %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
-
-    if(isTruthy(input$country)) {sub_analysis <- sub_analysis %>% filter(asset_location == input$country)}
+    sub_analysis <- sub_analysis_financial_parameter()
 
     if(isTruthy(input$scenario)) {sub_analysis <- sub_analysis %>% filter(scenario == input$scenario)}
     if(isTruthy(input$model)) {sub_analysis <- sub_analysis %>% filter(model == input$model)}
@@ -214,18 +203,23 @@ server = function(input, output, session) {
       if(input$indicator == "absolute_change") sub_analysis <- sub_analysis %>% filter(between(absolute_change, input$change[1], input$change[2]))
     }
 
-    Encoding(sub_analysis$asset_name) <- "latin1"
-
     return(sub_analysis)
   })
 
+
+
   output$map = renderTmap({
 
-    sub_analysis <- sub_analysis()
+    sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
+    sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
 
     if(isTruthy(input$portfolio)) {
 
-      tm_shape(distinct_geo_data %>% inner_join(sub_analysis, by = "asset_id")) +
+      tm_shape(
+        distinct_geo_data %>%
+          inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+          left_join(sub_analysis, by = "asset_id")
+        ) +
         tm_dots(
           id = "asset_name",
           col = input$indicator,
@@ -278,10 +272,10 @@ server = function(input, output, session) {
   output$company_risk_distribution <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    model_sub <- input$model
-    scenario_sub <- input$scenario
-    hazard_sub <- input$hazard
-    period_sub <- input$period
+    model_sub <<- input$model
+    scenario_sub <<- input$scenario
+    hazard_sub <<- input$hazard
+    period_sub <<- input$period
 
     sub_analysis <- sub_analysis %>%
       semi_join(
@@ -310,10 +304,10 @@ server = function(input, output, session) {
   output$portfolio_company_risk_distribution <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    model_sub <- input$model
-    scenario_sub <- input$scenario
-    hazard_sub <- input$hazard
-    period_sub <- input$period
+    model_sub <<- input$model
+    scenario_sub <<- input$scenario
+    hazard_sub <<- input$hazard
+    period_sub <<- input$period
 
     sub_analysis <- sub_analysis %>%
       filter(sector == financial_sector) %>%
@@ -334,10 +328,10 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis()
 
-    model_sub <- input$model
-    scenario_sub <- input$scenario
-    hazard_sub <- input$hazard
-    period_sub <- input$period
+    model_sub <<- input$model
+    scenario_sub <<- input$scenario
+    hazard_sub <<- input$hazard
+    period_sub <<- input$period
 
     sub_analysis %>%
       plot_sector_relative_portfolio_final_owned_economic_value() +
@@ -349,10 +343,10 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis()
 
-    model_sub <- input$model
-    scenario_sub <- input$scenario
-    hazard_sub <- input$hazard
-    period_sub <- input$period
+    model_sub <<- input$model
+    scenario_sub <<- input$scenario
+    hazard_sub <<- input$hazard
+    period_sub <<- input$period
 
     sub_analysis %>%
       plot_sector_number_of_assets() +
@@ -363,10 +357,10 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis()
 
-    model_sub <- input$model
-    scenario_sub <- input$scenario
-    hazard_sub <- input$hazard
-    period_sub <- input$period
+    model_sub <<- input$model
+    scenario_sub <<- input$scenario
+    hazard_sub <<- input$hazard
+    period_sub <<- input$period
 
     sub_analysis %>%
       plot_sector_absolute_portfolio_final_owned_economic_value() +
@@ -377,5 +371,6 @@ server = function(input, output, session) {
 
 
 shinyApp(ui, server)
+
 
 
