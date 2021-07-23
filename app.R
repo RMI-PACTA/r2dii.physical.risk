@@ -7,6 +7,10 @@ linebreaks <- function(n){HTML(strrep(br(), n))}
 
 distinct_geo_data <- load_distinct_geo_data()
 
+result_files <- list.files(path_db_pacta_project_pr_output, recursive = T)[stringr::str_detect(list.files(path_db_pacta_project_pr_output, recursive = T), "results")]
+
+analysis <- vroom::vroom(fs::path(path_db_pacta_project_pr_output, result_files))
+
 ui = fluidPage(
   fluidRow(
     column(3,
