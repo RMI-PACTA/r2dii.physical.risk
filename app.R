@@ -2,6 +2,7 @@ library(shiny)    # for shiny apps
 library(leaflet)  # renderLeaflet function
 library(spData)   # loads the world dataset
 library(tmap)
+
 linebreaks <- function(n){HTML(strrep(br(), n))}
 
 distinct_geo_data <- load_distinct_geo_data()
@@ -234,26 +235,36 @@ server = function(input, output, session) {
 
     if(isTruthy(input$portfolio)) {
 
-      tm_shape(
-        distinct_geo_data %>%
-          inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-          left_join(sub_analysis, by = "asset_id")
+      if(input$indicator == "relative_change") {
+        tm_shape(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
         ) +
-        tm_dots(
-          id = "asset_name",
-          col = input$indicator,
-          size = 0.04,
-          popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-          palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-          #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
-          style = "cont"
-        ) #+
-      #
-      #   tm_shape(
-      #     scenario %>%
-      #       slice(c(500000:550000))
-      #     ) +
-      #   tm_polygons(col = "indicator", border.alpha = 0, alpha = 0.5)
+          tm_dots(
+            id = "asset_name",
+            col = input$indicator,
+            size = 0.04,
+            popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+            palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            breaks = c(-2, -1, 0, 1, 2),
+            style = "cont"
+          )
+      } else {
+        tm_shape(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
+        ) +
+          tm_dots(
+            id = "asset_name",
+            col = input$indicator,
+            size = 0.04,
+            popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+            palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            style = "cont"
+          )
+      }
 
 
     } else {
@@ -271,21 +282,15 @@ server = function(input, output, session) {
   output$asset_risk_histgram <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    if(isTruthy(input$portfolio)) {
+    model_sub <<- input$model
+    scenario_sub <<- input$scenario
+    hazard_sub <<- input$hazard
+    period_sub <<- input$period
+
       sub_analysis %>%
-        filter(sector == security_mapped_sector) %>%
-        mutate(relative_change = round(relative_change, 1)) %>%
-        count(sector, relative_change) %>%
-        ggplot() +
-        geom_col(aes(x = relative_change, y = n, fill = sector), position = "dodge") +
-        #scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1)) +
-        scale_x_continuous(labels = scales::percent, limits = c(-1,1)) +
-        theme_minimal() +
-        theme(
-          text = element_text(size = 20)
-        ) +
-        labs()
-    }
+        plot_asset_risk_histgram() +
+        scale_fill_relative_risk()
+
   })
 
   output$company_risk_distribution <- renderPlot({
