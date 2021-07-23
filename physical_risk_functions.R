@@ -544,6 +544,28 @@ plot_company_risk_distribution <- function(data) {
     )
 }
 
+plot_asset_risk_histgram <- function(data) {
+  data %>%
+    mutate(relative_change = round(relative_change, 1)) %>%
+    count(sector, relative_change) %>%
+    ggplot() +
+    geom_col(aes(x = relative_change, y = n, fill = relative_change), position = "dodge") +
+    scale_x_continuous(labels = scales::percent, limits = c(-2,2)) +
+    theme_minimal() +
+    labs(
+      x = "Relative Change",
+      caption = paste(
+        "Parameter:",
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ),
+      y = "",
+      title = "Risk distribution among the identified assets in the portfolio"
+    )
+}
+
 
 check_roll_up <- function(choose_year) {
 
