@@ -273,7 +273,7 @@ server = function(input, output, session) {
 
     if(isTruthy(input$portfolio)) {
       sub_analysis %>%
-        #filter(sector == financial_sector) %>%
+        filter(sector == security_mapped_sector) %>%
         mutate(relative_change = round(relative_change, 1)) %>%
         count(sector, relative_change) %>%
         ggplot() +
@@ -299,7 +299,7 @@ server = function(input, output, session) {
     sub_analysis <- sub_analysis %>%
       semi_join(
         sub_analysis %>%
-          filter(sector == financial_sector) %>%
+          filter(sector == security_mapped_sector) %>%
           distinct(company_name, .keep_all = T) %>%
           slice_max(port_weight, n = 10),
         by = "company_name"
@@ -307,7 +307,7 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis %>%
       mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
-      filter(sector == financial_sector) %>%
+      filter(sector == security_mapped_sector) %>%
       group_by(company_name, port_weight, relative_change) %>%
       summarise(
         portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
@@ -329,7 +329,7 @@ server = function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis <- sub_analysis %>%
-      filter(sector == financial_sector) %>%
+      filter(sector == security_mapped_sector) %>%
       group_by(company_name, port_weight, relative_change) %>%
       summarise(
         portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
@@ -353,6 +353,7 @@ server = function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis %>%
+      filter(sector == security_mapped_sector) %>%
       plot_sector_relative_portfolio_final_owned_economic_value() +
       scale_fill_relative_risk()
   })
@@ -368,6 +369,7 @@ server = function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis %>%
+      filter(sector == security_mapped_sector) %>%
       plot_sector_number_of_assets() +
       scale_fill_relative_risk()
   })
@@ -382,6 +384,7 @@ server = function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis %>%
+      filter(sector == security_mapped_sector) %>%
       plot_sector_absolute_portfolio_final_owned_economic_value() +
       scale_fill_relative_risk()
   })
