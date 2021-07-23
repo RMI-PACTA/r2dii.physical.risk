@@ -451,6 +451,9 @@ plot_sector_absolute_portfolio_final_owned_economic_value <- function(data) {
       ),
       y = "",
       title = "Absolute Sector Production"
+    ) +
+    theme(
+      plot.background = element_rect(fill = "white")
     )
 }
 
@@ -473,6 +476,9 @@ plot_sector_relative_portfolio_final_owned_economic_value <- function(data) {
       ),
       y = "",
       title = "Share Sector Production"
+    ) +
+    theme(
+      plot.background = element_rect(fill = "white")
     )
 }
 
@@ -496,6 +502,9 @@ plot_sector_number_of_assets <- function(data) {
       ),
       y = "",
       title = "Number of assets"
+    ) +
+    theme(
+      plot.background = element_rect(fill = "white")
     )
 }
 
@@ -528,6 +537,9 @@ plot_portfolio_company_risk_distribution <- function(data) {
       ),
       y = "% Portfolio Weight",
       title = "Risk distribution among the biggest companies in the portfolio"
+    ) +
+    theme(
+      plot.background = element_rect(fill = "white")
     )
 }
 
@@ -567,6 +579,9 @@ plot_company_risk_distribution <- function(data) {
       ),
       y = "",
       title = "Risk distribution among the biggest companies in the portfolio"
+    ) +
+    theme(
+      plot.background = element_rect(fill = "white")
     )
 }
 
@@ -589,6 +604,9 @@ plot_asset_risk_histgram <- function(data) {
       ),
       y = "",
       title = "Risk distribution among the identified assets in the portfolio"
+    ) +
+    theme(
+      plot.background = element_rect(fill = "white")
     )
 }
 
@@ -697,7 +715,10 @@ plot_portfolio_geo_ald_value <- function(data) {
       title = "Portfolio Value of holdings associated with at least one ALD",
       fill = "Has ALD"
     ) +
-    theme_minimal()
+    theme_minimal() +
+    theme(
+      plot.background = element_rect(fill = "white")
+    )
 }
 
 plot_portfolio_geo_ald_holdings <- function(data) {
@@ -721,7 +742,10 @@ plot_portfolio_geo_ald_holdings <- function(data) {
       title = "Holdings associated with at least one ALD",
       fill = "Has ALD"
     ) +
-    theme_minimal()
+    theme_minimal() +
+    theme(
+      plot.background = element_rect(fill = "white")
+    )
 }
 
 
