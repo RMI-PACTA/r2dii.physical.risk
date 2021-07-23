@@ -216,7 +216,10 @@ server = function(input, output, session) {
     if(isTruthy(input$company_name)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(company_name == input$company_name)}
     if(isTruthy(input$ownership_level)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
     if(isTruthy(input$country)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(asset_location == input$country)}
-    if(isTruthy(input$allocation)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(allocation == input$allocation)}
+    if(isTruthy(input$allocation)) {
+      if(input$allocation == "Ownership") sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(allocation == "ownership")
+      if(input$allocation == "Portfolio Weight") sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(allocation == "port_weight")
+    }
 
     Encoding(sub_analysis_financial_parameter$asset_name) <- "latin1"
 
