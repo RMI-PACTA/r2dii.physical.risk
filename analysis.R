@@ -4,6 +4,8 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   eq_portfolio_sub <- eq_portfolio %>%
     filter(portfolio_name == portfolio)
 
+  cat(crayon::red(crayon::bold("Processing", portfolio, "\n")))
+
   path_db_pacta_project_pr_output_equity_portfolio <- fs::path(path_db_pacta_project_pr_output_equity, portfolio)
 
   create_db_pr_paths(paths = path_db_pacta_project_pr_output_equity_portfolio)
@@ -114,13 +116,13 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   eq_portfolio_sub %>%
     plot_portfolio_geo_ald_value()
 
-  save_overview_plot(name = "portfolio_geo_ald_value", path = path_db_pacta_project_pr_output_equity_portfolio_allocation)
+  save_overview_plot(name = "portfolio_geo_ald_value", path = path_db_pacta_project_pr_output_equity_portfolio)
 
   # plot overview stats
   eq_portfolio_sub %>%
     plot_portfolio_geo_ald_holdings()
 
-  save_overview_plot(name = "portfolio_geo_ald_holdings", path = path_db_pacta_project_pr_output_equity_portfolio_allocation)
+  save_overview_plot(name = "portfolio_geo_ald_holdings", path = path_db_pacta_project_pr_output_equity_portfolio)
 
 
   # =================================
@@ -132,6 +134,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
     create_db_pr_paths(paths = path_db_pacta_project_pr_output_equity_portfolio_allocation)
 
+    cat(crayon::green(crayon::bold("Processing", allocation, "\n")))
 
     if (allocation == "ownership") {
       # calculate portfolio_economic_value using ownership
