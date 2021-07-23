@@ -167,6 +167,10 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
       mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
+    # add allocation method
+    analysis <- analysis %>%
+      mutate(allocation = allocation)
+
     # plot results
     path_db_pacta_project_pr_output_equity_portfolio_plots <- fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation, "plots")
 
