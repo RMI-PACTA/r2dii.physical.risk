@@ -232,8 +232,7 @@ cb_portfolio <- total_portfolio %>%
   filter(asset_type == "Bonds")
 
 eq_portfolio <- total_portfolio %>%
-  filter(asset_type == "Equity") %>%
-  dplyr::slice_sample(n = 150)
+  filter(asset_type == "Equity")
 
 
 # =================================
