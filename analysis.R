@@ -120,14 +120,14 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
     filter(!is.na(asset_id)) %>%
     distinct(portfolio_name, company_name, asset_id) %>%
     group_by(portfolio_name, company_name) %>%
-    summarise(number_of_assets = n()) %>%
+    summarise(number_of_assets = n(), .groups = "keep") %>%
     mutate(has_ald = TRUE)
 
   has_ald_with_geo_data <- analysis %>%
     filter(!is.na(asset_id), has_geo_data == TRUE) %>%
     distinct(portfolio_name, company_name, asset_id) %>%
     group_by(portfolio_name, company_name) %>%
-    summarise(number_of_assets_with_geo_data = n()) %>%
+    summarise(number_of_assets_with_geo_data = n(), .groups = "keep") %>%
     mutate(has_geo_ald = TRUE)
 
   # join overview stats to eq portfolio
