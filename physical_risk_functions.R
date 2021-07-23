@@ -368,61 +368,77 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
   climate_data <- data
 
-  for(scenario in na.omit(unique(climate_data$scenario))) {
+  for(provider in na.omit(unique(climate_data$provider))) {
 
-    scenario_sub <<- scenario
-    cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
+    provider_sub <<- provider
+    cat(crayon::white(crayon::bold(paste("Processing", provider_sub, "\n"))))
 
     climate_data_scenario_sub <- climate_data %>%
-      filter(scenario == scenario_sub)
+      filter(provider == provider_sub)
 
-    path_db_pr_climate_data_provider_scenario <- fs::path(parent_path, scenario_sub)
+    path_db_pr_climate_data_provider <- fs::path(parent_path, provider_sub)
 
-    if(!dir.exists(path_db_pr_climate_data_provider_scenario)) {
-      fs::dir_create(path_db_pr_climate_data_provider_scenario)
-      cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
+    if(!dir.exists(path_db_pr_climate_data_provider)) {
+      fs::dir_create(path_db_pr_climate_data_provider)
+      cat(crayon::white(crayon::bold(paste("Just created directory for", provider_sub, "\n"))))
     }
 
-    for(hazard in unique(climate_data_scenario_sub$hazard)) {
+    for(scenario in unique(climate_data$scenario)) {
 
-      hazard_sub <<- hazard
-      cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
+      scenario_sub <<- scenario
+      cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
-      climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
-        filter(hazard == hazard_sub)
+      climate_data_scenario_sub <- climate_data %>%
+        filter(scenario == scenario_sub)
 
-      path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
+      path_db_pr_climate_data_provider_scenario <- fs::path(parent_path, scenario_sub)
 
-      if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards)) {
-        fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards)
-        cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
+      if(!dir.exists(path_db_pr_climate_data_provider_scenario)) {
+        fs::dir_create(path_db_pr_climate_data_provider_scenario)
+        cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
       }
 
-      for(model in unique(climate_data_scenario_sub_hazard_sub$model)) {
+      for(hazard in unique(climate_data_scenario_sub$hazard)) {
 
-        model_sub <<- model
-        cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+        hazard_sub <<- hazard
+        cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
-        climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
-          filter(model == model_sub)
+        climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
+          filter(hazard == hazard_sub)
 
-        path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
+        path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
 
-        if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards_models)) {
-          fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards_models)
-          cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
+        if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards)) {
+          fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards)
+          cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
         }
 
-        for(period in unique(climate_data_scenario_sub_hazard_sub_model_sub$period)) {
+        for(model in unique(climate_data_scenario_sub_hazard_sub$model)) {
 
-          period_sub <<- period
-          cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+          model_sub <<- model
+          cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
-          climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
-            filter(period == period_sub)
+          climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
+            filter(model == model_sub)
 
-          climate_data_scenario_sub_hazard_sub_model_sub_period_sub %>%
-            fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
+          path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
+
+          if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards_models)) {
+            fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards_models)
+            cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
+          }
+
+          for(period in unique(climate_data_scenario_sub_hazard_sub_model_sub$period)) {
+
+            period_sub <<- period
+            cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+
+            climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
+              filter(period == period_sub)
+
+            climate_data_scenario_sub_hazard_sub_model_sub_period_sub %>%
+              fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
+          }
         }
       }
     }

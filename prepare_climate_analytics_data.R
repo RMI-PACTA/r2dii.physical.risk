@@ -331,7 +331,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     asset_scenario_data %>%
       save_climate_data(
-        path_db_pr_climate_data_provider = fs::path(path_db_pr_climate_data, "ClimateAnalytics"),
+        path_db_pr_climate_data = path_db_pr_climate_data,
         use_distinct_for_assets_between_two_rasters = TRUE,
         drop_any_NAs = FALSE
       )
