@@ -504,7 +504,7 @@ plot_portfolio_company_risk_distribution <- function(data) {
   data <- data %>%
     group_by(company_name, port_weight, relative_change) %>%
     summarise(
-      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
+      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
     mutate(new_metric = port_weight*portfolio_final_owned_economic_value_share_sector_company) %>%
     arrange(relative_change)
@@ -546,7 +546,7 @@ plot_company_risk_distribution <- function(data) {
     mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
     group_by(company_name, port_weight, relative_change) %>%
     summarise(
-      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
+      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
     arrange(relative_change)
 
