@@ -182,6 +182,7 @@ analysis %>%
     parent_path = fs::path(here::here(), "test"),
     fns = function(data, final_path) {
 
+      ####### asset_risk_histgram
       asset_risk_histgram <- data %>%
         plot_asset_risk_histgram() +
         scale_fill_relative_risk() +
@@ -189,9 +190,9 @@ analysis %>%
           plot.background = element_rect(fill = "white")
         )
 
-      ggsave(fs::path(final_path, paste("asset_risk_histgram", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+      save_plot(name = "asset_risk_histgram", final_path = final_path)
 
-      #######
+      ####### company_risk_distribution
       company_risk_distribution <- data %>%
         plot_company_risk_distribution() +
         scale_fill_relative_risk() +
@@ -199,10 +200,9 @@ analysis %>%
           plot.background = element_rect(fill = "white")
         )
 
-      ggsave(fs::path(final_path, paste("company_risk_distribution", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+      save_plot(name = "company_risk_distribution", final_path = final_path)
 
-
-      #######
+      ####### portfolio_company_risk_distribution
       portfolio_company_risk_distribution <- data %>%
         plot_portfolio_company_risk_distribution() +
         scale_fill_relative_risk() +
@@ -210,9 +210,9 @@ analysis %>%
           plot.background = element_rect(fill = "white")
         )
 
-      ggsave(fs::path(final_path, paste("portfolio_company_risk_distribution", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+      save_plot(name = "portfolio_company_risk_distribution", final_path = final_path)
 
-      #######
+      ####### number_of_assets
       number_of_assets <- data %>%
         plot_sector_number_of_assets() +
         scale_fill_relative_risk() +
@@ -220,9 +220,9 @@ analysis %>%
           plot.background = element_rect(fill = "white")
         )
 
-      ggsave(fs::path(final_path, paste("number_of_assets", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+      save_plot(name = "number_of_assets", final_path = final_path)
 
-      #######
+      ####### relative_sector_production
       relative_sector_production <- data %>%
         plot_sector_relative_portfolio_final_owned_economic_value() +
         scale_fill_relative_risk() +
@@ -230,9 +230,9 @@ analysis %>%
           plot.background = element_rect(fill = "white")
         )
 
-      ggsave(fs::path(final_path, paste("relative_sector_production", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+      save_plot(name = "relative_sector_production", final_path = final_path)
 
-      #######
+      ####### absolute_sector_production
       absolute_sector_production <- data %>%
         plot_sector_absolute_portfolio_final_owned_economic_value() +
         scale_fill_relative_risk() +
@@ -240,7 +240,7 @@ analysis %>%
           plot.background = element_rect(fill = "white")
         )
 
-      ggsave(fs::path(final_path, paste("absolute_sector_production", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+      save_plot(name = "absolute_sector_production", final_path = final_path)
 
     }
   )
