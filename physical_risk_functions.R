@@ -705,15 +705,15 @@ check_roll_up <- function(choose_year) {
 }
 
 save_result_plot <- function(name, path = final_path, height = 20, width = 30) {
-  ggsave(fs::path(path, paste(name, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = height, width = width)
+  ggsave(fs::path(path, paste(name, provider_sub, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = height, width = width)
 
-  cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+  cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", provider_sub, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 }
 
 save_overview_plot <- function(name, path = final_path, height = 20, width = 30) {
   ggsave(fs::path(path, name, ext = "png"), height = height, width = width)
 
-  cat(crayon::yellow(crayon::bold(paste("Saved plot", name))))
+  cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "\n"))))
 }
 
 plot_portfolio_geo_ald_value <- function(data) {
