@@ -449,11 +449,11 @@ scale_fill_relative_risk <- function() {
   scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-2, -1 , 0, 1, 2), limits = c(-2,2))
 }
 
-plot_sector_absolute_portfolio_final_owned_economic_value <- function(data) {
+plot_sector_absolute_portfolio_economic_value <- function(data) {
   data %>%
     arrange(relative_change) %>%
     ggplot() +
-    geom_col(aes(x = as.character(year), y = portfolio_final_owned_economic_value, fill = relative_change)) +
+    geom_col(aes(x = as.character(year), y = portfolio_economic_value, fill = relative_change)) +
     theme_minimal() +
     facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
     labs(
@@ -473,11 +473,11 @@ plot_sector_absolute_portfolio_final_owned_economic_value <- function(data) {
     )
 }
 
-plot_sector_relative_portfolio_final_owned_economic_value <- function(data) {
+plot_sector_relative_portfolio_economic_value <- function(data) {
   data %>%
     arrange(relative_change) %>%
     ggplot() +
-    geom_col(aes(x = as.character(year), y = portfolio_final_owned_economic_value_share_sector, fill = relative_change)) +
+    geom_col(aes(x = as.character(year), y = portfolio_economic_value_share_sector, fill = relative_change)) +
     scale_y_continuous(labels = scales::percent) +
     facet_grid(portfolio_name ~ sector)  +
     theme_minimal() +
@@ -529,9 +529,9 @@ plot_portfolio_company_risk_distribution <- function(data) {
   data <- data %>%
     group_by(company_name, port_weight, relative_change) %>%
     summarise(
-      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T), .groups = "keep"
+      portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
-    mutate(new_metric = port_weight*portfolio_final_owned_economic_value_share_sector_company) %>%
+    mutate(new_metric = port_weight*portfolio_economic_value_share_sector_company) %>%
     arrange(relative_change)
 
   data %>%
@@ -574,13 +574,13 @@ plot_company_risk_distribution <- function(data) {
     mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
     group_by(company_name, port_weight, relative_change) %>%
     summarise(
-      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T), .groups = "keep"
+      portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
     arrange(relative_change)
 
   data %>%
     ggplot() +
-    geom_col(aes(x = reorder(company_name, port_weight), y = portfolio_final_owned_economic_value_share_sector_company, fill = relative_change)) +
+    geom_col(aes(x = reorder(company_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
     scale_y_continuous(labels = scales::percent) +
     coord_flip() +
     theme_minimal() +

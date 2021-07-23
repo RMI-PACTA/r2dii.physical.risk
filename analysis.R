@@ -86,32 +86,32 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   # add final indicators
   # ========
 
-  # calculate port weight
+  # calculate portfolio_economic_value
   analysis <- analysis %>%
-    mutate(portfolio_final_owned_economic_value = if_else(sector == security_mapped_sector, ownership_weight*company_final_owned_economic_value, 0))
+    mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, ownership_weight*company_final_owned_economic_value, 0))
 
-  # calculate portfolio_final_owned_economic_value_share_technology
+  # calculate portfolio_economic_value_share_technology
   analysis <- analysis %>%
     group_by(portfolio_name, provider, hazard, model, period, sector, technology, year) %>%
-    mutate(portfolio_final_owned_economic_value_share_technology = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+    mutate(portfolio_economic_value_share_technology = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
     ungroup()
 
-  # calculate portfolio_final_owned_economic_value_share_technology_company
+  # calculate portfolio_economic_value_share_technology_company
   analysis <- analysis %>%
     group_by(portfolio_name, provider, company_name, hazard, model, period, sector, technology, year) %>%
-    mutate(portfolio_final_owned_economic_value_share_technology_company = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+    mutate(portfolio_economic_value_share_technology_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
     ungroup()
 
-  # calculate portfolio_final_owned_economic_value_share_sector
+  # calculate portfolio_economic_value_share_sector
   analysis <- analysis %>%
     group_by(portfolio_name, provider, hazard, model, period, sector, year) %>%
-    mutate(portfolio_final_owned_economic_value_share_sector = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+    mutate(portfolio_economic_value_share_sector = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
     ungroup()
 
-  # calculate portfolio_final_owned_economic_value_share_sector_company
+  # calculate portfolio_economic_value_share_sector_company
   analysis <- analysis %>%
     group_by(portfolio_name, provider, company_name, hazard, model, period, sector, year) %>%
-    mutate(portfolio_final_owned_economic_value_share_sector_company = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+    mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
     ungroup()
 
 
@@ -195,14 +195,14 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
         ####### relative_sector_production
         relative_sector_production <- data %>%
-          plot_sector_relative_portfolio_final_owned_economic_value() +
+          plot_sector_relative_portfolio_economic_value() +
           scale_fill_relative_risk()
 
         save_plot(name = "relative_sector_production", path = final_path)
 
         ####### absolute_sector_production
         absolute_sector_production <- data %>%
-          plot_sector_absolute_portfolio_final_owned_economic_value() +
+          plot_sector_absolute_portfolio_economic_value() +
           scale_fill_relative_risk()
 
         save_plot(name = "absolute_sector_production", path = final_path)

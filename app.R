@@ -342,7 +342,7 @@ server = function(input, output, session) {
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      plot_sector_relative_portfolio_final_owned_economic_value() +
+      plot_sector_relative_portfolio_economic_value() +
       scale_fill_relative_risk()
   })
 
@@ -375,7 +375,7 @@ server = function(input, output, session) {
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      plot_sector_absolute_portfolio_final_owned_economic_value() +
+      plot_sector_absolute_portfolio_economic_value() +
       scale_fill_relative_risk()
   })
 
