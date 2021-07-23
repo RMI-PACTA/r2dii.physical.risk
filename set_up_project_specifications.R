@@ -143,7 +143,17 @@ climate_data <- load_climate_data(
 )
 
 climate_data <- climate_data %>%
-  mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0))) # qestionable
+  mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0))) # questionable
+
+climate_data <- climate_data %>% # tbd
+  mutate(
+    relative_change = case_when(
+      relative_change > 2 ~ 2,
+      relative_change < -2 ~ -2,
+      TRUE ~ relative_change
+    )
+  )
+
 
 climate_data <- climate_data %>%
   select(provider, scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id)
@@ -191,17 +201,34 @@ total_portfolio <- total_portfolio %>%
     asset_type_port_weight = value_usd / portfolio_asset_type_value
   )
 
+total_portfolio <- total_portfolio %>%
+  select(
+    portfolio_name,
+    company_name,
+    company_id,
+    isin,
+    holding_id,
+    asset_type,
+    security_mapped_sector,
+    value_usd,
+    port_weight,
+    asset_type_port_weight,
+    ownership_weight,
+    portfolio_sector_share,
+    portfolio_asset_type_sector_share
+  )
+
 
 cb_portfolio <- total_portfolio %>%
   filter(asset_type == "Bonds")
 
 eq_portfolio <- total_portfolio %>%
   filter(asset_type == "Equity") %>%
-  dplyr::slice_sample(n = 400)
+  dplyr::slice_sample(n = 150)
 
 
 # =================================
 # QA
 # =================================
 
-check_roll_up <- check_roll_up()
+check_roll_up <- check_roll_up(choose_year = 2020)
