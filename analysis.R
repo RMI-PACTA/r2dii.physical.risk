@@ -19,14 +19,15 @@ asset_level_owners <- asset_level_owners %>%
 # subset relevant ALD
 # ========
 ald <- ald %>%
-  semi_join(asset_level_owners, by = "asset_id") %>%
-  filter(between(year, 2020, 2020))
+  semi_join(asset_level_owners, by = "asset_id")
 
 # ========
 # subset climate data for relevant ALD
 # ========
 climate_data <- climate_data %>%
   semi_join(asset_level_owners, by = "asset_id")
+
+
 
 
 # =================================
@@ -37,14 +38,15 @@ climate_data <- climate_data %>%
 # merge ALD with Climate Data
 # ========
 analysis <- ald %>%
-  left_join(climate_data %>% select(provider, scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id), by = "asset_id") %>%
-  mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0)))
+  left_join(climate_data, by = "asset_id")
 
 # ========
 # merge asset level owners + calculate direct owned economic value
 # ========
 analysis <- analysis %>%
-  left_join(asset_level_owners, by = "asset_id") %>%
+  left_join(asset_level_owners, by = "asset_id")
+
+analysis <- analysis %>%
   mutate(direct_owned_economic_value = economic_value*(ownership_share/100))
 
 # ========
@@ -74,30 +76,30 @@ analysis <-  eq_portfolio %>%
 
 # calculate port weight
 analysis <- analysis %>%
-  mutate(portfolio_final_owned_economic_value = if_else(stringr::str_detect(sector, financial_sector), ownership_weight*company_final_owned_economic_value, 0))
+  mutate(portfolio_final_owned_economic_value = if_else(sector == security_mapped_sector, ownership_weight*company_final_owned_economic_value, 0))
 
 # calculate portfolio_final_owned_economic_value_share_technology
 analysis <- analysis %>%
   group_by(portfolio_name, hazard, model, period, sector, technology, year) %>%
-  mutate(portfolio_final_owned_economic_value_share_technology = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+  mutate(portfolio_final_owned_economic_value_share_technology = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 # calculate portfolio_final_owned_economic_value_share_technology_company
 analysis <- analysis %>%
   group_by(portfolio_name, company_name, hazard, model, period, sector, technology, year) %>%
-  mutate(portfolio_final_owned_economic_value_share_technology_company = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+  mutate(portfolio_final_owned_economic_value_share_technology_company = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 # calculate portfolio_final_owned_economic_value_share_sector
 analysis <- analysis %>%
   group_by(portfolio_name, hazard, model, period, sector, year) %>%
-  mutate(portfolio_final_owned_economic_value_share_sector = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+  mutate(portfolio_final_owned_economic_value_share_sector = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 # calculate portfolio_final_owned_economic_value_share_sector_company
 analysis <- analysis %>%
   group_by(portfolio_name, company_name, hazard, model, period, sector, year) %>%
-  mutate(portfolio_final_owned_economic_value_share_sector_company = portfolio_final_owned_economic_value/sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
+  mutate(portfolio_final_owned_economic_value_share_sector_company = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 
@@ -176,16 +178,22 @@ eq_portfolio %>%
 analysis %>%
   for_loops_climate_data(
     parent_path = fs::path(here::here(), "test"),
-    fns = function(x, final_path) {
+    fns = function(data, final_path) {
       plot <- x %>%
         plot_sector_absolute_portfolio_final_owned_economic_value() +
-        scale_fill_relative_risk()
+        scale_fill_relative_risk() +
+        theme(
+          plot.background = element_rect(fill = "white")
+        )
 
       ggsave(fs::path(final_path, paste("absolute_sector_production", scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"))
 
-      plot <- x %>%
+      plot <- data %>%
         plot_company_risk_distribution() +
-        scale_fill_relative_risk()
+        scale_fill_relative_risk() +
+        theme(
+          plot.background = element_rect(fill = "white")
+        )
 
       ggsave(fs::path(final_path, paste("company_risk_distribution",scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"))
 
