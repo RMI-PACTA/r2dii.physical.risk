@@ -326,11 +326,11 @@ save_climate_data <- function(
 
   # arrange final column structure and therefore verify that variables exist
   climate_data <- climate_data %>%
-    dplyr::select(asset_id,  provider, scenario, model, period, hazard, geometry_id, risk_level, reference, absolute_change, relative_change)
+    dplyr::select(asset_id,  provider, scenario, model, period, is_reference_period, hazard, geometry_id, risk_level, reference, absolute_change, relative_change)
 
   # verify that there are no NAs in the parameter columns. NAs can arise in the risk_level column if there are missing estimates in the data
   climate_data <- climate_data %>%
-    dplyr::filter(!dplyr::if_any(c("asset_id",  "geometry_id", "model", "period", "scenario", "hazard"), is.na)) %>%
+    dplyr::filter(!dplyr::if_any(c("asset_id",  "geometry_id", "model", "period", "is_reference_period", "scenario", "hazard"), is.na)) %>%
     assertr::verify(nrow(.) == nrow(climate_data))
 
   if (use_distinct_for_assets_between_two_rasters == TRUE) {

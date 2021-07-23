@@ -67,7 +67,8 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
             stringr::str_detect(x, "2021-2050") ~ "2021-2050",
             stringr::str_detect(x, "2051-2080") ~ "2051-2080",
             stringr::str_detect(x, "2071-2100") ~ "2071-2100",
-          )
+          ),
+          is_reference_period = dplyr::if_else(period == "1991-2020", TRUE, FALSE)
         )
 
       # create geometry id by using hashs
@@ -100,7 +101,7 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
 
   # pivot longer as long is a better format
   climate_data <- climate_data %>%
-    tidyr::pivot_longer(cols = !c("asset_id",  "geometry_id", "model", "period", "scenario", "provider"), values_to = "risk_level", names_to = "hazard")
+    tidyr::pivot_longer(cols = !c("asset_id",  "geometry_id", "model", "period", "scenario", "provider", "is_reference_period"), values_to = "risk_level", names_to = "hazard")
 
   # calculate absolute and relative changes for each asset by creating reference value based on parameters
   climate_data <- climate_data %>%
