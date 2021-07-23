@@ -347,74 +347,21 @@ save_climate_data <- function(
       show_diff_rows(initial_n_rows = nrow(climate_data), cause = "because of NAs in at least one variable")
   }
 
-  # save the data
-  for(scenario in 1:length(unique(climate_data$scenario))) {
-
-    scenario_sub <- unique(climate_data$scenario)[scenario]
-    cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
-
-    climate_data_scenario_sub <- climate_data %>%
-      filter(scenario == scenario_sub)
-
-    path_db_pr_climate_data_provider_scenario <- fs::path(path_db_pr_climate_data_provider, scenario_sub)
-
-    if(!dir.exists(path_db_pr_climate_data_provider_scenario)) {
-      fs::dir_create(path_db_pr_climate_data_provider_scenario)
-      cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
-    }
-
-    for(hazard in 1:length(unique(climate_data_scenario_sub$hazard))) {
-
-      hazard_sub <- unique(climate_data_scenario_sub$hazard)[hazard]
-      cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
-
-      climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
-        filter(hazard == hazard_sub)
-
-      path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
-
-      if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards)) {
-        fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards)
-        cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
-      }
-
-      for(model in 1:length(unique(climate_data_scenario_sub_hazard_sub$model))) {
-
-        model_sub <- unique(climate_data_scenario_sub_hazard_sub$model)[model]
-        cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
-
-        climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
-          filter(model == model_sub)
-
-        path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
-
-        if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards_models)) {
-          fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards_models)
-          cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
-        }
-
-        for(period in 1:length(unique(climate_data_scenario_sub_hazard_sub_model_sub$period))) {
-
-          period_sub <- unique(climate_data_scenario_sub_hazard_sub_model_sub$period)[period]
-          cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
-
-          climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
-            filter(period == period_sub)
-
+  climate_data %>%
+    for_loops_climate_data(
+      parent_path = path_db_pr_climate_data_provider,
+      fns = function(data, final_path) {
+        data %>%
           readr::write_csv(
-            climate_data_scenario_sub_hazard_sub_model_sub_period_sub,
             fs::path(
-              path_db_pr_climate_data_provider_scenario_hazards_models,
+              final_path,
               paste(scenario_sub, hazard_sub, model_sub, period_sub, "ald", sep = "_"),
               ext = "csv"
             )
           )
-
-          Sys.sleep(0.5)
-        }
+        Sys.sleep(0.5)
       }
-    }
-  }
+    )
 }
 
 for_loops_climate_data <- function(data, parent_path, fns) {
