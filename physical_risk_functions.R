@@ -500,6 +500,15 @@ plot_sector_number_of_assets <- function(data) {
 }
 
 plot_portfolio_company_risk_distribution <- function(data) {
+
+  data <- data %>%
+    group_by(company_name, port_weight, relative_change) %>%
+    summarise(
+      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
+    ) %>%
+    mutate(new_metric = port_weight*portfolio_final_owned_economic_value_share_sector_company) %>%
+    arrange(relative_change)
+
   data %>%
     ggplot() +
     geom_col(aes(x = reorder(company_name, port_weight), y = new_metric, fill = relative_change)) +
@@ -524,6 +533,23 @@ plot_portfolio_company_risk_distribution <- function(data) {
 
 
 plot_company_risk_distribution <- function(data) {
+
+  data <- data %>%
+    semi_join(
+      data %>%
+        distinct(company_name, .keep_all = T) %>%
+        slice_max(port_weight, n = 10),
+      by = "company_name"
+    )
+
+  data <- data %>%
+    mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
+    group_by(company_name, port_weight, relative_change) %>%
+    summarise(
+      portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
+    ) %>%
+    arrange(relative_change)
+
   data %>%
     ggplot() +
     geom_col(aes(x = reorder(company_name, port_weight), y = portfolio_final_owned_economic_value_share_sector_company, fill = relative_change)) +

@@ -301,24 +301,6 @@ server = function(input, output, session) {
     hazard_sub <<- input$hazard
     period_sub <<- input$period
 
-    sub_analysis <- sub_analysis %>%
-      semi_join(
-        sub_analysis %>%
-          filter(sector == security_mapped_sector) %>%
-          distinct(company_name, .keep_all = T) %>%
-          slice_max(port_weight, n = 10),
-        by = "company_name"
-      )
-
-    sub_analysis <- sub_analysis %>%
-      mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
-      filter(sector == security_mapped_sector) %>%
-      group_by(company_name, port_weight, relative_change) %>%
-      summarise(
-        portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
-      ) %>%
-      arrange(relative_change)
-
     sub_analysis %>%
       plot_company_risk_distribution() +
       scale_fill_relative_risk()
@@ -332,15 +314,6 @@ server = function(input, output, session) {
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
     period_sub <<- input$period
-
-    sub_analysis <- sub_analysis %>%
-      filter(sector == security_mapped_sector) %>%
-      group_by(company_name, port_weight, relative_change) %>%
-      summarise(
-        portfolio_final_owned_economic_value_share_sector_company = sum(portfolio_final_owned_economic_value_share_sector_company, na.rm = T)
-      ) %>%
-      mutate(new_metric = port_weight*portfolio_final_owned_economic_value_share_sector_company) %>%
-      arrange(relative_change)
 
     sub_analysis %>%
       plot_portfolio_company_risk_distribution() +
