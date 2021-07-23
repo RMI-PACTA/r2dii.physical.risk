@@ -319,6 +319,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         hazard = indicator,
         scenario,
         period = year,
+        is_reference_period = FALSE,
         model = "Ensemble",
         relative_change = risk_level,
         risk_level = NA,
