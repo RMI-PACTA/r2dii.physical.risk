@@ -175,7 +175,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
     path_db_pacta_project_pr_output_equity_portfolio_plots <- fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation, "plots")
 
     analysis %>%
-      mutate(is_reference_period = dplyr::if_else(period == "1991-2020", TRUE, FALSE)) %>%
+      mutate(is_reference_period = dplyr::if_else(period == "1991-2020", TRUE, FALSE)) %>% # needs change
       filter(is_reference_period == FALSE) %>%
       filter(security_mapped_sector == sector) %>%
       for_loops_climate_data(
