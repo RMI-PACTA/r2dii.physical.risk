@@ -670,10 +670,58 @@ check_roll_up <- function(choose_year) {
   return(test)
 }
 
-save_plot <- function(name, final_path = final_path) {
-  ggsave(fs::path(final_path, paste(name, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+save_plot <- function(name, path = final_path) {
+  ggsave(fs::path(path, paste(name, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
 
   cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
+}
+
+plot_portfolio_geo_ald_value <- function(data) {
+
+  data %>%
+    group_by(portfolio_name, has_geo_ald) %>%
+    summarise(
+      sum_value_usd_mio = sum(value_usd, na.rm = T)/10^6, .groups = "keep"
+    ) %>%
+    ungroup() %>%
+    group_by(portfolio_name) %>%
+    mutate(
+      share_value_usd = sum_value_usd_mio/sum(sum_value_usd_mio, na.rm = T),
+    ) %>%
+    ggplot() +
+    geom_col(aes(x = portfolio_name, y = share_value_usd, fill = has_geo_ald)) +
+    scale_y_continuous(sec.axis = sec_axis(~ . * sum(eq_portfolio_sub%>% filter(portfolio_name %in% c("IE00B4L5Y983")) %>% pull(value_usd))/10^6)) +
+    labs(
+      x = "",
+      y = "% Portfolio Value",
+      title = "Portfolio Value of holdings associated with at least one ALD",
+      fill = "Has ALD"
+    ) +
+    theme_minimal()
+}
+
+plot_portfolio_geo_ald_holdings <- function(data) {
+
+  data %>%
+    group_by(portfolio_name, has_geo_ald) %>%
+    summarise(
+      n = n(), .groups = "keep"
+    ) %>%
+    ungroup() %>%
+    group_by(portfolio_name) %>%
+    mutate(
+      n = n/sum(n, na.rm = T)
+    ) %>%
+    ggplot() +
+    geom_col(aes(x = portfolio_name, y = n, fill = has_geo_ald)) +
+    scale_y_continuous(sec.axis = sec_axis(~ . * nrow(eq_portfolio_sub))) +
+    labs(
+      x = "",
+      y = "% Portfolio Holdings",
+      title = "Holdings associated with at least one ALD",
+      fill = "Has ALD"
+    ) +
+    theme_minimal()
 }
 
 
