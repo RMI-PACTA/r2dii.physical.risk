@@ -672,6 +672,8 @@ check_roll_up <- function(choose_year) {
 
 save_plot <- function(name, final_path = final_path) {
   ggsave(fs::path(final_path, paste(name, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = 20, width = 30)
+
+  cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 }
 
 
