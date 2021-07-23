@@ -710,6 +710,12 @@ save_result_plot <- function(name, path = final_path, height = 20, width = 30) {
   cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 }
 
+save_overview_plot <- function(name, path = final_path, height = 20, width = 30) {
+  ggsave(fs::path(path, name, ext = "png"), height = height, width = width)
+
+  cat(crayon::yellow(crayon::bold(paste("Saved plot", name))))
+}
+
 plot_portfolio_geo_ald_value <- function(data) {
 
   data %>%
