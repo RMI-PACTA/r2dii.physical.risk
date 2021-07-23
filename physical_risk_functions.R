@@ -483,7 +483,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 }
 
 scale_fill_relative_risk <- function() {
-  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-1, -0.5, 0, 0.5, 1), limits = c(-1,1))
+  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-2, -1 , 0, 1, 2), limits = c(-2,2))
 }
 
 plot_sector_absolute_portfolio_final_owned_economic_value <- function(data) {
@@ -598,7 +598,7 @@ plot_company_risk_distribution <- function(data) {
 }
 
 
-check_roll_up <- function() {
+check_roll_up <- function(choose_year) {
 
   company_ownership_tree <- company_ownership_tree %>%
     semi_join(total_portfolio, by = c("target_company_id" = "company_id"))
@@ -623,7 +623,7 @@ check_roll_up <- function() {
     left_join(company_ownership_tree %>% filter(ownership_level >= 0), by = "company_id")
 
   test <- test %>%
-    filter(year == 2021) %>%
+    filter(year == choose_year) %>%
     mutate(linking_stake = if_else(is.na(linking_stake), 100, linking_stake)) %>%
     mutate(final_owned_economic_value = linking_stake/100*direct_owned_economic_value)
 
@@ -650,7 +650,7 @@ check_roll_up <- function() {
       ext = "rda"
     )
   ) %>%
-    filter(year == 2021) %>%
+    filter(year == choose_year) %>%
     distinct(company_name, ald_sector, technology, plan_tech_prod,.keep_all = T)
 
 
