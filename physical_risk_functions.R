@@ -460,6 +460,7 @@ plot_sector_absolute_portfolio_economic_value <- function(data) {
       x = "Year",
       caption = paste(
         "Parameter:",
+        provider_sub,
         scenario_sub,
         hazard_sub,
         model_sub,
@@ -485,6 +486,7 @@ plot_sector_relative_portfolio_economic_value <- function(data) {
       x = "Year",
       caption = paste(
         "Parameter:",
+        provider_sub,
         scenario_sub,
         hazard_sub,
         model_sub,
@@ -511,6 +513,7 @@ plot_sector_number_of_assets <- function(data) {
       x = "Year",
       caption = paste(
         "Parameter:",
+        provider_sub,
         scenario_sub,
         hazard_sub,
         model_sub,
@@ -546,6 +549,7 @@ plot_portfolio_company_risk_distribution <- function(data) {
       x = "Year",
       caption = paste(
         "Parameter:",
+        provider_sub,
         scenario_sub,
         hazard_sub,
         model_sub,
@@ -588,6 +592,7 @@ plot_company_risk_distribution <- function(data) {
       x = "Year",
       caption = paste(
         "Parameter:",
+        provider_sub,
         scenario_sub,
         hazard_sub,
         model_sub,
@@ -613,6 +618,7 @@ plot_asset_risk_histgram <- function(data) {
       x = "Relative Change",
       caption = paste(
         "Parameter:",
+        provider_sub,
         scenario_sub,
         hazard_sub,
         model_sub,
