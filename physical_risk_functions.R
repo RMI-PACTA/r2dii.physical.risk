@@ -391,7 +391,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
       climate_data_scenario_sub <- climate_data %>%
         filter(scenario == scenario_sub)
 
-      path_db_pr_climate_data_provider_scenario <- fs::path(parent_path, scenario_sub)
+      path_db_pr_climate_data_provider_scenario <- fs::path(path_db_pr_climate_data_provider, scenario_sub)
 
       if(!dir.exists(path_db_pr_climate_data_provider_scenario)) {
         fs::dir_create(path_db_pr_climate_data_provider_scenario)
