@@ -173,10 +173,13 @@ NAs_climate_data %>%
 # ================================= # =================================
 # ================================= # =================================
 # ================================= # =================================
+for (hazard_sub in unique(climate_data$hazard)) { # using loop otherwise to computational intensive (i.e. storing 150 million rows (= 50 original data + 50 million provider + 50 million scenario))
 
-climate_data %>%
-  save_climate_data(
-    path_db_pr_climate_data = path_db_pr_climate_data,
-    use_distinct_for_assets_between_two_rasters = TRUE,
-    drop_any_NAs = TRUE
-  )
+  climate_data %>%
+    filter(hazard == hazard_sub) %>%
+    save_climate_data(
+      path_db_pr_climate_data = path_db_pr_climate_data,
+      use_distinct_for_assets_between_two_rasters = TRUE,
+      drop_any_NAs = TRUE
+    )
+}
