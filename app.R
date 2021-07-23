@@ -9,7 +9,8 @@ distinct_geo_data <- load_distinct_geo_data()
 
 result_files <- list.files(path_db_pacta_project_pr_output, recursive = T)[stringr::str_detect(list.files(path_db_pacta_project_pr_output, recursive = T), "results")]
 
-analysis <- vroom::vroom(fs::path(path_db_pacta_project_pr_output, result_files))
+analysis <- vroom::vroom(fs::path(path_db_pacta_project_pr_output, result_files)) %>%
+  filter(security_mapped_sector == sector)
 
 ui = fluidPage(
   fluidRow(
@@ -112,18 +113,19 @@ ui = fluidPage(
 
   linebreaks(4),
   plotOutput(outputId = "asset_risk_histgram"),
+  linebreaks(4),
 
   plotOutput(outputId = "company_risk_distribution", height = 800),
-  plotOutput(outputId = "portfolio_company_risk_distribution", height = 800),
+  linebreaks(4),
 
+  plotOutput(outputId = "portfolio_company_risk_distribution", height = 800),
   linebreaks(4),
 
   plotOutput(outputId = "number_of_assets"),
+  linebreaks(4),
 
   plotOutput(outputId = "relative_sector_production"),
-  br(),
-
-  br(),
+  linebreaks(4),
 
   plotOutput(outputId = "absolute_sector_production")
 
@@ -286,6 +288,7 @@ server = function(input, output, session) {
   output$asset_risk_histgram <- renderPlot({
     sub_analysis <- sub_analysis()
 
+    provider_sub <<- input$provider
     model_sub <<- input$model
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
@@ -300,6 +303,7 @@ server = function(input, output, session) {
   output$company_risk_distribution <- renderPlot({
     sub_analysis <- sub_analysis()
 
+    provider_sub <<- input$provider
     model_sub <<- input$model
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
@@ -314,6 +318,7 @@ server = function(input, output, session) {
   output$portfolio_company_risk_distribution <- renderPlot({
     sub_analysis <- sub_analysis()
 
+    provider_sub <<- input$provider
     model_sub <<- input$model
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
@@ -329,6 +334,7 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis()
 
+    provider_sub <<- input$provider
     model_sub <<- input$model
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
@@ -345,6 +351,7 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis()
 
+    provider_sub <<- input$provider
     model_sub <<- input$model
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
@@ -360,6 +367,7 @@ server = function(input, output, session) {
 
     sub_analysis <- sub_analysis()
 
+    provider_sub <<- input$provider
     model_sub <<- input$model
     scenario_sub <<- input$scenario
     hazard_sub <<- input$hazard
