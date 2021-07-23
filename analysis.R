@@ -80,25 +80,25 @@ analysis <- analysis %>%
 
 # calculate portfolio_final_owned_economic_value_share_technology
 analysis <- analysis %>%
-  group_by(portfolio_name, hazard, model, period, sector, technology, year) %>%
+  group_by(portfolio_name, provider, hazard, model, period, sector, technology, year) %>%
   mutate(portfolio_final_owned_economic_value_share_technology = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 # calculate portfolio_final_owned_economic_value_share_technology_company
 analysis <- analysis %>%
-  group_by(portfolio_name, company_name, hazard, model, period, sector, technology, year) %>%
+  group_by(portfolio_name, provider, company_name, hazard, model, period, sector, technology, year) %>%
   mutate(portfolio_final_owned_economic_value_share_technology_company = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 # calculate portfolio_final_owned_economic_value_share_sector
 analysis <- analysis %>%
-  group_by(portfolio_name, hazard, model, period, sector, year) %>%
+  group_by(portfolio_name, provider, hazard, model, period, sector, year) %>%
   mutate(portfolio_final_owned_economic_value_share_sector = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
 # calculate portfolio_final_owned_economic_value_share_sector_company
 analysis <- analysis %>%
-  group_by(portfolio_name, company_name, hazard, model, period, sector, year) %>%
+  group_by(portfolio_name, provider, company_name, hazard, model, period, sector, year) %>%
   mutate(portfolio_final_owned_economic_value_share_sector_company = portfolio_final_owned_economic_value / sum(portfolio_final_owned_economic_value, na.rm = T)) %>%
   ungroup()
 
