@@ -47,8 +47,17 @@ path_db_pacta_project <-                                fs::path(r2dii.utils::db
 
 # PACTA project output path
 path_db_pacta_project_pr_output <-                      fs::path(path_db_pacta_project, "06_Physical_Risk")
+path_db_pacta_project_pr_output_equity <-               fs::path(path_db_pacta_project_pr_output, "Equity")
+path_db_pacta_project_pr_output_bonds <-                fs::path(path_db_pacta_project_pr_output, "Bonds")
+
 # create PACTA project output path
-create_db_pr_paths(paths = path_db_pacta_project_pr_output)
+create_db_pr_paths(
+  paths = c(
+    path_db_pacta_project_pr_output,
+    path_db_pacta_project_pr_output_equity,
+    path_db_pacta_project_pr_output_bonds
+  )
+)
 
 
 # visualise folder structure
@@ -127,7 +136,7 @@ climate_data <- load_climate_data(
       data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"),
       run_prepare_script_before_loading = FALSE,
       prepare_script_path = "prepare_climate_analytics_data.R",
-      load_data = TRUE,
+      load_data = F,
       parameter = list(
         scenarios = NULL,
         hazards = "prsnAdjust",
