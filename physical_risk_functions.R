@@ -373,7 +373,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
     provider_sub <<- provider
     cat(crayon::white(crayon::bold(paste("Processing", provider_sub, "\n"))))
 
-    climate_data_scenario_sub <- climate_data %>%
+    climate_data_provider_sub <- climate_data %>%
       filter(provider == provider_sub)
 
     path_db_pr_climate_data_provider <- fs::path(parent_path, provider_sub)
@@ -383,12 +383,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
       cat(crayon::white(crayon::bold(paste("Just created directory for", provider_sub, "\n"))))
     }
 
-    for(scenario in unique(climate_data$scenario)) {
+    for(scenario in unique(climate_data_provider_sub$scenario)) {
 
       scenario_sub <<- scenario
       cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
-      climate_data_scenario_sub <- climate_data %>%
+      climate_data_provider_sub_scenario_sub <- climate_data_provider_sub %>%
         filter(scenario == scenario_sub)
 
       path_db_pr_climate_data_provider_scenario <- fs::path(path_db_pr_climate_data_provider, scenario_sub)
@@ -398,12 +398,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
         cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
       }
 
-      for(hazard in unique(climate_data_scenario_sub$hazard)) {
+      for(hazard in unique(climate_data_provider_sub_scenario_sub$hazard)) {
 
         hazard_sub <<- hazard
         cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
-        climate_data_scenario_sub_hazard_sub <- climate_data_scenario_sub %>%
+        climate_data_provider_sub_scenario_sub_hazard_sub <- climate_data_provider_sub_scenario_sub %>%
           filter(hazard == hazard_sub)
 
         path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
@@ -413,12 +413,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
           cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
         }
 
-        for(model in unique(climate_data_scenario_sub_hazard_sub$model)) {
+        for(model in unique(climate_data_provider_sub_scenario_sub_hazard_sub$model)) {
 
           model_sub <<- model
           cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
-          climate_data_scenario_sub_hazard_sub_model_sub <- climate_data_scenario_sub_hazard_sub %>%
+          climate_data_provider_sub_scenario_sub_hazard_sub_model_sub <- climate_data_provider_sub_scenario_sub_hazard_sub %>%
             filter(model == model_sub)
 
           path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
@@ -428,15 +428,15 @@ for_loops_climate_data <- function(data, parent_path, fns) {
             cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
           }
 
-          for(period in unique(climate_data_scenario_sub_hazard_sub_model_sub$period)) {
+          for(period in unique(climate_data_provider_sub_scenario_sub_hazard_sub_model_sub$period)) {
 
             period_sub <<- period
             cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
-            climate_data_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_scenario_sub_hazard_sub_model_sub %>%
+            climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_provider_sub_scenario_sub_hazard_sub_model_sub %>%
               filter(period == period_sub)
 
-            climate_data_scenario_sub_hazard_sub_model_sub_period_sub %>%
+            climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub %>%
               fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
           }
         }
