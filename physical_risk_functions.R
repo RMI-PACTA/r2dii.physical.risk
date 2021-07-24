@@ -649,20 +649,20 @@ check_roll_up <- function(choose_year) {
     semi_join(asset_level_owners, by = "asset_id")
 
 
-  test <- ald %>%
+  check_roll_up <- ald %>%
     left_join(asset_level_owners, by = "asset_id") %>%
     mutate(direct_owned_economic_value = economic_value*(ownership_share/100))
 
 
-  test <- test %>%
+  check_roll_up <- check_roll_up %>%
     left_join(company_ownership_tree %>% filter(ownership_level >= 0), by = "company_id")
 
-  test <- test %>%
+  check_roll_up <- check_roll_up %>%
     filter(year == choose_year) %>%
     mutate(linking_stake = if_else(is.na(linking_stake), 100, linking_stake)) %>%
     mutate(final_owned_economic_value = linking_stake/100*direct_owned_economic_value)
 
-  test <- test %>%
+  check_roll_up <- check_roll_up %>%
     group_by(target_company_id, year, sector, technology) %>%
     summarise(new_roll_up_production = sum(final_owned_economic_value, na.rm = T))
 
@@ -689,25 +689,25 @@ check_roll_up <- function(choose_year) {
     distinct(company_name, ald_sector, technology, plan_tech_prod,.keep_all = T)
 
 
-  test <- test %>%
+  check_roll_up <- check_roll_up %>%
     left_join(masterdata %>% transmute(sector, technology, target_company_id = company_id, ar_roll_up_production)) %>%
     left_join(results %>% transmute(sector = ald_sector, technology, company_name, results_production = plan_tech_prod), by = c("sector", "technology", "company_name")) %>%
     mutate(diff_ar_results = round(results_production,0) - round(ar_roll_up_production,0)) %>%
     mutate(diff_ar_new = round(new_roll_up_production,0) - round(ar_roll_up_production,0)) %>%
     mutate(diff_ar_new_perc = if_else(new_roll_up_production == 0, 1, diff_ar_new/new_roll_up_production))
 
-  test <- test %>%
+  check_roll_up <- check_roll_up %>%
     select(company_id, company_name, year, sector, technology,results_production, ar_roll_up_production, diff_ar_results, new_roll_up_production, diff_ar_new, diff_ar_new_perc)
 
-  plot <- test %>%
+  plot <- check_roll_up %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x = diff_ar_new_perc), binwidth = 0.1)
 
   print(plot)
 
-  View(test)
+  View(check_roll_up)
 
-  return(test)
+  return(check_roll_up)
 }
 
 save_result_plot <- function(name, path = final_path, height = 20, width = 30) {
