@@ -175,14 +175,13 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
       mutate(allocation = allocation)
 
     # plot results
-    path_db_pacta_project_pr_output_equity_portfolio_plots <- fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation, "plots")
+    path_db_pacta_project_pr_output_equity_portfolio_allocation_plots <- fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation, "plots")
 
     analysis %>%
-      mutate(is_reference_period = dplyr::if_else(period == "1991-2020", TRUE, FALSE)) %>% # needs change
       filter(is_reference_period == FALSE) %>%
       filter(security_mapped_sector == sector) %>%
       for_loops_climate_data(
-        parent_path = fs::path(path_db_pacta_project_pr_output_equity_portfolio_plots),
+        parent_path = fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation_plots),
         fns = function(data, final_path) {
 
           ####### asset_risk_histgram
