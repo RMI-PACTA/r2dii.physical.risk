@@ -138,46 +138,46 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
     if (allocation == "ownership") {
       # calculate portfolio_economic_value using ownership
-      analysis <- analysis %>%
+      analysis_final <- analysis %>%
         mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, ownership_weight*company_final_owned_economic_value, 0))
     } else if (allocation == "port_weight") {
       # calculate portfolio_economic_value using port weight
-      analysis <- analysis %>%
+      analysis_final <- analysis %>%
         mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, port_weight*company_final_owned_economic_value, 0))
     }
 
     # calculate portfolio_economic_value_share_technology
-    analysis <- analysis %>%
+    analysis_final <- analysis_final %>%
       group_by(portfolio_name, provider, hazard, model, period, sector, technology, year) %>%
       mutate(portfolio_economic_value_share_technology = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
     # calculate portfolio_economic_value_share_technology_company
-    analysis <- analysis %>%
+    analysis_final <- analysis_final %>%
       group_by(portfolio_name, provider, company_name, hazard, model, period, sector, technology, year) %>%
       mutate(portfolio_economic_value_share_technology_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
     # calculate portfolio_economic_value_share_sector
-    analysis <- analysis %>%
+    analysis_final <- analysis_final %>%
       group_by(portfolio_name, provider, hazard, model, period, sector, year) %>%
       mutate(portfolio_economic_value_share_sector = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
     # calculate portfolio_economic_value_share_sector_company
-    analysis <- analysis %>%
+    analysis_final <- analysis_final %>%
       group_by(portfolio_name, provider, company_name, hazard, model, period, sector, year) %>%
       mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
     # add allocation method
-    analysis <- analysis %>%
+    analysis_final <- analysis_final %>%
       mutate(allocation = allocation)
 
     # plot results
     path_db_pacta_project_pr_output_equity_portfolio_allocation_plots <- fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation, "plots")
 
-    analysis %>%
+    analysis_final %>%
       filter(is_reference_period == FALSE) %>%
       filter(security_mapped_sector == sector) %>%
       for_loops_climate_data(
@@ -229,7 +229,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
         }
       )
 
-    analysis %>%
+    analysis_final %>%
       filter(security_mapped_sector == sector) %>%
       readr::write_csv(
         fs::path(path_db_pacta_project_pr_output_equity_portfolio_allocation, "results", ext = "csv")
