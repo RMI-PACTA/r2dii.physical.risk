@@ -27,7 +27,7 @@ api_paramter <- tidyr::crossing(
     "SOUTH_AMERICA",
     "ASIA",
     "OCEANIA",
-    "ATA"
+    "ATA" # antarctica
 
   ),
   indicator = c(
@@ -54,10 +54,10 @@ api_paramter <- tidyr::crossing(
     "qs" # surface runoff
   ),
   scenario = c(
-    "cat_current",
-    "h_cpol",
-    "d_delfrag",
-    "o_1p5c",
+    "cat_current", # cat current policies
+    "h_cpol", # NGFS current policies
+    "d_delfrag", # NGFS delayed 2°
+    "o_1p5c", # NGFS net zero
     "rcp26",
     "rcp45",
     "rcp60",
@@ -237,10 +237,6 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_data <- all_data %>%
       dplyr::mutate(geometry_id = openssl::md5(as.character(geometry)))
 
-
-    # to do: verify counted grouped lat longs equals distinct lat longs
-
-
     # create sf data frame based on longitude and latitude
     all_data_distinct_geo_data <- all_data %>%
       sf::st_drop_geometry() %>%
@@ -310,6 +306,17 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         all_data %>%
           mutate(geometry_id = as.character(geometry_id)),
         by = c("geometry_id")
+      )
+
+    asset_scenario_data <- asset_scenario_data %>%
+      mutate(
+        scenario = case_when(
+          scenario == "cat_current" ~ "cat_current_policies",
+          scenario == "h_cpol" ~ "ngfs_current_policies",
+          scenario == "d_delfrag" ~ "ngfs_delayed_2_degrees",
+          scenario == "o_1p5c" ~ "ngfs_net_zero",
+          TRUE ~ scenario
+        )
       )
 
     asset_scenario_data <- asset_scenario_data %>%
