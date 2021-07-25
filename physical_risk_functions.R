@@ -656,6 +656,10 @@ plot_asset_risk_histgram <- function(data) {
 check_roll_up <- function(choose_year) {
 
   company_ownership_tree <- company_ownership_tree %>%
+    rename(
+      target_company_id = company_id,
+      company_id = subsidiary_id,
+    ) %>%
     semi_join(total_portfolio, by = c("target_company_id" = "company_id"))
 
 
