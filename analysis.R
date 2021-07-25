@@ -112,12 +112,12 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
   # join overview stats to eq portfolio
   eq_portfolio_sub <- eq_portfolio_sub %>%
-    left_join(has_ald, by = c("portfolio_name", id)) %>%
+    left_join(has_ald, by = c("portfolio_name", "id")) %>%
     mutate(has_ald = if_else(is.na(has_ald), FALSE, TRUE)) %>%
     assertr::verify(nrow(.) == nrow(eq_portfolio_sub))
 
   eq_portfolio_sub <- eq_portfolio_sub %>%
-    left_join(has_ald_with_geo_data, by = c("portfolio_name", id)) %>%
+    left_join(has_ald_with_geo_data, by = c("portfolio_name", "id")) %>%
     mutate(has_geo_ald = if_else(is.na(has_geo_ald), FALSE, TRUE)) %>%
     assertr::verify(nrow(.) == nrow(eq_portfolio_sub))
 
@@ -164,7 +164,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
     # calculate portfolio_economic_value_share_technology_company
     analysis_final <- analysis_final %>%
-      group_by(portfolio_name, provider, company_name, hazard, model, period, sector, technology, year) %>%
+      group_by(portfolio_name, provider, id, hazard, model, period, sector, technology, year) %>%
       mutate(portfolio_economic_value_share_technology_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
@@ -176,7 +176,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
     # calculate portfolio_economic_value_share_sector_company
     analysis_final <- analysis_final %>%
-      group_by(portfolio_name, provider, company_name, hazard, model, period, sector, year) %>%
+      group_by(portfolio_name, provider, id, hazard, model, period, sector, year) %>%
       mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
       ungroup()
 
