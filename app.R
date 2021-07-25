@@ -23,6 +23,12 @@ ui = fluidPage(
              multiple = TRUE
            ),
            selectInput(
+             "asset_type",
+             label = "Asset Type",
+             choices = c("Equity", "Bonds"),
+             multiple = FALSE
+           ),
+           selectInput(
              "sector",
              label = "Sector",
              choices = analysis %>% filter(has_geo_data == TRUE) %>% distinct(sector) %>% pull(sector),
@@ -113,8 +119,8 @@ ui = fluidPage(
            )
     ),
     column(9,
-           br(),
-           tmapOutput(outputId = "map", height = 1000)
+           br()
+           #tmapOutput(outputId = "map", height = 1000)
     )
   ),
 
@@ -212,6 +218,7 @@ server = function(input, output, session) {
     sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% rename(raw_model_output = risk_level)
 
     if(isTruthy(input$portfolio)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(portfolio_name == input$portfolio)}
+    if(isTruthy(input$asset_type)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(asset_type == input$asset_type)}
     if(isTruthy(input$sector)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(sector == input$sector)}
     if(isTruthy(input$company_name)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(company_name == input$company_name)}
     if(isTruthy(input$ownership_level)) {sub_analysis_financial_parameter <- sub_analysis_financial_parameter %>% filter(between(ownership_level, input$ownership_level[1], input$ownership_level[2]))}
@@ -245,56 +252,56 @@ server = function(input, output, session) {
 
 
 
-  output$map = renderTmap({
-
-    sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
-    sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
-
-    if(isTruthy(input$portfolio)) {
-
-      if(input$indicator == "relative_change") {
-        tm_shape(
-          distinct_geo_data %>%
-            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-            left_join(sub_analysis, by = "asset_id")
-        ) +
-          tm_dots(
-            id = "asset_name",
-            col = input$indicator,
-            size = 0.04,
-            popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-            palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-            breaks = c(-2, -1, 0, 1, 2),
-            style = "cont"
-          )
-      } else {
-        tm_shape(
-          distinct_geo_data %>%
-            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-            left_join(sub_analysis, by = "asset_id")
-        ) +
-          tm_dots(
-            id = "asset_name",
-            col = input$indicator,
-            size = 0.04,
-            popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-            palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-            style = "cont"
-          )
-      }
-
-
-    } else {
-      tm_shape(distinct_geo_data  %>% slice_sample(n = 10000)) +
-        tm_dots(
-          id = "asset_id",
-          size = 0,
-          palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-          #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
-          style = "cont"
-        ) #+
-    }
-  })
+  # output$map = renderTmap({
+  #
+  #   sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
+  #   sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
+  #
+  #   if(isTruthy(input$portfolio)) {
+  #
+  #     if(input$indicator == "relative_change") {
+  #       tm_shape(
+  #         distinct_geo_data %>%
+  #           inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+  #           left_join(sub_analysis, by = "asset_id")
+  #       ) +
+  #         tm_dots(
+  #           id = "asset_name",
+  #           col = input$indicator,
+  #           size = 0.04,
+  #           popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+  #           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+  #           breaks = c(-2, -1, 0, 1, 2),
+  #           style = "cont"
+  #         )
+  #     } else {
+  #       tm_shape(
+  #         distinct_geo_data %>%
+  #           inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+  #           left_join(sub_analysis, by = "asset_id")
+  #       ) +
+  #         tm_dots(
+  #           id = "asset_name",
+  #           col = input$indicator,
+  #           size = 0.04,
+  #           popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+  #           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+  #           style = "cont"
+  #         )
+  #     }
+  #
+  #
+  #   } else {
+  #     tm_shape(distinct_geo_data  %>% slice_sample(n = 10000)) +
+  #       tm_dots(
+  #         id = "asset_id",
+  #         size = 0,
+  #         palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+  #         #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
+  #         style = "cont"
+  #       ) #+
+  #   }
+  # })
 
   output$asset_risk_histgram <- renderPlot({
     sub_analysis <- sub_analysis()
