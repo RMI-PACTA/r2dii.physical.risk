@@ -68,8 +68,20 @@ show_folder_structure(path_pattern = "path_")
 # load financial data
 # =================================
 
-asset_level_owners <- load_asset_level_owners(ds_dropbox_path = path_db_datastore_export)
-company_ownership_tree <- load_company_ownership_tree(ds_dropbox_path = path_db_datastore_export)
+# company_id_cb_ticker
+company_id_cb_ticker <- load_company_id_cb_ticker(path = path_db_datastore_export)
+
+# asset_level_owners
+asset_level_owners <- load_asset_level_owners(path = path_db_datastore_export)
+
+asset_level_owners <- asset_level_owners %>%
+  left_join(company_id_cb_ticker, by = "company_id")
+
+# company_ownership_tree
+company_ownership_tree <- load_company_ownership_tree(path = path_db_datastore_export)
+
+company_ownership_tree <- company_ownership_tree %>%
+  left_join(company_id_cb_ticker, by = c("target_company_id" = "company_id"))
 
 # =================================
 # load ALD (all files + preparation script should follow the same name convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
@@ -138,8 +150,8 @@ climate_data <- load_climate_data(
       prepare_script_path = "prepare_climate_analytics_data.R",
       load_data = F,
       parameter = list(
-        scenarios = NULL,
-        hazards = "prsnAdjust",
+        scenarios = "rcp85",
+        hazards = NULL,
         models = NULL,
         periods = c(
           "2030",
@@ -165,7 +177,7 @@ climate_data <- climate_data %>% # tbd
 
 
 climate_data <- climate_data %>%
-  select(provider, scenario, hazard, model, period, risk_level, absolute_change, relative_change, asset_id)
+  select(provider, scenario, hazard, model, period, is_reference_period ,risk_level, absolute_change, relative_change, asset_id)
 
 # =================================
 # load portfolio
@@ -179,7 +191,6 @@ total_portfolio <- vroom::vroom(
     ext = "csv"
   )
 ) %>%
-  dplyr::filter(investor_name == "BlackRock") %>%
   dplyr::filter(portfolio_name %in% c("IE00BF4RFH31", "IE00B4L5Y983"))
 
 
@@ -239,4 +250,4 @@ eq_portfolio <- total_portfolio %>%
 # QA
 # =================================
 
-check_roll_up <- check_roll_up(choose_year = 2020)
+check_roll_up <- check_roll_up(choose_year = 2020) # check is for equity
