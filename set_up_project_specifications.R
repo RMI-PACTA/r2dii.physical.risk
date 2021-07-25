@@ -47,15 +47,11 @@ path_db_pacta_project <-                                fs::path(r2dii.utils::db
 
 # PACTA project output path
 path_db_pacta_project_pr_output <-                      fs::path(path_db_pacta_project, "06_Physical_Risk")
-path_db_pacta_project_pr_output_equity <-               fs::path(path_db_pacta_project_pr_output, "Equity")
-path_db_pacta_project_pr_output_bonds <-                fs::path(path_db_pacta_project_pr_output, "Bonds")
 
 # create PACTA project output path
 create_db_pr_paths(
   paths = c(
-    path_db_pacta_project_pr_output,
-    path_db_pacta_project_pr_output_equity,
-    path_db_pacta_project_pr_output_bonds
+    path_db_pacta_project_pr_output
   )
 )
 
@@ -74,9 +70,6 @@ company_id_cb_ticker <- load_company_id_cb_ticker(path = path_db_datastore_expor
 # asset_level_owners
 asset_level_owners <- load_asset_level_owners(path = path_db_datastore_export)
 
-asset_level_owners <- asset_level_owners %>%
-  left_join(company_id_cb_ticker, by = "company_id")
-
 # company_ownership_tree
 company_ownership_tree <- load_company_ownership_tree(path = path_db_datastore_export)
 
@@ -87,7 +80,7 @@ company_ownership_tree <- company_ownership_tree %>%
   )
 
 company_ownership_tree <- company_ownership_tree %>%
-  left_join(company_id_cb_ticker, by = c("company_id"))
+  left_join(company_id_cb_ticker, by = c("subsidiary_id" = "company_id")) # thats right
 
 # =================================
 # load ALD (all files + preparation script should follow the same name convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
@@ -132,16 +125,19 @@ climate_data <- load_climate_data(
       parameter = list(
         scenarios = c("RCP85"),
         hazards = c(
-          "cold_days_percent_wrt_10th_percentile_of_reference_period",
+          #"cold_days_percent_wrt_10th_percentile_of_reference_period",
           #"heavy_precipitation_days_index_per_time_period",
           #"number_of_5day_heavy_precipitation_periods_per_time_period",
           #"number_of_cdd_periods_with_more_than_5days_per_time_period",
           "warm_spell_periods_per_time_period"
           #"dry_days_index_per_time_period"
         ),
-        models = c("MIROC5", "GFDL-ESM2M"),
+        models = c(
+          #"MIROC5",
+          "GFDL-ESM2M"
+        ),
         periods = c(
-          "1991-2020",
+          #"1991-2020",
           "2021-2050"
           #"2051-2080",
           #"2071-2100"
@@ -197,7 +193,12 @@ total_portfolio <- vroom::vroom(
     ext = "csv"
   )
 ) %>%
-  dplyr::filter(portfolio_name %in% c("IE00BF4RFH31", "IE00B4L5Y983"))
+  dplyr::filter(investor_name == "BlackRock") %>%
+  dplyr::filter(portfolio_name %in% c(
+    #"IE00BF4RFH31",
+    #"IE00B4L5Y983",
+    "IE00B7J7TB45",
+    "LU0154237225"))
 
 
 total_portfolio <- total_portfolio %>%
@@ -232,6 +233,7 @@ total_portfolio <- total_portfolio %>%
     portfolio_name,
     company_name,
     company_id,
+    corporate_bond_ticker,
     isin,
     holding_id,
     asset_type,
@@ -243,14 +245,6 @@ total_portfolio <- total_portfolio %>%
     portfolio_sector_share,
     portfolio_asset_type_sector_share
   )
-
-
-cb_portfolio <- total_portfolio %>%
-  filter(asset_type == "Bonds")
-
-eq_portfolio <- total_portfolio %>%
-  filter(asset_type == "Equity")
-
 
 # =================================
 # QA
