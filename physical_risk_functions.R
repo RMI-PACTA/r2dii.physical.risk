@@ -316,6 +316,24 @@ load_company_ownership_tree <- function(
 
 }
 
+load_company_id_cb_ticker <- function(path = path_db_datastore_export) {
+  # consolidated_financial_data
+  consolidated_financial_data <- vroom::vroom(
+    fs::path(
+      path,
+      "consolidated_financial_data",
+      ext = "csv"
+    )
+  )
+
+  company_id_cb_ticker <- consolidated_financial_data %>%
+    select(company_id, corporate_bond_ticker) %>%
+    filter(!is.na(corporate_bond_ticker)) %>%
+    distinct(company_id, corporate_bond_ticker)
+
+  return(company_id_cb_ticker)
+}
+
 
 save_climate_data <- function(
   climate_data,
