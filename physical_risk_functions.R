@@ -243,12 +243,12 @@ load_climate_data <- function(relevant_climate_data) {
 }
 
 load_asset_level_owners <- function(
-  ds_dropbox_path = ds_dropbox_path
+  path = path_db_datastore_export
 ) {
   # ald owners
   asset_level_owners <- vroom::vroom(
     fs::path(
-      ds_dropbox_path,
+      path,
       "asset_level_owners",
       ext = "csv"
     )
@@ -267,12 +267,12 @@ load_asset_level_owners <- function(
 }
 
 load_company_financial_data <- function(
-  ds_dropbox_path = ds_dropbox_path
+  path = path_db_datastore_export
 ) {
   # company_financial_data
   company_financial_data <- vroom::vroom(
     fs::path(
-      ds_dropbox_path,
+      path,
       "company_financial_data",
       ext = "csv"
     )
@@ -292,12 +292,12 @@ load_company_financial_data <- function(
 }
 
 load_company_ownership_tree <- function(
-  ds_dropbox_path = ds_dropbox_path
+  path = path_db_datastore_export
 ) {
   # ownership_tree
   ownership_tree <- vroom::vroom(
     fs::path(
-      ds_dropbox_path,
+      path,
       "company_ownership_bidirectional",
       ext = "csv"
     )
