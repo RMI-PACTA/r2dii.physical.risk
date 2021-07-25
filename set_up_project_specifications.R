@@ -81,7 +81,13 @@ asset_level_owners <- asset_level_owners %>%
 company_ownership_tree <- load_company_ownership_tree(path = path_db_datastore_export)
 
 company_ownership_tree <- company_ownership_tree %>%
-  left_join(company_id_cb_ticker, by = c("target_company_id" = "company_id"))
+  rename(
+    subsidiary_id = company_id,
+    company_id = target_company_id
+  )
+
+company_ownership_tree <- company_ownership_tree %>%
+  left_join(company_id_cb_ticker, by = c("company_id"))
 
 # =================================
 # load ALD (all files + preparation script should follow the same name convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
