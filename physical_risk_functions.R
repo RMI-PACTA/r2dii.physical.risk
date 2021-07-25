@@ -588,7 +588,9 @@ plot_company_risk_distribution <- function(data) {
     semi_join(
       data %>%
         distinct(id_name, .keep_all = T) %>%
-        slice_max(port_weight, n = 10),
+        slice_max(port_weight, n = 10) %>%
+        arrange(desc(port_weight)) %>% # necessary as often same weight
+        slice(c(1:10)), # necessary as often same weight
       by = "id_name"
     )
 
