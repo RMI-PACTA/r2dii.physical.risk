@@ -548,7 +548,7 @@ plot_sector_number_of_assets <- function(data) {
 plot_portfolio_company_risk_distribution <- function(data) {
 
   data <- data %>%
-    group_by(company_name, port_weight, relative_change) %>%
+    group_by(id_name, port_weight, relative_change) %>%
     summarise(
       portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
@@ -557,7 +557,7 @@ plot_portfolio_company_risk_distribution <- function(data) {
 
   data %>%
     ggplot() +
-    geom_col(aes(x = reorder(company_name, port_weight), y = new_metric, fill = relative_change)) +
+    geom_col(aes(x = reorder(id_name, port_weight), y = new_metric, fill = relative_change)) +
     scale_y_continuous(labels = scales::percent) +
     theme_minimal() +
     theme(
@@ -587,14 +587,14 @@ plot_company_risk_distribution <- function(data) {
   data <- data %>%
     semi_join(
       data %>%
-        distinct(company_name, .keep_all = T) %>%
+        distinct(id_name, .keep_all = T) %>%
         slice_max(port_weight, n = 10),
-      by = "company_name"
+      by = "id_name"
     )
 
   data <- data %>%
-    mutate(company_name = paste(round(port_weight*100, 2), "% ", company_name)) %>%
-    group_by(company_name, port_weight, relative_change) %>%
+    mutate(id_name = paste(round(port_weight*100, 2), "% ", id_name)) %>%
+    group_by(id_name, port_weight, relative_change) %>%
     summarise(
       portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
@@ -602,7 +602,7 @@ plot_company_risk_distribution <- function(data) {
 
   data %>%
     ggplot() +
-    geom_col(aes(x = reorder(company_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
+    geom_col(aes(x = reorder(id_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
     scale_y_continuous(labels = scales::percent) +
     coord_flip() +
     theme_minimal() +
@@ -754,7 +754,7 @@ plot_portfolio_geo_ald_value <- function(data) {
     ) %>%
     ggplot() +
     geom_col(aes(x = portfolio_name, y = share_value_usd, fill = has_geo_ald)) +
-    scale_y_continuous(sec.axis = sec_axis(~ . * sum(eq_portfolio_sub%>% filter(portfolio_name %in% c("IE00B4L5Y983")) %>% pull(value_usd))/10^6)) +
+    scale_y_continuous(sec.axis = sec_axis(~ . * sum(asset_type_sub_portfolio_sub%>% filter(portfolio_name %in% c("IE00B4L5Y983")) %>% pull(value_usd))/10^6)) +
     labs(
       x = "",
       y = "% Portfolio Value",
@@ -781,7 +781,7 @@ plot_portfolio_geo_ald_holdings <- function(data) {
     ) %>%
     ggplot() +
     geom_col(aes(x = portfolio_name, y = n, fill = has_geo_ald)) +
-    scale_y_continuous(sec.axis = sec_axis(~ . * nrow(eq_portfolio_sub))) +
+    scale_y_continuous(sec.axis = sec_axis(~ . * nrow(asset_type_sub_portfolio_sub))) +
     labs(
       x = "",
       y = "% Portfolio Holdings",
