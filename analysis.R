@@ -1,4 +1,14 @@
 
+asset_type <- "equity"
+
+joining_id <- "company_id"
+
+eq_portfolio <- eq_portfolio %>%
+  mutate(
+    id = company_id,
+    id_name = company_name
+  )
+
 for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
   eq_portfolio_sub <- eq_portfolio %>%
@@ -19,13 +29,14 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   # subset relevant target companies
   # ========
   company_ownership_tree_sub <- company_ownership_tree %>%
-    semi_join(eq_portfolio_sub, by = c("target_company_id" = "company_id"))
+    semi_join(eq_portfolio_sub, by = joining_id)
 
   # ========
   # subset relevant asset owners
   # ========
   asset_level_owners_sub <- asset_level_owners %>%
-    semi_join(company_ownership_tree_sub, by = "company_id")
+    rename(owner_id = company_id) %>%
+    semi_join(company_ownership_tree_sub, by = c("owner_id" = "subsidiary_id"))
 
   # ========
   # subset relevant ALD
@@ -56,7 +67,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   # merge asset level owners + calculate direct owned economic value
   # ========
   analysis <- analysis %>%
-    left_join(asset_level_owners, by = "asset_id")
+    left_join(asset_level_owners_sub, by = "asset_id")
 
   analysis <- analysis %>%
     mutate(direct_owned_economic_value = economic_value*(ownership_share/100))
@@ -65,7 +76,7 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   # merge ownership tree
   # ========
   analysis <- analysis %>%
-    left_join(company_ownership_tree %>% filter(ownership_level >= 0), by = "company_id")
+    left_join(company_ownership_tree_sub %>% filter(ownership_level >= 0), by = c("owner_id" = "subsidiary_id"))
 
   # clean linking stake + calculate company_final_owned_economic_value
   analysis <- analysis %>%
@@ -76,10 +87,9 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
   # merge to portfolio
   # ========
   analysis <-  eq_portfolio_sub %>%
-    rename(target_company_id = company_id) %>%
     left_join(
       analysis,
-      by = "target_company_id"
+      by = joining_id
     )
 
   # =================================
@@ -88,26 +98,26 @@ for (portfolio in unique(eq_portfolio$portfolio_name)) {
 
   has_ald <- analysis %>%
     filter(!is.na(asset_id)) %>%
-    distinct(portfolio_name, company_name, asset_id) %>%
-    group_by(portfolio_name, company_name) %>%
+    distinct(portfolio_name, id, asset_id) %>%
+    group_by(portfolio_name, id) %>%
     summarise(number_of_assets = n(), .groups = "keep") %>%
     mutate(has_ald = TRUE)
 
   has_ald_with_geo_data <- analysis %>%
     filter(!is.na(asset_id), has_geo_data == TRUE) %>%
-    distinct(portfolio_name, company_name, asset_id) %>%
-    group_by(portfolio_name, company_name) %>%
+    distinct(portfolio_name, id, asset_id) %>%
+    group_by(portfolio_name, id) %>%
     summarise(number_of_assets_with_geo_data = n(), .groups = "keep") %>%
     mutate(has_geo_ald = TRUE)
 
   # join overview stats to eq portfolio
   eq_portfolio_sub <- eq_portfolio_sub %>%
-    left_join(has_ald, by = c("portfolio_name", "company_name")) %>%
+    left_join(has_ald, by = c("portfolio_name", id)) %>%
     mutate(has_ald = if_else(is.na(has_ald), FALSE, TRUE)) %>%
     assertr::verify(nrow(.) == nrow(eq_portfolio_sub))
 
   eq_portfolio_sub <- eq_portfolio_sub %>%
-    left_join(has_ald_with_geo_data, by = c("portfolio_name", "company_name")) %>%
+    left_join(has_ald_with_geo_data, by = c("portfolio_name", id)) %>%
     mutate(has_geo_ald = if_else(is.na(has_geo_ald), FALSE, TRUE)) %>%
     assertr::verify(nrow(.) == nrow(eq_portfolio_sub))
 
