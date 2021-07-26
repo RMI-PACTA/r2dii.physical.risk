@@ -47,6 +47,7 @@ for (asset_type in c("Equity", "Bonds")) {
       select(subsidiary_id, linking_stake, ownership_level, all_of(joining_id)) %>%
       semi_join(asset_type_sub_portfolio_sub, by = joining_id)
 
+    #TODO: check bonds roll-up
     # ========
     # subset relevant asset owners
     # ========
