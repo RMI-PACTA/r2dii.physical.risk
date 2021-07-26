@@ -184,6 +184,7 @@ for (asset_type in c("Equity", "Bonds")) {
 
         analysis_final %>%
           filter(security_mapped_sector == sector) %>%
+          filter(is_reference_period == FALSE) %>%
           for_loops_climate_data(
             parent_path = fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation_plots),
             fns = function(data, final_path) {
@@ -203,12 +204,8 @@ for (asset_type in c("Equity", "Bonds")) {
                   scenario = scenario_sub,
                   hazard = hazard_sub,
                   model = model_sub,
-                  period = period_sub,
-                  is_reference_period = if_else(mean(is_reference_period, na.rm = T) == 0, FALSE, TRUE)
+                  period = period_sub
                 )
-
-              data <- data %>%
-                filter(is_reference_period == FALSE)
 
               # calculate portfolio_economic_value_share_technology
               data <- data %>%
