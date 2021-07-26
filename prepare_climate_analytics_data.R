@@ -211,10 +211,6 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       data <- data %>%
         dplyr::filter(risk_level != "")
 
-      # transform risk level from percentages to decimals (100% -> 1)
-      data <- data %>%
-        dplyr::mutate(risk_level = risk_level/100)
-
       # add summary and paramter information to data
       data <- dplyr::bind_cols(
         api_paramter_sub_sub,
@@ -354,6 +350,10 @@ for (sub_indicator in unique(api_paramter$indicator)) {
           TRUE ~ scenario
         )
       )
+
+    # transform risk level from percentages to decimals (100% -> 1)
+    asset_scenario_data <- asset_scenario_data %>%
+      dplyr::mutate(risk_level = as.numeric(risk_level)/100)
 
     asset_scenario_data <- asset_scenario_data %>%
       transmute(
