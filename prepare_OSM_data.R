@@ -32,11 +32,10 @@ osm_match_company_id <- tibble::tribble(
 osm_data <- osm_data %>%
   dplyr::inner_join(osm_match_company_id, by = "names_osm") %>%
   sf::st_as_sf() %>%
-  dplyr::mutate(centroid = sf::st_centroid(geometry)) %>%
-  sf::st_drop_geometry() %>%
+  dplyr::mutate(geometry = sf::st_centroid(geometry)) %>%
   sf::st_as_sf()
 
-osm_data <- sf::st_intersection(osm_data, spData::world %>% dplyr::select(geom, iso_a2))
+osm_data <- sf::st_join(osm_data, spData::world %>% dplyr::select(geom, iso_a2))
 
 osm_data$latitude <- sf::st_coordinates(osm_data)[,2]
 osm_data$longitude <- sf::st_coordinates(osm_data)[,1]
@@ -63,7 +62,7 @@ osm_ald <- osm_data %>%
   )
 
 osm_ald_original <- osm_ald
-years <- 5
+years <- 1
 plus_year <- 0
 
 for (e in c(1:years)) {
