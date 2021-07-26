@@ -193,7 +193,7 @@ for (asset_type in c("Equity", "Bonds")) {
                 rbind.data.frame(
                   analysis_final %>%
                     filter(security_mapped_sector == sector) %>%
-                    filter(!is.na(asset_id))
+                    filter(!is.na(asset_id)) # these get kicked out in the for loop
                 )
 
               # ensure that all assets are analysed under the given subset of paramters -> also assets with missing assets will be included
