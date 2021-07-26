@@ -190,7 +190,11 @@ for (asset_type in c("Equity", "Bonds")) {
 
               # filter rows with belong to assets
               data <- data %>%
-                filter(!is.na(asset_id))
+                rbind.data.frame(
+                  analysis_final %>%
+                    filter(security_mapped_sector == sector) %>%
+                    filter(!is.na(asset_id))
+                )
 
               # ensure that all assets are analysed under the given subset of paramters -> also assets with missing assets will be included
               data <- data %>%
@@ -199,8 +203,12 @@ for (asset_type in c("Equity", "Bonds")) {
                   scenario = scenario_sub,
                   hazard = hazard_sub,
                   model = model_sub,
-                  period = period_sub
+                  period = period_sub,
+                  is_reference_period = if_else(mean(is_reference_period, na.rm = T) == 0, FALSE, TRUE)
                 )
+
+              data <- data %>%
+                filter(is_reference_period == FALSE)
 
               # calculate portfolio_economic_value_share_technology
               data <- data %>%
@@ -225,10 +233,6 @@ for (asset_type in c("Equity", "Bonds")) {
                 group_by(portfolio_name, provider, id, hazard, model, period, sector, year) %>%
                 mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
                 ungroup()
-
-              data <- data %>%
-                filter(is_reference_period == FALSE)
-
 
               ####### asset_risk_histgram
               asset_risk_histgram <- data %>%
