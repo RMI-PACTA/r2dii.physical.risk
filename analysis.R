@@ -276,13 +276,12 @@ for (asset_type in c("Equity", "Bonds")) {
 
               save_result_plot(name = "absolute_sector_production", path = final_path)
 
-            }
-          )
 
-        analysis_final %>%
-          filter(security_mapped_sector == sector) %>%
-          readr::write_csv(
-            fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation, "results", ext = "csv")
+              data %>%
+                readr::write_csv(
+                  fs::path(final_path, "results", ext = "csv")
+                )
+            }
           )
       }
     }
