@@ -175,30 +175,6 @@ for (asset_type in c("Equity", "Bonds")) {
             mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, asset_type_port_weight*company_final_owned_economic_value, 0))
         }
 
-        # calculate portfolio_economic_value_share_technology
-        analysis_final <- analysis_final %>%
-          group_by(portfolio_name, provider, hazard, model, period, sector, technology, year) %>%
-          mutate(portfolio_economic_value_share_technology = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
-          ungroup()
-
-        # calculate portfolio_economic_value_share_technology_company
-        analysis_final <- analysis_final %>%
-          group_by(portfolio_name, provider, id, hazard, model, period, sector, technology, year) %>%
-          mutate(portfolio_economic_value_share_technology_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
-          ungroup()
-
-        # calculate portfolio_economic_value_share_sector
-        analysis_final <- analysis_final %>%
-          group_by(portfolio_name, provider, hazard, model, period, sector, year) %>%
-          mutate(portfolio_economic_value_share_sector = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
-          ungroup()
-
-        # calculate portfolio_economic_value_share_sector_company
-        analysis_final <- analysis_final %>%
-          group_by(portfolio_name, provider, id, hazard, model, period, sector, year) %>%
-          mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
-          ungroup()
-
         # add allocation method
         analysis_final <- analysis_final %>%
           mutate(allocation = allocation)
@@ -207,11 +183,52 @@ for (asset_type in c("Equity", "Bonds")) {
         path_db_pacta_project_pr_output_asset_type_portfolio_allocation_plots <- fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation, "plots")
 
         analysis_final %>%
-          filter(is_reference_period == FALSE) %>%
           filter(security_mapped_sector == sector) %>%
           for_loops_climate_data(
             parent_path = fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation_plots),
             fns = function(data, final_path) {
+
+              # filter rows with belong to assets
+              data <- data %>%
+                filter(!is.na(asset_id))
+
+              # ensure that all assets are analysed under the given subset of paramters -> also assets with missing assets will be included
+              data <- data %>%
+                mutate(
+                  provider = provider_sub,
+                  scenario = scenario_sub,
+                  hazard = hazard_sub,
+                  model = model_sub,
+                  period = period_sub
+                )
+
+              # calculate portfolio_economic_value_share_technology
+              data <- data %>%
+                group_by(portfolio_name, provider, hazard, model, period, sector, technology, year) %>%
+                mutate(portfolio_economic_value_share_technology = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
+                ungroup()
+
+              # calculate portfolio_economic_value_share_technology_company
+              data <- data %>%
+                group_by(portfolio_name, provider, id, hazard, model, period, sector, technology, year) %>%
+                mutate(portfolio_economic_value_share_technology_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
+                ungroup()
+
+              # calculate portfolio_economic_value_share_sector
+              data <- data %>%
+                group_by(portfolio_name, provider, hazard, model, period, sector, year) %>%
+                mutate(portfolio_economic_value_share_sector = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
+                ungroup()
+
+              # calculate portfolio_economic_value_share_sector_company
+              data <- data %>%
+                group_by(portfolio_name, provider, id, hazard, model, period, sector, year) %>%
+                mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
+                ungroup()
+
+              data <- data %>%
+                filter(is_reference_period == FALSE)
+
 
               ####### asset_risk_histgram
               asset_risk_histgram <- data %>%

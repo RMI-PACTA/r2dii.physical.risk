@@ -464,7 +464,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 }
 
 scale_fill_relative_risk <- function() {
-  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-2, -1 , 0, 1, 2), limits = c(-2,2))
+  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-2, -1 , 0, 1, 2), limits = c(-2,2), na.value = "grey50")
 }
 
 plot_sector_absolute_portfolio_economic_value <- function(data) {
@@ -584,13 +584,20 @@ plot_portfolio_company_risk_distribution <- function(data) {
 
 plot_company_risk_distribution <- function(data) {
 
+  sub_set <- data %>%
+    distinct(holding_id, .keep_all = T) %>%
+    group_by(id_name) %>%
+    mutate(port_weight = sum(port_weight, na.rm = TRUE)) %>%
+    ungroup() %>%
+    slice_max(port_weight, n = 10) %>%
+    arrange(desc(port_weight)) %>% # necessary as often same weight
+    slice(c(1:10)) %>% # necessary as often same weight
+    select(id_name, port_weight)
+
   data <- data %>%
-    semi_join(
-      data %>%
-        distinct(id_name, .keep_all = T) %>%
-        slice_max(port_weight, n = 10) %>%
-        arrange(desc(port_weight)) %>% # necessary as often same weight
-        slice(c(1:10)), # necessary as often same weight
+    select(-port_weight) %>%
+    inner_join(
+      sub_set,
       by = "id_name"
     )
 
