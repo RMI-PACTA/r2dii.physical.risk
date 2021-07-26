@@ -587,7 +587,7 @@ plot_company_risk_distribution <- function(data) {
   sub_set <- data %>%
     distinct(holding_id, .keep_all = T) %>%
     group_by(id_name) %>%
-    mutate(port_weight = sum(port_weight, na.rm = TRUE)) %>%
+    summarise(port_weight = sum(port_weight, na.rm = TRUE)) %>%
     ungroup() %>%
     slice_max(port_weight, n = 10) %>%
     arrange(desc(port_weight)) %>% # necessary as often same weight
