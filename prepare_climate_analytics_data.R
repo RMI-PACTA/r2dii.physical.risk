@@ -21,6 +21,7 @@ all_countries <- rworldmap::countryRegions %>%
 # cross parameters
 api_paramter <- tidyr::crossing(
   region = c(
+    #all_countries, # explodes number of parameters but single regions have higher resolution
     "AFRICA",
     "EUROPE",
     "NORTH_AMERICA",
@@ -85,6 +86,9 @@ api_paramter <- api_paramter %>%
     )
   )
 
+# =================================
+# set up for loop for indicator
+# =================================
 
 # define starting variables + data frame
 processed_links <- 0
@@ -119,8 +123,16 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     risk_level = NA_character_
   )
 
+  # create lat and long start vector (used to determine raster size later)
+  all_lats <- NA_integer_
+  all_longs <- NA_integer_
+
   # count processed hazards
   processed_indicators <- processed_indicators + 1
+
+  # =================================
+  # download all links for one indicators with for loop
+  # =================================
 
   # scrape data
   for (sub_link in api_paramter_sub$link) {
@@ -190,9 +202,18 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       data <- data %>%
         tidyr::pivot_longer(cols = !lat, values_to = "risk_level", names_to = "long")
 
+      # subset lat and long
+      all_lats <- unique(c(all_lats, as.numeric(data$lat))) %>% sort()
+      all_longs <- unique(c(all_longs, as.numeric(data$long))) %>% sort()
+
+
       # kickout coordinates without risk data (as countries are not squares this is expected to happen)
       data <- data %>%
         dplyr::filter(risk_level != "")
+
+      # transform risk level from percentages to decimals (100% -> 1)
+      data <- data %>%
+        dplyr::mutate(risk_level = risk_level/100)
 
       # add summary and paramter information to data
       data <- dplyr::bind_cols(
@@ -216,6 +237,15 @@ for (sub_indicator in unique(api_paramter$indicator)) {
   # kickput out the starting row of the target data frame
   all_data <- all_data %>%
     filter(!is.na(link))
+
+  diff_lats <- all_lats[-1] - all_lats[-length(all_lats)]
+  median_diff_lats <- median(diff_lats, na.rm = TRUE)
+  cat(crayon::red("Using", median_diff_lats, "as median lat", "\n"))
+
+  diff_longs <- all_longs[-1] - all_longs[-length(all_longs)]
+  median_diff_longs <- median(diff_longs, na.rm = TRUE)
+  cat(crayon::red("Using", median_diff_longs, "as median long", "\n"))
+
 
   if(nrow(all_data > 0)) {
     # apply distinct to eliminate duplicate entries for the same centroids used at the borders of to regions / countries
@@ -243,24 +273,30 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       distinct(long, lat, geometry_id) %>%
       as_tibble()
 
+    # save coordinates as numeric
     all_data_distinct_geo_data <- all_data_distinct_geo_data %>%
       mutate(
         long = as.numeric(long),
         lat = as.numeric(lat),
-      ) %>%
+      )
+
+    # calculate square coordinates based on climate analytics (they use the centroid as the lower left hand corner (did double check with their website and replicated their "squares"))
+    all_data_distinct_geo_data <- all_data_distinct_geo_data %>%
       mutate(
         geometry_id = as.character(geometry_id),
-        north_lat = lat + 0.5,
+        north_lat = lat + median_diff_lats,
         south_lat = lat,
-        east_lng = long + 0.5,
+        east_lng = long + median_diff_longs,
         west_lng = long
-        # north_lat = lat + 0.5/2,
-        # south_lat = lat - 0.5/2,
-        # east_lng = long + 0.5/2,
-        # west_lng = long - 0.5/2
+        # north_lat = lat + median_diff_lats/2,
+        # south_lat = lat - median_diff_lats/2,
+        # east_lng = long + median_diff_longs/2,
+        # west_lng = long - median_diff_longs/2
       ) %>%
       as.data.frame()
 
+
+    # build polygons based on calculated "corners"
     all_data_distinct_geo_data_polygons <- lapply(
       1:nrow(all_data_distinct_geo_data), function(x) {
         ## create a matrix of coordinates that also 'close' the polygon
@@ -327,8 +363,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         scenario,
         period = year,
         is_reference_period = FALSE,
-        model = "Ensemble",
-        relative_change = risk_level,
+        model = "Ensemble", # to many models -> just say ensemble
+        relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
         risk_level = NA,
         reference = NA,
         absolute_change = NA,
@@ -336,6 +372,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       )
 
 
+    # save data
     asset_scenario_data %>%
       save_climate_data(
         path_db_pr_climate_data = path_db_pr_climate_data,
