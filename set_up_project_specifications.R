@@ -73,39 +73,42 @@ asset_level_owners <- load_asset_level_owners(path = path_db_datastore_export)
 # company_ownership_tree
 company_ownership_tree <- load_company_ownership_tree(path = path_db_datastore_export)
 
+# rename to have target_company_id as company_id
 company_ownership_tree <- company_ownership_tree %>%
   rename(
     subsidiary_id = company_id,
     company_id = target_company_id
   )
 
+# join cb ticker to company tree for later bonds roll up
 company_ownership_tree <- company_ownership_tree %>%
-  left_join(company_id_cb_ticker, by = c("subsidiary_id" = "company_id")) # thats right
+  left_join(company_id_cb_ticker, by = c("subsidiary_id" = "company_id"))
 
 # =================================
 # load ALD (all files + preparation script should follow the same name convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
 # =================================
 
-ald <- load_ald_data(
+ald <- load_ald_data( #TODO: work with ALD timestamps
   relevant_ald = list(
 
     list(
-      data_path = fs::path(path_db_pr_ald_prepared, "AR_data", ext = "csv"),
-      run_prepare_script_before_loading = FALSE,
-      prepare_script_path = "physical_risk/prepare_AR_data.R",
-      load_data = TRUE
+      data_path = fs::path(path_db_pr_ald_prepared, "AR_data", ext = "csv"), # where does the prepared ald data lie?
+      run_prepare_script_before_loading = FALSE, # do you want to run the corresponding prepare script beforehand?
+      prepare_script_path = "physical_risk/prepare_AR_data.R", # where does the prepare script lie?
+      load_data = TRUE # do you ultimately want to load the ALD of this source?
     ),
 
     # not working, but just as an example how this could work
     list(
-      data_path = fs::path(path_db_pr_ald_prepared, "OSM_data", ext = "csv"),
-      run_prepare_script_before_loading = FALSE,
-      prepare_script_path = "physical_risk/prepare_OSM_data.R",
-      load_data = FALSE
+      data_path = fs::path(path_db_pr_ald_prepared, "OSM_data", ext = "csv"),  # where does the prepared AR data lie?
+      run_prepare_script_before_loading = FALSE,  # do you want to run the corresponding prepare script beforehand?
+      prepare_script_path = "physical_risk/prepare_OSM_data.R", # where does the prepare script lie?
+      load_data = FALSE # do you ultimately want to load the ALD of this source?
     )
   )
 )
 
+# currently we use only one year (5 years is rather confusing + doesnt really help for a 30 year time horizon)
 ald <- ald %>%
   filter(between(year, 2020, 2020))
 
@@ -118,12 +121,16 @@ climate_data <- load_climate_data(
 
     # cdf data
     list(
-      data_path = fs::path(path_db_pr_climate_data, "CDF"),
-      run_prepare_script_before_loading = FALSE,
-      prepare_script_path = "prepare_CDF_data.R",
-      load_data = TRUE,
+      data_path = fs::path(path_db_pr_climate_data, "CDF"), # from which data provider do you want to load climate data?
+      run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
+      prepare_script_path = "prepare_CDF_data.R", # where does the preparation script lie?
+      load_data = T, # do you ultimately want to load the climate data of this source?
+
+      # parameters can differ for each provider, scenrio, hazard, model and time period
       parameter = list(
-        scenarios = c("RCP85"),
+        scenarios = c(
+          "RCP85"
+        ),
         hazards = c(
           #"cold_days_percent_wrt_10th_percentile_of_reference_period",
           #"heavy_precipitation_days_index_per_time_period",
@@ -147,16 +154,18 @@ climate_data <- load_climate_data(
 
     # climate analytics data
     list(
-      data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"),
-      run_prepare_script_before_loading = FALSE,
-      prepare_script_path = "prepare_climate_analytics_data.R",
-      load_data = F,
+      data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"), # from which data provider do you want to load climate data?
+      run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
+      prepare_script_path = "prepare_climate_analytics_data.R", # where does the preparation script lie?
+      load_data = T, # do you ultimately want to load the climate data of this source?
+
+      # parameters can differ for each provider, scenrio, hazard, model and time period
       parameter = list(
         scenarios = "rcp85",
-        hazards = NULL,
+        hazards = "fldd",
         models = NULL,
         periods = c(
-          "2030",
+          #"2030",
           "2050"
           #"2100"
         )
@@ -165,10 +174,8 @@ climate_data <- load_climate_data(
   )
 )
 
+# TODO: set boundaries of relative change (can be several million % in extreme cases (e.g. snow in the sahara))
 climate_data <- climate_data %>%
-  mutate(risk_level = if_else(is.na(risk_level), 0, round(risk_level, 0))) # questionable
-
-climate_data <- climate_data %>% # tbd
   mutate(
     relative_change = case_when(
       relative_change > 2 ~ 2,
@@ -177,7 +184,7 @@ climate_data <- climate_data %>% # tbd
     )
   )
 
-
+# select relevant columns from climate data
 climate_data <- climate_data %>%
   select(provider, scenario, hazard, model, period, is_reference_period ,risk_level, absolute_change, relative_change, asset_id)
 
@@ -185,6 +192,7 @@ climate_data <- climate_data %>%
 # load portfolio
 # =================================
 
+# load pacta total portfolio
 total_portfolio <- vroom::vroom(
   fs::path(
     path_db_pacta_project,
@@ -193,41 +201,57 @@ total_portfolio <- vroom::vroom(
     ext = "csv"
   )
 ) %>%
+  # TODO: remove those filter (these were for development purposes)
   dplyr::filter(investor_name == "BlackRock") %>%
-  dplyr::filter(portfolio_name %in% c(
-    #"IE00BF4RFH31",
-    #"IE00B4L5Y983",
-    "IE00B7J7TB45",
-    "LU0154237225"))
+  dplyr::filter(
+    portfolio_name %in% c(
+      "IE00BF4RFH31",
+      "IE00B4L5Y983",
+      "IE00B7J7TB45",
+      "LU0154237225"
+    )
+  )
 
-
+# calculate portfolio value
 total_portfolio <- total_portfolio %>%
   group_by(portfolio_name) %>%
   mutate(portfolio_value = sum(value_usd, na.rm = TRUE)) %>%
+  ungroup()
+
+# calculate portfolio sector value
+total_portfolio <- total_portfolio %>%
   group_by(portfolio_name, security_mapped_sector) %>%
-  mutate(
-    portfolio_sector_value = sum(value_usd, na.rm = TRUE),
-  ) %>%
-  ungroup() %>%
+  mutate(portfolio_sector_value = sum(value_usd, na.rm = TRUE)) %>%
+  ungroup()
+
+# calculate weights
+total_portfolio <- total_portfolio %>%
   mutate(
     portfolio_sector_share = portfolio_sector_value / portfolio_value,
     port_weight = value_usd / portfolio_value,
     ownership_weight = number_of_shares / current_shares_outstanding_all_classes
   )
 
+# calculate portfolio asset type value
 total_portfolio <- total_portfolio %>%
   group_by(portfolio_name, asset_type) %>%
   mutate(portfolio_asset_type_value = sum(value_usd, na.rm = TRUE)) %>%
+  ungroup()
+
+# calculate portfolio asset type sector value
+total_portfolio <- total_portfolio %>%
   group_by(portfolio_name, asset_type, security_mapped_sector) %>%
-  mutate(
-    portfolio_asset_type_sector_value = sum(value_usd, na.rm = TRUE),
-  ) %>%
-  ungroup() %>%
+  mutate(portfolio_asset_type_sector_value = sum(value_usd, na.rm = TRUE)) %>%
+  ungroup()
+
+# calculate asset type weights
+total_portfolio <- total_portfolio %>%
   mutate(
     portfolio_asset_type_sector_share = portfolio_asset_type_sector_value / portfolio_asset_type_value,
     asset_type_port_weight = value_usd / portfolio_asset_type_value
   )
 
+# select relevant column for total portfolio
 total_portfolio <- total_portfolio %>%
   select(
     portfolio_name,
