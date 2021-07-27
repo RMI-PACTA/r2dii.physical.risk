@@ -195,6 +195,7 @@ for (asset_type in c("Equity", "Bonds")) {
                 rbind.data.frame(
                   analysis_final %>%
                     filter(security_mapped_sector == sector) %>%
+                    filter(!sector %in% c("Cement", "Steel")) %>%
                     filter(!is.na(asset_id)) %>% # these get kicked out in the for loop
                     filter(is.na(provider))
                 )
