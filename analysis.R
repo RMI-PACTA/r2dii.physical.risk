@@ -195,7 +195,8 @@ for (asset_type in c("Equity", "Bonds")) {
                 rbind.data.frame(
                   analysis_final %>%
                     filter(security_mapped_sector == sector) %>%
-                    filter(!is.na(asset_id)) # these get kicked out in the for loop
+                    filter(!is.na(asset_id)) %>% # these get kicked out in the for loop
+                    filter(is.na(provider))
                 )
 
               # ensure that all assets are analysed under the given subset of paramters -> also assets with missing assets will be included
@@ -231,6 +232,19 @@ for (asset_type in c("Equity", "Bonds")) {
                 group_by(portfolio_name, provider, id, hazard, model, period, sector, year) %>%
                 mutate(portfolio_economic_value_share_sector_company = portfolio_economic_value / sum(portfolio_economic_value, na.rm = T)) %>%
                 ungroup()
+
+              # TODO: set boundaries of relative change (can be several million % in extreme cases (e.g. snow in the sahara))
+              upper_boundary <- round(quantile(data$relative_change, 0.95, na.rm = T),2)
+              lower_boundary <- round(quantile(data$relative_change, 0.05, na.rm = T),2)
+
+              data <- data %>%
+                mutate(
+                  relative_change = case_when(
+                    relative_change > upper_boundary ~ upper_boundary,
+                    relative_change < lower_boundary ~ lower_boundary,
+                    TRUE ~ relative_change
+                  )
+                )
 
               ####### asset_risk_histgram
               asset_risk_histgram <- data %>%
