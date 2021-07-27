@@ -464,7 +464,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 }
 
 scale_fill_relative_risk <- function() {
-  scale_fill_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdBu")), breaks = c(-2, -1 , 0, 1, 2), limits = c(-2,2), na.value = "grey50")
+  scale_fill_gradientn(
+    colors = rev(RColorBrewer::brewer.pal(11, "RdBu")),
+    #breaks = c(-2, -1 , 0, 1, 2),
+    #limits = c(-2,2),
+    na.value = "grey50"
+  )
 }
 
 plot_sector_absolute_portfolio_economic_value <- function(data) {
@@ -639,7 +644,7 @@ plot_asset_risk_histgram <- function(data) {
     count(sector, relative_change) %>%
     ggplot() +
     geom_col(aes(x = relative_change, y = n, fill = relative_change), position = "dodge") +
-    scale_x_continuous(labels = scales::percent, limits = c(-2,2)) +
+    scale_x_continuous(labels = scales::percent) +
     theme_minimal() +
     labs(
       x = "Relative Change",
