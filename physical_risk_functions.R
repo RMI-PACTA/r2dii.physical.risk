@@ -472,13 +472,13 @@ scale_fill_relative_risk <- function() {
   )
 }
 
-plot_sector_absolute_portfolio_economic_value <- function(data) {
+plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) {
   data %>%
     arrange(relative_change) %>%
     ggplot() +
     geom_col(aes(x = as.character(year), y = portfolio_economic_value, fill = relative_change)) +
     theme_minimal() +
-    facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
+    facet_wrap( ~ sector, scales = "free", nrow = 1) +
     labs(
       x = "Year",
       caption = paste(
@@ -493,17 +493,18 @@ plot_sector_absolute_portfolio_economic_value <- function(data) {
       title = "Absolute Sector Production"
     ) +
     theme(
-      plot.background = element_rect(fill = "white")
+      plot.background = element_rect(fill = "white"),
+      text = element_text(size = text_size)
     )
 }
 
-plot_sector_relative_portfolio_economic_value <- function(data) {
+plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) {
   data %>%
     arrange(relative_change) %>%
     ggplot() +
     geom_col(aes(x = as.character(year), y = portfolio_economic_value_share_sector, fill = relative_change)) +
     scale_y_continuous(labels = scales::percent) +
-    facet_grid(portfolio_name ~ sector)  +
+    facet_grid( ~ sector)  +
     theme_minimal() +
     labs(
       x = "Year",
@@ -519,11 +520,12 @@ plot_sector_relative_portfolio_economic_value <- function(data) {
       title = "Share Sector Production"
     ) +
     theme(
-      plot.background = element_rect(fill = "white")
+      plot.background = element_rect(fill = "white"),
+      text = element_text(size = text_size)
     )
 }
 
-plot_sector_number_of_assets <- function(data) {
+plot_sector_number_of_assets <- function(data, text_size = 12) {
   data %>%
     distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>% # some assets producing different technologies (automotive!!)
     count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
@@ -531,7 +533,7 @@ plot_sector_number_of_assets <- function(data) {
     ggplot() +
     geom_col(aes(x = as.character(year), y = n, fill = relative_change)) +
     theme_minimal() +
-    facet_wrap(portfolio_name ~ sector, scales = "free", nrow = 1) +
+    facet_wrap( ~ sector, scales = "free", nrow = 1) +
     labs(
       x = "Year",
       caption = paste(
@@ -546,11 +548,12 @@ plot_sector_number_of_assets <- function(data) {
       title = "Number of assets"
     ) +
     theme(
-      plot.background = element_rect(fill = "white")
+      plot.background = element_rect(fill = "white"),
+      text = element_text(size = text_size)
     )
 }
 
-plot_portfolio_company_risk_distribution <- function(data) {
+plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 
   data <- data %>%
     group_by(id_name, port_weight, relative_change) %>%
@@ -582,12 +585,13 @@ plot_portfolio_company_risk_distribution <- function(data) {
       title = "Risk distribution among the biggest companies in the portfolio"
     ) +
     theme(
-      plot.background = element_rect(fill = "white")
+      plot.background = element_rect(fill = "white"),
+      text = element_text(size = text_size)
     )
 }
 
 
-plot_company_risk_distribution <- function(data) {
+plot_company_risk_distribution <- function(data, text_size = 12) {
 
   sub_set <- data %>%
     distinct(holding_id, .keep_all = T) %>%
@@ -634,11 +638,12 @@ plot_company_risk_distribution <- function(data) {
       title = "Risk distribution among the biggest companies in the portfolio"
     ) +
     theme(
-      plot.background = element_rect(fill = "white")
+      plot.background = element_rect(fill = "white"),
+      text = element_text(size = text_size)
     )
 }
 
-plot_asset_risk_histgram <- function(data) {
+plot_asset_risk_histgram <- function(data, text_size = 12) {
   data %>%
     mutate(relative_change = round(relative_change, 1)) %>%
     count(sector, relative_change) %>%
@@ -660,7 +665,8 @@ plot_asset_risk_histgram <- function(data) {
       title = "Risk distribution among the identified assets in the portfolio"
     ) +
     theme(
-      plot.background = element_rect(fill = "white")
+      plot.background = element_rect(fill = "white"),
+      text = element_text(size = text_size)
     )
 }
 

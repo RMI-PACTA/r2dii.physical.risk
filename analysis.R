@@ -249,42 +249,42 @@ for (asset_type in c("Equity", "Bonds")) {
 
               ####### asset_risk_histgram
               asset_risk_histgram <- data %>%
-                plot_asset_risk_histgram() +
+                plot_asset_risk_histgram(text_size = 20) +
                 scale_fill_relative_risk()
 
               save_result_plot(name = "asset_risk_histgram", path = final_path)
 
               ####### company_risk_distribution
               company_risk_distribution <- data %>%
-                plot_company_risk_distribution() +
+                plot_company_risk_distribution(text_size = 20) +
                 scale_fill_relative_risk()
 
               save_result_plot(name = "company_risk_distribution", path = final_path)
 
               ####### portfolio_company_risk_distribution
               portfolio_company_risk_distribution <- data %>%
-                plot_portfolio_company_risk_distribution() +
+                plot_portfolio_company_risk_distribution(text_size = 20) +
                 scale_fill_relative_risk()
 
               save_result_plot(name = "portfolio_company_risk_distribution", path = final_path)
 
               ####### number_of_assets
               number_of_assets <- data %>%
-                plot_sector_number_of_assets() +
+                plot_sector_number_of_assets(text_size = 20) +
                 scale_fill_relative_risk()
 
               save_result_plot(name = "number_of_assets", path = final_path)
 
               ####### relative_sector_production
               relative_sector_production <- data %>%
-                plot_sector_relative_portfolio_economic_value() +
+                plot_sector_relative_portfolio_economic_value(text_size = 20) +
                 scale_fill_relative_risk()
 
               save_result_plot(name = "relative_sector_production", path = final_path)
 
               ####### absolute_sector_production
               absolute_sector_production <- data %>%
-                plot_sector_absolute_portfolio_economic_value() +
+                plot_sector_absolute_portfolio_economic_value(text_size = 20) +
                 scale_fill_relative_risk()
 
               save_result_plot(name = "absolute_sector_production", path = final_path)
