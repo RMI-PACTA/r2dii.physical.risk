@@ -244,9 +244,31 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
 
   if(nrow(all_data > 0)) {
+
+    all_data <- all_data %>%
+      mutate(
+        scenario = case_when(
+          scenario == "cat_current" ~ "cat_current_policies",
+          scenario == "h_cpol" ~ "ngfs_current_policies",
+          scenario == "d_delfrag" ~ "ngfs_delayed_2_degrees",
+          scenario == "o_1p5c" ~ "ngfs_net_zero",
+          TRUE ~ scenario
+        ),
+        model = "Ensemble", # to many models -> just say ensemble
+        provider = "ClimateAnalytics"
+      ) %>%
+      rename(
+        hazard = indicator,
+        period = year
+      )
+
+    # transform risk level from percentages to decimals (100% -> 1)
+    all_data <- all_data %>%
+      dplyr::mutate(risk_level = as.numeric(risk_level)/100)
+
     # apply distinct to eliminate duplicate entries for the same centroids used at the borders of to regions / countries
     all_data <- all_data %>%
-      distinct(scenario, indicator, year, long, lat, .keep_all = TRUE)
+      distinct(scenario, hazard, period, long, lat, .keep_all = TRUE)
 
     # duplicate long lats for sf coordinates
     all_data <- all_data %>%
@@ -341,29 +363,14 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       )
 
     asset_scenario_data <- asset_scenario_data %>%
-      mutate(
-        scenario = case_when(
-          scenario == "cat_current" ~ "cat_current_policies",
-          scenario == "h_cpol" ~ "ngfs_current_policies",
-          scenario == "d_delfrag" ~ "ngfs_delayed_2_degrees",
-          scenario == "o_1p5c" ~ "ngfs_net_zero",
-          TRUE ~ scenario
-        )
-      )
-
-    # transform risk level from percentages to decimals (100% -> 1)
-    asset_scenario_data <- asset_scenario_data %>%
-      dplyr::mutate(risk_level = as.numeric(risk_level)/100)
-
-    asset_scenario_data <- asset_scenario_data %>%
       transmute(
         asset_id,
-        provider = "ClimateAnalytics",
-        hazard = indicator,
+        provider,
+        hazard,
         scenario,
-        period = year,
+        period,
         is_reference_period = FALSE,
-        model = "Ensemble", # to many models -> just say ensemble
+        model,
         relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
         risk_level = NA,
         reference = NA,
@@ -378,6 +385,18 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         path_db_pr_climate_data = path_db_pr_climate_data,
         use_distinct_for_assets_between_two_rasters = TRUE,
         drop_any_NAs = FALSE
+      )
+
+    # save downloaded all data
+    all_data %>%
+      for_loops_climate_data(
+        parent_path = fs::path(path_db_pr_climate_data_raw),
+        fns = function(data, final_path) {
+          readr::write_csv(
+            data,
+            fs::path(final_path, paste(scenario_sub, hazard_sub, model_sub, period_sub, sep = "_"), ext = "csv")
+          )
+        }
       )
 
     # determine the end time
