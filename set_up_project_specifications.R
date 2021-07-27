@@ -10,14 +10,18 @@ source("physical_risk_functions.R")
 
 # parent directory
 path_db_pr_parent <-                                    fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
+### Raw climate risk data
+path_db_pr_climate_data_raw <-                          fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk")
 ## climate data directory
 path_db_pr_climate_data <-                              fs::path(path_db_pr_parent, "climate_data")
 ### CDF climate data
 path_db_pr_climate_data_CDF <-                          fs::path(path_db_pr_climate_data, "CDF")
-path_db_pr_climate_data_CDF_raw <-                      fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk", "Climate Data Factory")
+path_db_pr_climate_data_CDF_raw <-                      fs::path(path_db_pr_climate_data_raw, "Climate Data Factory")
 path_db_pr_climate_data_CDF_raw_geotiff <-              fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
 path_db_pr_climate_data_CDF_raw_geotiff_indices <-      fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
 path_db_pr_climate_data_CDF_raw_geotiff_variables <-    fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
+### Raw climate analytics data
+path_db_pr_climate_data_raw <-                          fs::path(path_db_pr_climate_data_raw, "ClimateAnalytics")
 ### WRI climate data
 path_db_pr_climate_data_WRI <-                          fs::path(path_db_pr_climate_data, "WRI_data")
 ## ALD directory
@@ -124,7 +128,7 @@ climate_data <- load_climate_data(
       data_path = fs::path(path_db_pr_climate_data, "CDF"), # from which data provider do you want to load climate data?
       run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
       prepare_script_path = "prepare_CDF_data.R", # where does the preparation script lie?
-      load_data = T, # do you ultimately want to load the climate data of this source?
+      load_data = TRUE, # do you ultimately want to load the climate data of this source?
 
       # parameters can differ for each provider, scenrio, hazard, model and time period
       parameter = list(
@@ -146,7 +150,7 @@ climate_data <- load_climate_data(
         periods = c(
           #"1991-2020",
           "2021-2050"
-          #"2051-2080",
+          #"2051-2080"
           #"2071-2100"
         )
       )
@@ -159,13 +163,13 @@ climate_data <- load_climate_data(
       prepare_script_path = "prepare_climate_analytics_data.R", # where does the preparation script lie?
       load_data = T, # do you ultimately want to load the climate data of this source?
 
-      # parameters can differ for each provider, scenrio, hazard, model and time period
+      # parameters can differ for each provider, scenrio, hazard, model and time period (if NULL, all elements of a parameter are used)
       parameter = list(
-        scenarios = "rcp85",
-        hazards = "fldd",
+        scenarios = c("rcp85", "ngfs_delayed"),
+        hazards = NULL,
         models = NULL,
         periods = c(
-          #"2030",
+          "2030",
           "2050"
           #"2100"
         )
@@ -174,15 +178,6 @@ climate_data <- load_climate_data(
   )
 )
 
-# TODO: set boundaries of relative change (can be several million % in extreme cases (e.g. snow in the sahara))
-climate_data <- climate_data %>%
-  mutate(
-    relative_change = case_when(
-      relative_change > 2 ~ 2,
-      relative_change < -2 ~ -2,
-      TRUE ~ relative_change
-    )
-  )
 
 # select relevant columns from climate data
 climate_data <- climate_data %>%
