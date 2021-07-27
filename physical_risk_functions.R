@@ -468,7 +468,8 @@ scale_fill_relative_risk <- function() {
     colors = rev(RColorBrewer::brewer.pal(11, "RdBu")),
     #breaks = c(-2, -1 , 0, 1, 2),
     #limits = c(-2,2),
-    na.value = "grey50"
+    na.value = "grey50",
+    labels = scales::percent
   )
 }
 
