@@ -42,7 +42,7 @@ path_gh_pr <-                                           fs::path(here::here(), "
 # ===============
 
 # PACTA project path
-pacta_project <-                                        "mfm_v7"
+pacta_project <-                                        "EiopaOrsa"
 path_db_pacta_project <-                                fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
 
 # ===============
@@ -188,12 +188,19 @@ climate_data <- climate_data %>%
 # =================================
 
 # load pacta total portfolio
+total_portfolio <- readRDS(fs::path(
+  path_db_pacta_project,
+  "30_Processed_Inputs",
+  base::paste0("total_portfolio"),
+  ext = "rda"
+))
+
 total_portfolio <- vroom::vroom(
   fs::path(
     path_db_pacta_project,
     "30_Processed_Inputs",
-    base::paste0(pacta_project, "_total_portfolio"),
-    ext = "csv"
+    base::paste0("total_portfolio"),
+    ext = "rda"
   )
 ) %>%
   # TODO: remove those filter (these were for development purposes)
