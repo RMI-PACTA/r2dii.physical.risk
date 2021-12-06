@@ -5,7 +5,7 @@ osm_data <- osmdata::getbb("Berlin") %>%
   osmdata::add_osm_feature(
     key = "power",
     value = "plant"
-    #value = c("commercial", "industrial", "retail", "warehouse", "office")
+    # value = c("commercial", "industrial", "retail", "warehouse", "office")
   ) %>%
   osmdata::osmdata_sf()
 
@@ -19,7 +19,11 @@ osm_data <- dplyr::bind_rows(
 
 
 osm_data <- osm_data %>%
-  tidyr::pivot_longer(cols = !c("geometry", "osm_id"), values_drop_na = TRUE, values_to = "names_osm")
+  tidyr::pivot_longer(
+    cols = !c("geometry", "osm_id"),
+    values_drop_na = TRUE,
+    values_to = "names_osm"
+    )
 
 osm_match_company_id <- tibble::tribble(
   ~names_osm, ~company_id,
@@ -37,8 +41,8 @@ osm_data <- osm_data %>%
 
 osm_data <- sf::st_join(osm_data, spData::world %>% dplyr::select(geom, iso_a2))
 
-osm_data$latitude <- sf::st_coordinates(osm_data)[,2]
-osm_data$longitude <- sf::st_coordinates(osm_data)[,1]
+osm_data$latitude <- sf::st_coordinates(osm_data)[, 2]
+osm_data$longitude <- sf::st_coordinates(osm_data)[, 1]
 
 osm_data <- osm_data %>%
   sf::st_drop_geometry()
@@ -66,7 +70,6 @@ years <- 1
 plus_year <- 0
 
 for (e in c(1:years)) {
-
   osm_new <- osm_ald_original %>%
     dplyr::mutate(year = year + e)
 

@@ -285,7 +285,10 @@ load_company_financial_data <- function(
   # ensure company IDs are unique
   company_financial_data <- company_financial_data %>%
     dplyr::distinct(company_id, .keep_all = T) %>%
-    show_diff_rows(initial_n_rows = nrow(company_financial_data), cause = "after calling distinct(company_id)")
+    show_diff_rows(
+      initial_n_rows = nrow(company_financial_data),
+      cause = "after calling distinct(company_id)"
+      )
 
   return(company_financial_data)
 
@@ -310,7 +313,10 @@ load_company_ownership_tree <- function(
   # ensure that total column structure is unique
   ownership_tree <- ownership_tree %>%
     dplyr::distinct() %>%
-    show_diff_rows(initial_n_rows = nrow(ownership_tree), cause = "after calling distinct()")
+    show_diff_rows(
+      initial_n_rows = nrow(ownership_tree),
+      cause = "after calling distinct()"
+      )
 
   return(ownership_tree)
 
@@ -344,25 +350,48 @@ save_climate_data <- function(
 
   # arrange final column structure and therefore verify that variables exist
   climate_data <- climate_data %>%
-    dplyr::select(asset_id,  provider, scenario, model, period, is_reference_period, hazard, geometry_id, risk_level, reference, absolute_change, relative_change)
+    dplyr::select(
+      asset_id,
+      provider,
+      scenario,
+      model,
+      period,
+      is_reference_period,
+      hazard,
+      geometry_id,
+      risk_level,
+      reference,
+      absolute_change,
+      relative_change
+      )
 
   # verify that there are no NAs in the parameter columns. NAs can arise in the risk_level column if there are missing estimates in the data
   climate_data <- climate_data %>%
-    dplyr::filter(!dplyr::if_any(c("asset_id",  "geometry_id", "model", "period", "is_reference_period", "scenario", "hazard"), is.na)) %>%
+    dplyr::filter(
+      !dplyr::if_any(
+        c("asset_id", "geometry_id", "model", "period", "is_reference_period", "scenario", "hazard"),
+        is.na)
+      ) %>%
     assertr::verify(nrow(.) == nrow(climate_data))
 
   if (use_distinct_for_assets_between_two_rasters == TRUE) {
     # check assets which lie exactly between two rasters and choose the estimates for only one geometry_id by calling distinct # not ideal solution
     climate_data <- climate_data %>%
       dplyr::distinct(asset_id, model, period, hazard, scenario, .keep_all = T) %>%
-      show_diff_rows(initial_n_rows = nrow(climate_data), cause = "because of non-distinct nrows grouped by asset_id, model, period, hazard, scenario")
+      show_diff_rows(
+        initial_n_rows = nrow(climate_data),
+        cause = "because of non-distinct nrows grouped by asset_id, model, period, hazard, scenario"
+        )
   }
 
   if (drop_any_NAs == TRUE) {
     # differences in the amount of NAs in risk_level and reference can happen if risk level is available only in the reference period
     climate_data <- climate_data %>%
       tidyr::drop_na() %>%
-      show_diff_rows(initial_n_rows = nrow(climate_data), cause = "because of NAs in at least one variable")
+      show_diff_rows(
+        initial_n_rows = nrow(climate_data),
+        cause = "because of NAs in at least one variable"
+        )
   }
 
   climate_data %>%
