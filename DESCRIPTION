@@ -34,6 +34,7 @@ Imports:
     osmdata,
     plyr,
     purrr,
+    r2dii.utils (>= 0.0.0.9003),
     readr,
     rworldmap,
     sf,
@@ -45,3 +46,5 @@ Imports:
     tidyr,
     tmap,
     vroom
+Remotes:  
+    2DegreesInvesting/r2dii.utils
