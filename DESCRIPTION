@@ -1,0 +1,50 @@
+Package: r2dii.physical.risk
+Title: Tools for Assessing Physical Climate Risk to Equity and Bond Portfolios
+Version: 0.0.0.9000
+Authors@R: 
+    c(person(given = "Frederick",
+             family = "Fabian",
+             role = c("aut", "cre"),
+             email = "frederick@2degrees-investing.org"),
+     person(given = "Jackson",
+             family = "Hoffart",
+             role = "aut",
+             email = "jackson.hoffart@gmail.com",
+             comment = c(ORCID = "0000-0002-8600-5042")),
+      person(given = "2 Degrees Investing Initiative",
+             role = c("cph", "fnd"),
+             email = "contact@2degrees-investing.org"))
+Description: Development package to assess the extent to which equity and bond 
+    portfolios are at risk to physical climate events. 
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports: 
+    assertr,
+    crayon,
+    data.tree,
+    dplyr,
+    fs,
+    ggplot2,
+    janitor,
+    leaflet,
+    openssl,
+    osmdata,
+    plyr,
+    purrr,
+    r2dii.utils (>= 0.0.0.9003),
+    readr,
+    rworldmap,
+    sf,
+    shiny,
+    spData,
+    stars,
+    stringr,
+    tibble,
+    tidyr,
+    tmap,
+    vroom
+Remotes:  
+    2DegreesInvesting/r2dii.utils
