@@ -21,7 +21,7 @@ all_countries <- rworldmap::countryRegions %>%
 # cross parameters
 api_paramter <- tidyr::crossing(
   region = c(
-    #all_countries, # explodes number of parameters but single regions have higher resolution
+    # all_countries, # explodes number of parameters but single regions have higher resolution
     "AFRICA",
     "EUROPE",
     "NORTH_AMERICA",
@@ -29,7 +29,6 @@ api_paramter <- tidyr::crossing(
     "ASIA",
     "OCEANIA",
     "ATA" # antarctica
-
   ),
   indicator = c(
     "tasAdjust", # air temperature
@@ -37,7 +36,7 @@ api_paramter <- tidyr::crossing(
     "tasmaxAdjust", # daily maximum air temperature
     "prAdjust", # precipitation
     "hursAdjust", # relative humidity
-     "prsnAdjust", # snowfall
+    "prsnAdjust", # snowfall
     "hussAdjust", # specific humidity
     "sfcWindAdjust", # wind speed
     "ec4", # 1-in-100-year expected damage from tropical cyclones
@@ -153,10 +152,10 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     # in case a set of parameters is not available, the downloaded data will only have one column
     # --> only proceed with data wrangling if set of parameters is available
-    if(ncol(data) == 2) {
+    if (ncol(data) == 2) {
 
       # as names of downloaded data vary based on parameters, create agnostic variables
-      names(data) <- c("v1","v2")
+      names(data) <- c("v1", "v2")
 
       # slice rows which contain parameter information
       summary <- data %>%
@@ -184,7 +183,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
       # expand the data
       data <- data %>%
-        tidyr::separate(v2,into = as.character(c(1:index)),  sep = ",")
+        tidyr::separate(v2, into = as.character(c(1:index)), sep = ",")
 
       # use longitude as the column name
       colnames(data) <- data %>%
@@ -227,7 +226,6 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     # ensure that there is always a small break between downloading data
     Sys.sleep(1)
-
   }
 
   # kickput out the starting row of the target data frame
@@ -243,8 +241,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
   cat(crayon::red("Using", median_diff_longs, "as median long", "\n"))
 
 
-  if(nrow(all_data > 0)) {
-
+  if (nrow(all_data > 0)) {
     all_data <- all_data %>%
       mutate(
         scenario = case_when(
@@ -264,7 +261,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     # transform risk level from percentages to decimals (100% -> 1)
     all_data <- all_data %>%
-      dplyr::mutate(risk_level = as.numeric(risk_level)/100)
+      dplyr::mutate(risk_level = as.numeric(risk_level) / 100)
 
     # apply distinct to eliminate duplicate entries for the same centroids used at the borders of to regions / countries
     all_data <- all_data %>%
@@ -279,7 +276,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     # create sf coordinates / points
     all_data <- all_data %>%
-      sf::st_as_sf(coords = c("duplicate_long","duplicate_lat"))
+      sf::st_as_sf(coords = c("duplicate_long", "duplicate_lat"))
 
     # hash geometry
     all_data <- all_data %>%
@@ -318,16 +315,18 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_data_distinct_geo_data_polygons <- lapply(
       1:nrow(all_data_distinct_geo_data), function(x) {
         ## create a matrix of coordinates that also 'close' the polygon
-        res <- matrix(c(all_data_distinct_geo_data[x, 'west_lng'], all_data_distinct_geo_data[x, 'north_lat'],
-                        all_data_distinct_geo_data[x, 'east_lng'], all_data_distinct_geo_data[x, 'north_lat'],
-                        all_data_distinct_geo_data[x, 'east_lng'], all_data_distinct_geo_data[x, 'south_lat'],
-                        all_data_distinct_geo_data[x, 'west_lng'], all_data_distinct_geo_data[x, 'south_lat'],
-                        all_data_distinct_geo_data[x, 'west_lng'], all_data_distinct_geo_data[x, 'north_lat'])  ## need to close the polygon
-                      , ncol =2, byrow = T
+        res <- matrix(c(
+          all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "north_lat"],
+          all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "north_lat"],
+          all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "south_lat"],
+          all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "south_lat"],
+          all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "north_lat"]
+        ) ## need to close the polygon
+        ,
+        ncol = 2, byrow = T
         )
         ## create polygon objects
         st_polygon(list(res))
-
       }
     )
 
@@ -343,12 +342,16 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     scenario_geometry <- asset_scenario_data %>%
       sf::st_drop_geometry() %>%
-      sf::st_as_sf(coords = c("long","lat")) %>%
+      sf::st_as_sf(coords = c("long", "lat")) %>%
       select(geometry)
 
     sf::st_crs(scenario_geometry) <- 4326
 
-    asset_scenario_data$dist <- sf::st_distance(asset_geometry, scenario_geometry, by_element=TRUE)
+    asset_scenario_data$dist <- sf::st_distance(
+      asset_geometry,
+      scenario_geometry,
+      by_element = TRUE
+      )
 
     asset_scenario_data <- asset_scenario_data %>%
       sf::st_drop_geometry() %>%
@@ -394,7 +397,11 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         fns = function(data, final_path) {
           readr::write_csv(
             data,
-            fs::path(final_path, paste(scenario_sub, hazard_sub, model_sub, period_sub, sep = "_"), ext = "csv")
+            fs::path(
+              final_path,
+              paste(scenario_sub, hazard_sub, model_sub, period_sub, sep = "_"),
+              ext = "csv"
+              )
           )
         }
       )
@@ -407,7 +414,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_duration <- c(all_duration, duration)
 
     # estimate how many minutes are left based on current processing time
-    minutes_left <- round((length(unique(api_paramter$indicator)) - processed_indicators)*mean(all_duration, na.rm = TRUE)/60,0)
+    minutes_left <- round((length(unique(api_paramter$indicator)) - processed_indicators) * mean(all_duration, na.rm = TRUE) / 60, 0)
 
     # print estimated processing time which is left
     message("Roughly ", minutes_left, " minutes left")
@@ -415,5 +422,3 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
   Sys.sleep(2)
 }
-
-

@@ -13,8 +13,8 @@ ald <- vroom::vroom(
 ald <- ald %>%
   dplyr::select(
     -c(
-      #emission_factor,
-      #emission_factor_unit,
+      # emission_factor,
+      # emission_factor_unit,
       is_eu_eligible,
       is_eu_green,
       city_name,
@@ -36,18 +36,18 @@ ald <- ald %>%
   dplyr::mutate(
     source_coordinates = dplyr::case_when(
       !is.na(longitude) & !is.na(longitude) ~ "Exact Location",
-      (is.na(longitude) | is.na(latitude)) & (!is.na(city_longitude) & !is.na(city_latitude))  ~ "City Location",
-      TRUE ~  "Missing"
+      (is.na(longitude) | is.na(latitude)) & (!is.na(city_longitude) & !is.na(city_latitude)) ~ "City Location",
+      TRUE ~ "Missing"
     ),
     longitude = dplyr::case_when(
       !is.na(longitude) & !is.na(latitude) ~ longitude,
       (is.na(longitude) | is.na(latitude)) & (!is.na(city_longitude) & !is.na(city_latitude)) ~ city_longitude,
-      TRUE ~  as.double(NA)
+      TRUE ~ as.double(NA)
     ),
     latitude = dplyr::case_when(
       !is.na(longitude) & !is.na(latitude) ~ latitude,
       (is.na(longitude) | is.na(latitude)) & (!is.na(city_longitude) & !is.na(city_latitude)) ~ city_latitude,
-      TRUE ~  as.double(NA)
+      TRUE ~ as.double(NA)
     )
   )
 
@@ -89,7 +89,12 @@ ald <- ald %>%
 
 # create long format
 ald <- ald %>%
-  tidyr::pivot_longer(cols = contains("_20"), names_to = "year", values_to = "economic_value", values_drop_na = TRUE)
+  tidyr::pivot_longer(
+    cols = contains("_20"),
+    names_to = "year",
+    values_to = "economic_value",
+    values_drop_na = TRUE
+    )
 
 # create numeric year variable
 ald <- ald %>%
