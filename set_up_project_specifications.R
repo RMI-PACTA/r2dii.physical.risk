@@ -9,48 +9,48 @@ source("physical_risk_functions.R")
 # ===============
 
 # parent directory
-path_db_pr_parent <-                                    fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
+path_db_pr_parent <- fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
 ### Raw climate risk data
-path_db_pr_climate_data_raw <-                          fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk")
+path_db_pr_climate_data_raw <- fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk")
 ## climate data directory
-path_db_pr_climate_data <-                              fs::path(path_db_pr_parent, "climate_data")
+path_db_pr_climate_data <- fs::path(path_db_pr_parent, "climate_data")
 ### CDF climate data
-path_db_pr_climate_data_CDF <-                          fs::path(path_db_pr_climate_data, "CDF")
-path_db_pr_climate_data_CDF_raw <-                      fs::path(path_db_pr_climate_data_raw, "Climate Data Factory")
-path_db_pr_climate_data_CDF_raw_geotiff <-              fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
-path_db_pr_climate_data_CDF_raw_geotiff_indices <-      fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
-path_db_pr_climate_data_CDF_raw_geotiff_variables <-    fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
+path_db_pr_climate_data_CDF <- fs::path(path_db_pr_climate_data, "CDF")
+path_db_pr_climate_data_CDF_raw <- fs::path(path_db_pr_climate_data_raw, "Climate Data Factory")
+path_db_pr_climate_data_CDF_raw_geotiff <- fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
+path_db_pr_climate_data_CDF_raw_geotiff_indices <- fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
+path_db_pr_climate_data_CDF_raw_geotiff_variables <- fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
 ### Raw climate analytics data
-path_db_pr_climate_data_raw <-                          fs::path(path_db_pr_climate_data_raw, "ClimateAnalytics")
+path_db_pr_climate_data_raw <- fs::path(path_db_pr_climate_data_raw, "ClimateAnalytics")
 ### WRI climate data
-path_db_pr_climate_data_WRI <-                          fs::path(path_db_pr_climate_data, "WRI_data")
+path_db_pr_climate_data_WRI <- fs::path(path_db_pr_climate_data, "WRI_data")
 ## ALD directory
-path_db_pr_ald <-                                       fs::path(path_db_pr_parent, "asset_level_data")
+path_db_pr_ald <- fs::path(path_db_pr_parent, "asset_level_data")
 ### full ALD data
-path_db_pr_ald_prepared <-                              fs::path(path_db_pr_ald, "prepared_ald")
+path_db_pr_ald_prepared <- fs::path(path_db_pr_ald, "prepared_ald")
 ### OSM data
-path_db_pr_ald_distinct_geo_data <-                     fs::path(path_db_pr_ald, "distinct_geo_data")
+path_db_pr_ald_distinct_geo_data <- fs::path(path_db_pr_ald, "distinct_geo_data")
 # Analysis Inputs Path
-path_db_analysis_inputs <-                              fs::path(r2dii.utils::dbox_port_00(),"07_AnalysisInputs", "2019Q4_05172021_2021")
+path_db_analysis_inputs <- fs::path(r2dii.utils::dbox_port_00(), "07_AnalysisInputs", "2019Q4_05172021_2021")
 # data store path
-path_db_datastore_export <-                             fs::path(r2dii.utils::dbox_port_00(),"06_DataStore", "DataStore_export_05172021", "2020Q4")
+path_db_datastore_export <- fs::path(r2dii.utils::dbox_port_00(), "06_DataStore", "DataStore_export_05172021", "2020Q4")
 # Github Path
-path_gh_pr <-                                           fs::path(here::here(), "physical_risk")
+path_gh_pr <- fs::path(here::here(), "physical_risk")
 
 # ===============
 # set project paths
 # ===============
 
 # PACTA project path
-pacta_project <-                                        "EiopaOrsa"
-path_db_pacta_project <-                                fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
+pacta_project <- "EiopaOrsa"
+path_db_pacta_project <- fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
 
 # ===============
 # set output paths
 # ===============
 
 # PACTA project output path
-path_db_pacta_project_pr_output <-                      fs::path(path_db_pacta_project, "06_Physical_Risk")
+path_db_pacta_project_pr_output <- fs::path(path_db_pacta_project, "06_Physical_Risk")
 
 # create PACTA project output path
 create_db_pr_paths(
@@ -62,7 +62,7 @@ create_db_pr_paths(
 
 # visualise folder structure
 show_folder_structure(path_pattern = "path_")
-#fs::dir_tree(path_db_pr_parent, type = "directory") #to many entries to be Understandable
+# fs::dir_tree(path_db_pr_parent, type = "directory") #to many entries to be Understandable
 
 # =================================
 # load financial data
@@ -89,12 +89,12 @@ company_ownership_tree <- company_ownership_tree %>%
   left_join(company_id_cb_ticker, by = c("subsidiary_id" = "company_id"))
 
 # =================================
-# load ALD (all files + preparation script should follow the same name convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
+# load ALD (all files + preparation script should follow the same name
+# convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
 # =================================
 
-ald <- load_ald_data( #TODO: work with ALD timestamps
+ald <- load_ald_data( # TODO: work with ALD timestamps
   relevant_ald = list(
-
     list(
       data_path = fs::path(path_db_pr_ald_prepared, "AR_data", ext = "csv"), # where does the prepared ald data lie?
       run_prepare_script_before_loading = FALSE, # do you want to run the corresponding prepare script beforehand?
@@ -104,8 +104,8 @@ ald <- load_ald_data( #TODO: work with ALD timestamps
 
     # not working, but just as an example how this could work
     list(
-      data_path = fs::path(path_db_pr_ald_prepared, "OSM_data", ext = "csv"),  # where does the prepared AR data lie?
-      run_prepare_script_before_loading = FALSE,  # do you want to run the corresponding prepare script beforehand?
+      data_path = fs::path(path_db_pr_ald_prepared, "OSM_data", ext = "csv"), # where does the prepared AR data lie?
+      run_prepare_script_before_loading = FALSE, # do you want to run the corresponding prepare script beforehand?
       prepare_script_path = "physical_risk/prepare_OSM_data.R", # where does the prepare script lie?
       load_data = FALSE # do you ultimately want to load the ALD of this source?
     )
@@ -136,22 +136,22 @@ climate_data <- load_climate_data(
           "RCP85"
         ),
         hazards = c(
-          #"cold_days_percent_wrt_10th_percentile_of_reference_period",
-          #"heavy_precipitation_days_index_per_time_period",
-          #"number_of_5day_heavy_precipitation_periods_per_time_period",
-          #"number_of_cdd_periods_with_more_than_5days_per_time_period",
+          # "cold_days_percent_wrt_10th_percentile_of_reference_period",
+          # "heavy_precipitation_days_index_per_time_period",
+          # "number_of_5day_heavy_precipitation_periods_per_time_period",
+          # "number_of_cdd_periods_with_more_than_5days_per_time_period",
           "warm_spell_periods_per_time_period"
-          #"dry_days_index_per_time_period"
+          # "dry_days_index_per_time_period"
         ),
         models = c(
-          #"MIROC5",
+          # "MIROC5",
           "GFDL-ESM2M"
         ),
         periods = c(
-          #"1991-2020",
+          # "1991-2020",
           "2021-2050"
-          #"2051-2080"
-          #"2071-2100"
+          # "2051-2080"
+          # "2071-2100"
         )
       )
     ),
@@ -171,7 +171,7 @@ climate_data <- load_climate_data(
         periods = c(
           "2030",
           "2050"
-          #"2100"
+          # "2100"
         )
       )
     )
@@ -181,7 +181,18 @@ climate_data <- load_climate_data(
 
 # select relevant columns from climate data
 climate_data <- climate_data %>%
-  select(provider, scenario, hazard, model, period, is_reference_period ,risk_level, absolute_change, relative_change, asset_id)
+  select(
+    provider,
+    scenario,
+    hazard,
+    model,
+    period,
+    is_reference_period,
+    risk_level,
+    absolute_change,
+    relative_change,
+    asset_id
+    )
 
 # =================================
 # load portfolio

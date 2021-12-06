@@ -12,10 +12,12 @@ distinct_geo_data <- load_distinct_geo_data()
 
 
 # list geo tiff indices files
-file_list_CDF_raw_geotiff_indices <- list.files(path_db_pr_climate_data_CDF_raw_geotiff_indices)
+file_list_CDF_raw_geotiff_indices <- list.files(
+  path_db_pr_climate_data_CDF_raw_geotiff_indices
+  )
 
 # for loop to load data for temperature and precipitation hazards and to create one dataframe in the long format
-for(i in 1:length(c("Temperature", "Precipitation"))) {
+for (i in 1:length(c("Temperature", "Precipitation"))) {
 
   # chose data type -> different column structure
   type_sub <- c("Temperature", "Precipitation")[i]
@@ -23,11 +25,17 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
   message(paste("Processing files of type", type_sub))
 
   # subset files based on data type
-  if(type_sub == "Precipitation") file_list_CDF_raw_geotiff_indices_sub <- file_list_CDF_raw_geotiff_indices[stringr::str_detect(file_list_CDF_raw_geotiff_indices, "prAdjust") | stringr::str_detect(file_list_CDF_raw_geotiff_indices, "pr-Indices")]
-  if(type_sub == "Temperature") file_list_CDF_raw_geotiff_indices_sub <- file_list_CDF_raw_geotiff_indices[stringr::str_detect(file_list_CDF_raw_geotiff_indices, "tasAdjust") | stringr::str_detect(file_list_CDF_raw_geotiff_indices, "tas-Indices")]
+  if (type_sub == "Precipitation") {
+    file_list_CDF_raw_geotiff_indices_sub <- file_list_CDF_raw_geotiff_indices[stringr::str_detect(file_list_CDF_raw_geotiff_indices, "prAdjust") | stringr::str_detect(file_list_CDF_raw_geotiff_indices, "pr-Indices")]
+  }
+  if (type_sub == "Temperature") {
+    file_list_CDF_raw_geotiff_indices_sub <- file_list_CDF_raw_geotiff_indices[stringr::str_detect(file_list_CDF_raw_geotiff_indices, "tasAdjust") | stringr::str_detect(file_list_CDF_raw_geotiff_indices, "tas-Indices")]
+  }
 
   # load file containing the column name index indicating the position of climate variables
-  column_name_index <- readr::read_csv(fs::path(path_db_pr_climate_data_CDF_raw, "column_name_index", ext = "csv"))
+  column_name_index <- readr::read_csv(
+    fs::path(path_db_pr_climate_data_CDF_raw, "column_name_index", ext = "csv")
+    )
 
   column_name_index <- column_name_index %>%
     dplyr::filter(type == type_sub)
@@ -38,7 +46,10 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
       message(paste0("Processing ", x))
 
       # load data (specific for each file type)
-      data <- stars::read_stars(fs::path(path_db_pr_climate_data_CDF_raw_geotiff_indices, x), proxy = F)
+      data <- stars::read_stars(
+        fs::path(path_db_pr_climate_data_CDF_raw_geotiff_indices, x), proxy = F
+        )
+
       data <- split(data, "band")
 
       # ALWAYS THE AIM: SAVE DATA AS SF
@@ -56,10 +67,10 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
           model = dplyr::case_when(
             stringr::str_detect(x, "GFDL-ESM2M") ~ "GFDL-ESM2M",
             stringr::str_detect(x, "HadGEM2-ES") ~ "HadGEM2-ES",
-            stringr:: str_detect(x, "IPSL-CM5A-LR") ~ "IPSL-CM5A-LR",
-            stringr:: str_detect(x, "MIROC5") ~ "MIROC5",
-            stringr:: str_detect(x, "pr-Indices") ~ "Observed",
-            stringr:: str_detect(x, "tas-Indices") ~ "Observed"
+            stringr::str_detect(x, "IPSL-CM5A-LR") ~ "IPSL-CM5A-LR",
+            stringr::str_detect(x, "MIROC5") ~ "MIROC5",
+            stringr::str_detect(x, "pr-Indices") ~ "Observed",
+            stringr::str_detect(x, "tas-Indices") ~ "Observed"
           ),
           # identify period based on pattern in the file name
           period = dplyr::case_when(
@@ -87,7 +98,9 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
   # assign column names variables based on index file
   variables <- data.frame(variable = names(climate_data)) %>%
     dplyr::left_join(column_name_index, by = "variable") %>%
-    dplyr::mutate(variable_name = dplyr::if_else(is.na(variable_name), variable, variable_name))
+    dplyr::mutate(
+      variable_name = dplyr::if_else(is.na(variable_name), variable, variable_name)
+      )
 
   names(climate_data) <- variables$variable_name
 
@@ -101,7 +114,11 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
 
   # pivot longer as long is a better format
   climate_data <- climate_data %>%
-    tidyr::pivot_longer(cols = !c("asset_id",  "geometry_id", "model", "period", "scenario", "provider", "is_reference_period"), values_to = "risk_level", names_to = "hazard")
+    tidyr::pivot_longer(
+      cols = !c("asset_id", "geometry_id", "model", "period", "scenario", "provider", "is_reference_period"),
+      values_to = "risk_level",
+      names_to = "hazard"
+      )
 
   # calculate absolute and relative changes for each asset by creating reference value based on parameters
   climate_data <- climate_data %>%
@@ -109,17 +126,16 @@ for(i in 1:length(c("Temperature", "Precipitation"))) {
     dplyr::mutate(reference = sum(dplyr::if_else(period == "1991-2020", risk_level, 0))) %>%
     dplyr::mutate(
       absolute_change = risk_level - reference,
-      relative_change = if_else(absolute_change == 0, 0, absolute_change/reference) # to avoid NaNs
+      relative_change = if_else(absolute_change == 0, 0, absolute_change / reference) # to avoid NaNs
     ) %>%
     dplyr::ungroup()
 
 
   # save data for sub type
-  if(type_sub == "Temperature") climate_data_temperature <- climate_data
-  if(type_sub == "Precipitation") climate_data_precipitation <- climate_data
+  if (type_sub == "Temperature") climate_data_temperature <- climate_data
+  if (type_sub == "Precipitation") climate_data_precipitation <- climate_data
 
   rm(climate_data, file_list_CDF_raw_geotiff_indices_sub, variables, type_sub)
-
 }
 
 # bind climate_data for precipitation and temperature

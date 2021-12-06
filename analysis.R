@@ -1,12 +1,13 @@
 
 for (asset_type in c("Equity", "Bonds")) {
-
   asset_type_sub <- asset_type
 
   asset_type_portfolio_sub <- total_portfolio %>%
     filter(asset_type == asset_type_sub)
 
-  joining_id <- if_else(asset_type_sub == "Equity", "company_id", "corporate_bond_ticker")
+  joining_id <- if_else(
+    asset_type_sub == "Equity", "company_id", "corporate_bond_ticker"
+  )
 
   asset_type_portfolio_sub <- asset_type_portfolio_sub %>%
     mutate(
@@ -18,23 +19,28 @@ for (asset_type in c("Equity", "Bonds")) {
 
   cat(crayon::blue(crayon::bold("Processing", asset_type_sub, "\n")))
 
-  #TODO:
-  path_db_pacta_project_pr_output<- "C:/test"
+  # TODO:
+  path_db_pacta_project_pr_output <- "C:/test"
 
-  path_db_pacta_project_pr_output_asset_type <- fs::path(path_db_pacta_project_pr_output, asset_type_sub)
+  path_db_pacta_project_pr_output_asset_type <- fs::path(
+    path_db_pacta_project_pr_output,
+    asset_type_sub
+  )
 
   create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type)
 
 
 
   for (portfolio in unique(asset_type_portfolio_sub$portfolio_name)) {
-
     asset_type_sub_portfolio_sub <- asset_type_portfolio_sub %>%
       filter(portfolio_name == portfolio)
 
     cat(crayon::red(crayon::bold("Processing", portfolio, "\n")))
 
-    path_db_pacta_project_pr_output_asset_type_portfolio <- fs::path(path_db_pacta_project_pr_output_asset_type, portfolio)
+    path_db_pacta_project_pr_output_asset_type_portfolio <- fs::path(
+      path_db_pacta_project_pr_output_asset_type,
+      portfolio
+    )
 
     create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type_portfolio)
 
@@ -50,7 +56,7 @@ for (asset_type in c("Equity", "Bonds")) {
       select(subsidiary_id, linking_stake, ownership_level, all_of(joining_id)) %>%
       semi_join(asset_type_sub_portfolio_sub, by = joining_id)
 
-    #TODO: check bonds roll-up
+    # TODO: check bonds roll-up
     # ========
     # subset relevant asset owners
     # ========
@@ -90,23 +96,30 @@ for (asset_type in c("Equity", "Bonds")) {
       left_join(asset_level_owners_sub, by = "asset_id")
 
     analysis <- analysis %>%
-      mutate(direct_owned_economic_value = economic_value*(ownership_share/100))
+      mutate(direct_owned_economic_value = economic_value * (ownership_share / 100))
 
     # ========
     # merge ownership tree
     # ========
     analysis <- analysis %>%
-      left_join(company_ownership_tree_sub %>% filter(ownership_level >= 0), by = c("owner_id" = "subsidiary_id"))
+      left_join(
+        filter(company_ownership_tree_sub, ownership_level >= 0),
+        by = c("owner_id" = "subsidiary_id")
+      )
 
     # clean linking stake + calculate company_final_owned_economic_value
     analysis <- analysis %>%
-      mutate(linking_stake = if_else(is.na(linking_stake), 100, linking_stake)) %>%
-      mutate(company_final_owned_economic_value = linking_stake/100*direct_owned_economic_value)
+      mutate(
+        linking_stake = if_else(is.na(linking_stake), 100, linking_stake)
+      ) %>%
+      mutate(
+        company_final_owned_economic_value = linking_stake / 100 * direct_owned_economic_value
+      )
 
     # ========
     # merge to portfolio
     # ========
-    analysis <-  asset_type_sub_portfolio_sub %>%
+    analysis <- asset_type_sub_portfolio_sub %>%
       left_join(
         analysis,
         by = joining_id
@@ -146,13 +159,19 @@ for (asset_type in c("Equity", "Bonds")) {
     asset_type_sub_portfolio_sub %>%
       plot_portfolio_geo_ald_value()
 
-    save_overview_plot(name = "portfolio_geo_ald_value", path = path_db_pacta_project_pr_output_asset_type_portfolio)
+    save_overview_plot(
+      name = "portfolio_geo_ald_value",
+      path = path_db_pacta_project_pr_output_asset_type_portfolio
+    )
 
     # plot overview stats
     asset_type_sub_portfolio_sub %>%
       plot_portfolio_geo_ald_holdings()
 
-    save_overview_plot(name = "portfolio_geo_ald_holdings", path = path_db_pacta_project_pr_output_asset_type_portfolio)
+    save_overview_plot(
+      name = "portfolio_geo_ald_holdings",
+      path = path_db_pacta_project_pr_output_asset_type_portfolio
+    )
 
 
     # =================================
@@ -160,7 +179,6 @@ for (asset_type in c("Equity", "Bonds")) {
     # =================================
 
     for (allocation in c("port_weight", "ownership")) {
-
       if (paste0(allocation, asset_type_sub) != "ownershipBonds") {
         path_db_pacta_project_pr_output_asset_type_portfolio_allocation <- fs::path(path_db_pacta_project_pr_output_asset_type_portfolio, allocation)
 
@@ -171,12 +189,11 @@ for (asset_type in c("Equity", "Bonds")) {
         if (allocation == "ownership" & asset_type_sub == "Equity") {
           # calculate portfolio_economic_value using ownership
           analysis_final <- analysis %>%
-            mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, ownership_weight*company_final_owned_economic_value, 0))
-
+            mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, ownership_weight * company_final_owned_economic_value, 0))
         } else if (allocation == "port_weight") {
           # calculate portfolio_economic_value using port weight
           analysis_final <- analysis %>%
-            mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, asset_type_port_weight*company_final_owned_economic_value, 0))
+            mutate(portfolio_economic_value = if_else(sector == security_mapped_sector, asset_type_port_weight * company_final_owned_economic_value, 0))
         }
 
         # add allocation method
@@ -238,8 +255,8 @@ for (asset_type in c("Equity", "Bonds")) {
                 ungroup()
 
               # TODO: set boundaries of relative change (can be several million % in extreme cases (e.g. snow in the sahara))
-              upper_boundary <- round(quantile(data$relative_change, 0.95, na.rm = T),2)
-              lower_boundary <- round(quantile(data$relative_change, 0.05, na.rm = T),2)
+              upper_boundary <- round(quantile(data$relative_change, 0.95, na.rm = T), 2)
+              lower_boundary <- round(quantile(data$relative_change, 0.05, na.rm = T), 2)
 
               data <- data %>%
                 mutate(
@@ -301,7 +318,5 @@ for (asset_type in c("Equity", "Bonds")) {
           )
       }
     }
-
   }
 }
-
