@@ -19,8 +19,8 @@ for (asset_type in c("Equity", "Bonds")) {
 
   cat(crayon::blue(crayon::bold("Processing", asset_type_sub, "\n")))
 
-  # TODO:
-  path_db_pacta_project_pr_output <- "C:/test"
+  # You can manually override the default output save path here
+  # path_db_pacta_project_pr_output <- "~/Desktop/test/"
 
   path_db_pacta_project_pr_output_asset_type <- fs::path(
     path_db_pacta_project_pr_output,
