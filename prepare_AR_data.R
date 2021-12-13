@@ -1,4 +1,4 @@
-source("physical_risk_functions.R")
+devtools::load_all(".")
 
 # load ald
 ald <- vroom::vroom(
