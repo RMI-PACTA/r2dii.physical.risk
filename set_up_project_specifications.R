@@ -1,4 +1,7 @@
-source("physical_risk_functions.R")
+library(dplyr)
+library(ggplot2)
+library(sf)
+devtools::load_all(".")
 
 # =================================
 # set paths # naming convention (path_*, followed by location (e.g. db = dropbox / gh = github), followed by individual folder structures)
@@ -206,25 +209,6 @@ total_portfolio <- readRDS(fs::path(
   ext = "rda"
 ))
 
-total_portfolio <- vroom::vroom(
-  fs::path(
-    path_db_pacta_project,
-    "30_Processed_Inputs",
-    base::paste0("total_portfolio"),
-    ext = "rda"
-  )
-) %>%
-  # TODO: remove those filter (these were for development purposes)
-  dplyr::filter(investor_name == "BlackRock") %>%
-  dplyr::filter(
-    portfolio_name %in% c(
-      "IE00BF4RFH31",
-      "IE00B4L5Y983",
-      "IE00B7J7TB45",
-      "LU0154237225"
-    )
-  )
-
 # calculate portfolio value
 total_portfolio <- total_portfolio %>%
   group_by(portfolio_name) %>%
@@ -282,9 +266,3 @@ total_portfolio <- total_portfolio %>%
     portfolio_sector_share,
     portfolio_asset_type_sector_share
   )
-
-# =================================
-# QA
-# =================================
-
-check_roll_up <- check_roll_up(choose_year = 2020) # check is for equity
