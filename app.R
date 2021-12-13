@@ -51,7 +51,7 @@ ui = fluidPage(
            selectInput(
              "allocation",
              label = "Allocation",
-             choices = c("Portfolio Weight", "Ownership"),
+             choices = c("Ownership", "Portfolio Weight"),
              multiple = FALSE
            ),
 
@@ -107,7 +107,7 @@ ui = fluidPage(
            selectInput(
              "indicator",
              label = "Indicator",
-             choices = c("raw_model_output", "relative_change", "absolute_change"),
+             choices = c("relative_change", "absolute_change", "raw_model_output"),
              multiple = FALSE
            ),
            sliderInput(
@@ -119,28 +119,39 @@ ui = fluidPage(
            )
     ),
     column(9,
-           br()
-           #tmapOutput(outputId = "map", height = 1000)
+           tabsetPanel(
+             type = "pills",
+             tabPanel("Map", br(), leafletOutput(outputId = "map", height = 1200)),
+             tabPanel("Asset risk histogram", br(), plotOutput(outputId = "asset_risk_histgram", height = 1200)),
+             tabPanel("Company risk distribution", br(), plotOutput(outputId = "company_risk_distribution", height = 1200)),
+             tabPanel("Portfolio company risk distribution", br(), plotOutput(outputId = "portfolio_company_risk_distribution", height = 1200)),
+             tabPanel("Number of assets", br(), plotOutput(outputId = "number_of_assets", height = 1200)),
+             tabPanel("Relative sector production", br(), plotOutput(outputId = "relative_sector_production", height = 1200)),
+             tabPanel("Absolute sector production", br(), plotOutput(outputId = "absolute_sector_production", height = 1200))
+
+           )
     )
+
+
   ),
 
-  linebreaks(4),
-  plotOutput(outputId = "asset_risk_histgram"),
-  linebreaks(4),
-
-  plotOutput(outputId = "company_risk_distribution", height = 800),
-  linebreaks(4),
-
-  plotOutput(outputId = "portfolio_company_risk_distribution", height = 800),
-  linebreaks(4),
-
-  plotOutput(outputId = "number_of_assets"),
-  linebreaks(4),
-
-  plotOutput(outputId = "relative_sector_production"),
-  linebreaks(4),
-
-  plotOutput(outputId = "absolute_sector_production")
+  # linebreaks(4),
+  # plotOutput(outputId = "asset_risk_histgram"),
+  # linebreaks(4),
+  #
+  # plotOutput(outputId = "company_risk_distribution", height = 800),
+  # linebreaks(4),
+  #
+  # plotOutput(outputId = "portfolio_company_risk_distribution", height = 800),
+  # linebreaks(4),
+  #
+  # plotOutput(outputId = "number_of_assets"),
+  # linebreaks(4),
+  #
+  # plotOutput(outputId = "relative_sector_production"),
+  # linebreaks(4),
+  #
+  # plotOutput(outputId = "absolute_sector_production")
 
 
 )
@@ -252,56 +263,167 @@ server = function(input, output, session) {
 
 
 
-  # output$map = renderTmap({
-  #
-  #   sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
-  #   sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
-  #
-  #   if(isTruthy(input$portfolio)) {
-  #
-  #     if(input$indicator == "relative_change") {
-  #       tm_shape(
-  #         distinct_geo_data %>%
-  #           inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-  #           left_join(sub_analysis, by = "asset_id")
-  #       ) +
-  #         tm_dots(
-  #           id = "asset_name",
-  #           col = input$indicator,
-  #           size = 0.04,
-  #           popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-  #           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-  #           breaks = c(-2, -1, 0, 1, 2),
-  #           style = "cont"
-  #         )
-  #     } else {
-  #       tm_shape(
-  #         distinct_geo_data %>%
-  #           inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-  #           left_join(sub_analysis, by = "asset_id")
-  #       ) +
-  #         tm_dots(
-  #           id = "asset_name",
-  #           col = input$indicator,
-  #           size = 0.04,
-  #           popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-  #           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-  #           style = "cont"
-  #         )
-  #     }
-  #
-  #
-  #   } else {
-  #     tm_shape(distinct_geo_data  %>% slice_sample(n = 10000)) +
-  #       tm_dots(
-  #         id = "asset_id",
-  #         size = 0,
-  #         palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-  #         #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
-  #         style = "cont"
-  #       ) #+
-  #   }
-  # })
+  output$map = renderLeaflet({
+
+    sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
+    sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
+
+    if(isTruthy(input$portfolio)) {
+
+      if(input$indicator == "relative_change") {
+        # tm_shape(
+        #   distinct_geo_data %>%
+        #     inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+        #     left_join(sub_analysis, by = "asset_id")
+        # ) +
+        #   tm_dots(
+        #     id = "asset_name",
+        #     col = input$indicator,
+        #     size = 0.04,
+        #     popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+        #     palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+        #     #breaks = c(-2, -1, 0, 1, 2),
+        #     style = "cont"
+        #   )
+
+        binpal <- colorNumeric(palette = "RdBu", domain = sub_analysis$relative_change, reverse = T)
+
+        leaflet(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
+        ) |>
+          addTiles(group = "OSM") %>%
+          addProviderTiles(providers$Stamen.TonerLite, group = "Grey") %>%
+          addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+          addCircles(
+            #fill = ~ rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            color = ~binpal(relative_change),
+            radius = 20,
+            weight = 10,
+            label = ~ asset_name,
+            popup = ~paste0(
+              "<br/><strong>Company: </strong>", company_name,
+              "<br/><strong>Technology: </strong>", technology,
+              "<br/><strong>Sectorr: </strong>", sector,
+              "<br/><strong>Productione: </strong>",economic_value,
+              "<br/><strong>Unity: </strong>", economic_unit
+            )
+          ) |>
+          addLegend(position = "bottomright", # position where the legend should appear
+                    pal = binpal, # pallete object where the color is defined
+                    values = ~ relative_change, # column variable or values that were used to derive the color pallete object
+                    title = "Relative Change", # title of the legend
+                    opacity = 1, # Opacity of legend
+                    labFormat = labelFormat(suffix = "%", transform = function(x) 100*x, digits = 4)
+          ) |>
+          addLayersControl(baseGroups = c("Satellite", "OSM", "Grey"))
+
+      } else if (input$indicator == "absolute_change") {
+        # tm_shape(
+        #   distinct_geo_data %>%
+        #     inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+        #     left_join(sub_analysis, by = "asset_id")
+        # ) +
+        #   tm_dots(
+        #     id = "asset_name",
+        #     col = input$indicator,
+        #     size = 0.04,
+        #     popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+        #     palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+        #     style = "cont"
+        #   )
+
+        binpal <- colorNumeric(palette = "RdBu", domain = sub_analysis$absolute_change, reverse = T)
+
+        leaflet(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
+        ) |>
+          addTiles(group = "OSM") %>%
+          addProviderTiles(providers$Stamen.TonerLite, group = "Grey") %>%
+          addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+          addCircles(
+            #fill = ~ rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            color = ~binpal(absolute_change),
+            radius = 20,
+            weight = 10,
+            label = ~ asset_name,
+            popup = ~paste0(
+              "<br/><strong>Company: </strong>", company_name,
+              "<br/><strong>Technology: </strong>", technology,
+              "<br/><strong>Sectorr: </strong>", sector,
+              "<br/><strong>Production: </strong>",economic_value,
+              "<br/><strong>Unit: </strong>", economic_unit
+            )
+          ) |>
+          addLegend(position = "bottomright", # position where the legend should appear
+                    pal = binpal, # pallete object where the color is defined
+                    values = ~ absolute_change, # column variable or values that were used to derive the color pallete object
+                    title = "Absolute Change", # title of the legend
+                    opacity = 1 # Opacity of legend
+          ) |>
+          addLayersControl(baseGroups = c("Satellite", "OSM", "Grey"))
+
+      } else if (input$indicator == "raw_model_output") {
+        # tm_shape(
+        #   distinct_geo_data %>%
+        #     inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+        #     left_join(sub_analysis, by = "asset_id")
+        # ) +
+        #   tm_dots(
+        #     id = "asset_name",
+        #     col = input$indicator,
+        #     size = 0.04,
+        #     popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+        #     palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+        #     style = "cont"
+        #   )
+
+        binpal <- colorNumeric(palette = "RdBu", domain = sub_analysis$raw_model_output, reverse = T)
+
+        leaflet(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
+        ) |>
+          addTiles(group = "OSM") %>%
+          addProviderTiles(providers$Stamen.TonerLite, group = "Grey") %>%
+          addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+          addCircles(
+            #fill = ~ rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            color = ~binpal(raw_model_output),
+            radius = 20,
+            weight = 10,
+            label = ~ asset_name,
+            popup = ~paste0(
+              "<br/><strong>Company: </strong>", company_name,
+              "<br/><strong>Technology: </strong>", technology,
+              "<br/><strong>Sectorr: </strong>", sector,
+              "<br/><strong>Productione: </strong>",economic_value,
+              "<br/><strong>Unity: </strong>", economic_unit
+            )
+          ) |>
+          addLegend(position = "bottomright", # position where the legend should appear
+                    pal = binpal, # pallete object where the color is defined
+                    values = ~ raw_model_output, # column variable or values that were used to derive the color pallete object
+                    title = "Raw Model Output", # title of the legend
+                    opacity = 1 # Opacity of legend
+          ) |>
+          addLayersControl(baseGroups = c("Satellite", "OSM", "Grey"))
+
+      }
+
+
+    } else {
+      leaflet(distinct_geo_data  %>% slice_sample(n = 10000)) |>
+        addTiles(group = "OSM") %>%
+        addProviderTiles(providers$Stamen.TonerLite, group = "Grey") %>%
+        addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+        addLayersControl(baseGroups = c("Satellite", "OSM", "Grey"))
+    }
+  })
 
   output$asset_risk_histgram <- renderPlot({
     sub_analysis <- sub_analysis()
