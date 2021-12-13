@@ -99,7 +99,7 @@ load_distinct_geo_data <- function(
 
       ## verify that longitude and latitude are doubles
       distinct_geo_data %>%
-        filter(!is.double(longitude) | !is.double(latitude)) %>%
+        dplyr::filter(!is.double(longitude) | !is.double(latitude)) %>%
         assertr::verify(nrow(.) == 0)
 
       return(distinct_geo_data)
@@ -219,7 +219,7 @@ load_climate_data <- function(relevant_climate_data) {
         }
       )
 
-      climate_data <- bind_rows(climate_data)
+      climate_data <- dplyr::bind_rows(climate_data)
 
 
     }
@@ -328,9 +328,9 @@ load_company_id_cb_ticker <- function(path = path_db_datastore_export) {
   )
 
   company_id_cb_ticker <- consolidated_financial_data %>%
-    select(company_id, corporate_bond_ticker) %>%
-    filter(!is.na(corporate_bond_ticker)) %>%
-    distinct(company_id, corporate_bond_ticker)
+    dplyr::select(company_id, corporate_bond_ticker) %>%
+    dplyr::filter(!is.na(corporate_bond_ticker)) %>%
+    dplyr::distinct(company_id, corporate_bond_ticker)
 
   return(company_id_cb_ticker)
 }
@@ -416,7 +416,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
     cat(crayon::white(crayon::bold(paste("Processing", provider_sub, "\n"))))
 
     climate_data_provider_sub <- climate_data %>%
-      filter(provider == provider_sub)
+      dplyr::filter(provider == provider_sub)
 
     path_db_pr_climate_data_provider <- fs::path(parent_path, provider_sub)
 
@@ -431,7 +431,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
       cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
       climate_data_provider_sub_scenario_sub <- climate_data_provider_sub %>%
-        filter(scenario == scenario_sub)
+        dplyr::filter(scenario == scenario_sub)
 
       path_db_pr_climate_data_provider_scenario <- fs::path(path_db_pr_climate_data_provider, scenario_sub)
 
@@ -446,7 +446,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
         cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
         climate_data_provider_sub_scenario_sub_hazard_sub <- climate_data_provider_sub_scenario_sub %>%
-          filter(hazard == hazard_sub)
+          dplyr::filter(hazard == hazard_sub)
 
         path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
 
@@ -461,7 +461,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
           cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
           climate_data_provider_sub_scenario_sub_hazard_sub_model_sub <- climate_data_provider_sub_scenario_sub_hazard_sub %>%
-            filter(model == model_sub)
+            dplyr::filter(model == model_sub)
 
           path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
 
@@ -476,7 +476,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
             cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
             climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_provider_sub_scenario_sub_hazard_sub_model_sub %>%
-              filter(period == period_sub)
+              dplyr::filter(period == period_sub)
 
             climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub %>%
               fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
@@ -488,7 +488,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 }
 
 scale_fill_relative_risk <- function() {
-  scale_fill_gradientn(
+  ggplot2::scale_fill_gradientn(
     colors = rev(RColorBrewer::brewer.pal(11, "RdBu")),
     #breaks = c(-2, -1 , 0, 1, 2),
     #limits = c(-2,2),
@@ -499,12 +499,12 @@ scale_fill_relative_risk <- function() {
 
 plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) {
   data %>%
-    arrange(relative_change) %>%
-    ggplot() +
-    geom_col(aes(x = as.character(year), y = portfolio_economic_value, fill = relative_change)) +
-    theme_minimal() +
-    facet_wrap( ~ sector, scales = "free", nrow = 1) +
-    labs(
+    dplyr::arrange(relative_change) %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_col(aes(x = as.character(year), y = portfolio_economic_value, fill = relative_change)) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap( ~ sector, scales = "free", nrow = 1) +
+    ggplot2::labs(
       x = "Year",
       caption = paste(
         "Parameter:",
@@ -517,21 +517,21 @@ plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) 
       y = "",
       title = "Absolute Sector Production"
     ) +
-    theme(
-      plot.background = element_rect(fill = "white"),
-      text = element_text(size = text_size)
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "white"),
+      text = ggplot2::element_text(size = text_size)
     )
 }
 
 plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) {
   data %>%
-    arrange(relative_change) %>%
-    ggplot() +
-    geom_col(aes(x = as.character(year), y = portfolio_economic_value_share_sector, fill = relative_change)) +
-    scale_y_continuous(labels = scales::percent) +
-    facet_grid( ~ sector)  +
-    theme_minimal() +
-    labs(
+    dplyr::arrange(relative_change) %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_col(aes(x = as.character(year), y = portfolio_economic_value_share_sector, fill = relative_change)) +
+    ggplot2::scale_y_continuous(labels = scales::percent) +
+    ggplot2::facet_grid( ~ sector)  +
+    ggplot2::theme_minimal() +
+    ggplot2::labs(
       x = "Year",
       caption = paste(
         "Parameter:",
@@ -544,22 +544,22 @@ plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) 
       y = "",
       title = "Share Sector Production"
     ) +
-    theme(
-      plot.background = element_rect(fill = "white"),
-      text = element_text(size = text_size)
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "white"),
+      text = ggplot2::element_text(size = text_size)
     )
 }
 
 plot_sector_number_of_assets <- function(data, text_size = 12) {
   data %>%
-    distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>% # some assets producing different technologies (automotive!!)
-    count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
-    arrange(relative_change) %>%
+    dplyr::distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>% # some assets producing different technologies (automotive!!)
+    dplyr::count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
+    dplyr::arrange(relative_change) %>%
     ggplot() +
-    geom_col(aes(x = as.character(year), y = n, fill = relative_change)) +
-    theme_minimal() +
-    facet_wrap( ~ sector, scales = "free", nrow = 1) +
-    labs(
+    ggplot2::geom_col(aes(x = as.character(year), y = n, fill = relative_change)) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap( ~ sector, scales = "free", nrow = 1) +
+    ggplot2::labs(
       x = "Year",
       caption = paste(
         "Parameter:",
@@ -572,7 +572,7 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
       y = "",
       title = "Number of assets"
     ) +
-    theme(
+    ggplot2::theme(
       plot.background = element_rect(fill = "white"),
       text = element_text(size = text_size)
     )
@@ -581,22 +581,22 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
 plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 
   data <- data %>%
-    group_by(id_name, port_weight, relative_change) %>%
-    summarise(
+    dplyr::group_by(id_name, port_weight, relative_change) %>%
+    dplyr::summarise(
       portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
-    mutate(new_metric = port_weight*portfolio_economic_value_share_sector_company) %>%
-    arrange(relative_change)
+    dplyr::mutate(new_metric = port_weight*portfolio_economic_value_share_sector_company) %>%
+    dplyr::arrange(relative_change)
 
   data %>%
     ggplot() +
-    geom_col(aes(x = reorder(id_name, port_weight), y = new_metric, fill = relative_change)) +
-    scale_y_continuous(labels = scales::percent) +
-    theme_minimal() +
-    theme(
-      axis.text.x = element_text(angle = 90)
+    ggplot2::geom_col(aes(x = reorder(id_name, port_weight), y = new_metric, fill = relative_change)) +
+    ggplot2::scale_y_continuous(labels = scales::percent) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = 90)
     ) +
-    labs(
+    ggplot2::labs(
       x = "Year",
       caption = paste(
         "Parameter:",
@@ -609,9 +609,9 @@ plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
       y = "% Portfolio Weight",
       title = "Risk distribution among the biggest companies in the portfolio"
     ) +
-    theme(
-      plot.background = element_rect(fill = "white"),
-      text = element_text(size = text_size)
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "white"),
+      text = ggplot2::element_text(size = text_size)
     )
 }
 
@@ -619,37 +619,37 @@ plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 plot_company_risk_distribution <- function(data, text_size = 12) {
 
   sub_set <- data %>%
-    distinct(holding_id, .keep_all = T) %>%
-    group_by(id_name) %>%
-    summarise(port_weight = sum(port_weight, na.rm = TRUE)) %>%
-    ungroup() %>%
-    slice_max(port_weight, n = 10) %>%
-    arrange(desc(port_weight)) %>% # necessary as often same weight
-    slice(c(1:10)) %>% # necessary as often same weight
-    select(id_name, port_weight)
+    dplyr::distinct(holding_id, .keep_all = T) %>%
+    dplyr::group_by(id_name) %>%
+    dplyr::summarise(port_weight = sum(port_weight, na.rm = TRUE)) %>%
+    dplyr::ungroup() %>%
+    dplyr::slice_max(port_weight, n = 10) %>%
+    dplyr::arrange(dplyr::desc(port_weight)) %>% # necessary as often same weight
+    dplyr::slice(c(1:10)) %>% # necessary as often same weight
+    dplyr::select(id_name, port_weight)
 
   data <- data %>%
-    select(-port_weight) %>%
-    inner_join(
+    dplyr::select(-port_weight) %>%
+    dplyr::inner_join(
       sub_set,
       by = "id_name"
     )
 
   data <- data %>%
-    mutate(id_name = paste(round(port_weight*100, 2), "% ", id_name)) %>%
-    group_by(id_name, port_weight, relative_change) %>%
-    summarise(
+    dplyr::mutate(id_name = paste(round(port_weight*100, 2), "% ", id_name)) %>%
+    dplyr::group_by(id_name, port_weight, relative_change) %>%
+    dplyr::summarise(
       portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
-    arrange(relative_change)
+    dplyr::arrange(relative_change)
 
   data %>%
     ggplot() +
-    geom_col(aes(x = reorder(id_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
-    scale_y_continuous(labels = scales::percent) +
-    coord_flip() +
-    theme_minimal() +
-    labs(
+    ggplot2::geom_col(aes(x = reorder(id_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
+    ggplot2::scale_y_continuous(labels = scales::percent) +
+    ggplot2::coord_flip() +
+    ggplot2::theme_minimal() +
+    ggplot2::labs(
       x = "Year",
       caption = paste(
         "Parameter:",
@@ -662,21 +662,21 @@ plot_company_risk_distribution <- function(data, text_size = 12) {
       y = "",
       title = "Risk distribution among the biggest companies in the portfolio"
     ) +
-    theme(
-      plot.background = element_rect(fill = "white"),
-      text = element_text(size = text_size)
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "white"),
+      text = ggplot2::element_text(size = text_size)
     )
 }
 
 plot_asset_risk_histgram <- function(data, text_size = 12) {
   data %>%
-    mutate(relative_change = round(relative_change, 1)) %>%
-    count(sector, relative_change) %>%
+    dplyr::mutate(relative_change = round(relative_change, 1)) %>%
+    dplyr::count(sector, relative_change) %>%
     ggplot() +
-    geom_col(aes(x = relative_change, y = n, fill = relative_change), position = "dodge") +
-    scale_x_continuous(labels = scales::percent) +
-    theme_minimal() +
-    labs(
+    ggplot2::geom_col(aes(x = relative_change, y = n, fill = relative_change), position = "dodge") +
+    ggplot2::scale_x_continuous(labels = scales::percent) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs(
       x = "Relative Change",
       caption = paste(
         "Parameter:",
@@ -689,9 +689,9 @@ plot_asset_risk_histgram <- function(data, text_size = 12) {
       y = "",
       title = "Risk distribution among the identified assets in the portfolio"
     ) +
-    theme(
-      plot.background = element_rect(fill = "white"),
-      text = element_text(size = text_size)
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "white"),
+      text = ggplot2::element_text(size = text_size)
     )
 }
 
