@@ -1,4 +1,3 @@
-#' @import dplyr
-#' @import ggplot2
-#' @import sf
+#' @importFrom ggplot2 ggplot aes
+#' @importFrom stats na.omit reorder
 NULL
