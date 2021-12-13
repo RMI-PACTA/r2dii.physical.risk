@@ -40,7 +40,7 @@ show_folder_structure <- function(path_pattern = "path") {
 
   all_paths <- lapply(strsplit(all_paths, "/"), function(all_paths) as.data.frame(t(all_paths)))
   all_paths <- plyr::rbind.fill(all_paths)
-  all_paths$pathString <- apply(all_paths, 1, function(all_paths) paste(trimws(na.omit(all_paths)), collapse="/"))
+  all_paths$pathString <- apply(all_paths, 1, function(all_paths) paste(trimws(stats::na.omit(all_paths)), collapse="/"))
   all_paths <- all_paths[order(all_paths$pathString),]
 
   all_paths <- data.tree::as.Node(all_paths)
@@ -410,7 +410,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
   climate_data <- data
 
-  for(provider in na.omit(unique(climate_data$provider))) {
+  for(provider in stats::na.omit(unique(climate_data$provider))) {
 
     provider_sub <<- provider
     cat(crayon::white(crayon::bold(paste("Processing", provider_sub, "\n"))))
@@ -573,8 +573,8 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
       title = "Number of assets"
     ) +
     ggplot2::theme(
-      plot.background = element_rect(fill = "white"),
-      text = element_text(size = text_size)
+      plot.background = ggplot2::element_rect(fill = "white"),
+      text = ggplot2::element_text(size = text_size)
     )
 }
 
@@ -590,7 +590,7 @@ plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 
   data %>%
     ggplot() +
-    ggplot2::geom_col(aes(x = reorder(id_name, port_weight), y = new_metric, fill = relative_change)) +
+    ggplot2::geom_col(aes(x = stats::reorder(id_name, port_weight), y = new_metric, fill = relative_change)) +
     ggplot2::scale_y_continuous(labels = scales::percent) +
     ggplot2::theme_minimal() +
     ggplot2::theme(
@@ -645,7 +645,7 @@ plot_company_risk_distribution <- function(data, text_size = 12) {
 
   data %>%
     ggplot() +
-    ggplot2::geom_col(aes(x = reorder(id_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
+    ggplot2::geom_col(aes(x = stats::reorder(id_name, port_weight), y = portfolio_economic_value_share_sector_company, fill = relative_change)) +
     ggplot2::scale_y_continuous(labels = scales::percent) +
     ggplot2::coord_flip() +
     ggplot2::theme_minimal() +
@@ -739,7 +739,7 @@ plot_portfolio_geo_ald_holdings <- function(data) {
   data %>%
     dplyr::group_by(portfolio_name, has_geo_ald) %>%
     dplyr::summarise(
-      n = n(), .groups = "keep"
+      n = dplyr::n(), .groups = "keep"
     ) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(portfolio_name) %>%
