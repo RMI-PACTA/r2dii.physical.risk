@@ -2,6 +2,7 @@ library(shiny)
 library(leaflet)
 library(spData)
 library(tmap)
+devtools::load_all(".")
 
 linebreaks <- function(n) {
   HTML(strrep(br(), n))
