@@ -46,5 +46,7 @@ Imports:
     tidyr,
     tmap,
     vroom
-Remotes:  
+Remotes: 
     2DegreesInvesting/r2dii.utils
+Suggests: 
+    rmarkdown

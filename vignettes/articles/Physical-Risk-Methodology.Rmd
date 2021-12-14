@@ -1,0 +1,14 @@
+---
+title: "Physical Risk Methodology"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(r2dii.physical.risk)
+```
