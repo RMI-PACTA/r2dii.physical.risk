@@ -377,7 +377,7 @@ server <- function(input, output, session) {
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      r2dii.physical.risk::plot_sector_number_of_assets() +
+      r2dii.physical.risk:::plot_sector_number_of_assets() +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
