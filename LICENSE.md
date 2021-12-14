@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2021 r2dii.physical.risk authors
+Copyright (c) 2021 2 Degrees Investing Initiative
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
