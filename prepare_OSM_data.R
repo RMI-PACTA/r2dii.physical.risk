@@ -1,5 +1,3 @@
-
-
 osm_data <- osmdata::getbb("Berlin") %>%
   osmdata::opq() %>%
   osmdata::add_osm_feature(

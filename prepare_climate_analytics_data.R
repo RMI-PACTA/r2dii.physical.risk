@@ -4,7 +4,7 @@ library(r2dii.physical.risk)
 # load distinct_geo_data which will subset the raw climate data
 # =================================
 
-distinct_geo_data <- load_distinct_geo_data()
+distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
 # =================================
 # load list of all countries iso codes
@@ -384,7 +384,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     # save data
     asset_scenario_data %>%
-      save_climate_data(
+      r2dii.physical.risk:::save_climate_data(
         path_db_pr_climate_data = path_db_pr_climate_data,
         use_distinct_for_assets_between_two_rasters = TRUE,
         drop_any_NAs = FALSE
@@ -392,7 +392,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     # save downloaded all data
     all_data %>%
-      for_loops_climate_data(
+      r2dii.physical.risk:::for_loops_climate_data(
         parent_path = fs::path(path_db_pr_climate_data_raw),
         fns = function(data, final_path) {
           readr::write_csv(

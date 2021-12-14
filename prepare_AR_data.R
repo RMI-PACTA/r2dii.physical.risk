@@ -1,5 +1,3 @@
-devtools::load_all(".")
-
 # load ald
 ald <- vroom::vroom(
   fs::path(
