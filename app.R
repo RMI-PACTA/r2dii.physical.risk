@@ -117,8 +117,8 @@ ui <- fluidPage(
     ),
     column(
       9,
-      br()
-      # tmapOutput(outputId = "map", height = 1000)
+      br(),
+      tmapOutput(outputId = "map", height = 1000)
     )
   ),
   linebreaks(4),
@@ -256,56 +256,56 @@ server <- function(input, output, session) {
 
 
 
-  # output$map = renderTmap({
-  #
-  #   sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
-  #   sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
-  #
-  #   if(isTruthy(input$portfolio)) {
-  #
-  #     if(input$indicator == "relative_change") {
-  #       tm_shape(
-  #         distinct_geo_data %>%
-  #           inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-  #           left_join(sub_analysis, by = "asset_id")
-  #       ) +
-  #         tm_dots(
-  #           id = "asset_name",
-  #           col = input$indicator,
-  #           size = 0.04,
-  #           popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-  #           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-  #           breaks = c(-2, -1, 0, 1, 2),
-  #           style = "cont"
-  #         )
-  #     } else {
-  #       tm_shape(
-  #         distinct_geo_data %>%
-  #           inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
-  #           left_join(sub_analysis, by = "asset_id")
-  #       ) +
-  #         tm_dots(
-  #           id = "asset_name",
-  #           col = input$indicator,
-  #           size = 0.04,
-  #           popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
-  #           palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-  #           style = "cont"
-  #         )
-  #     }
-  #
-  #
-  #   } else {
-  #     tm_shape(distinct_geo_data  %>% slice_sample(n = 10000)) +
-  #       tm_dots(
-  #         id = "asset_id",
-  #         size = 0,
-  #         palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
-  #         #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
-  #         style = "cont"
-  #       ) #+
-  #   }
-  # })
+  output$map = renderTmap({
+
+    sub_analysis_financial_parameter <- sub_analysis_financial_parameter() %>% select(asset_name, company_name, technology, sector, economic_value, economic_unit, asset_id)
+    sub_analysis <- sub_analysis() %>% select(relative_change, raw_model_output, absolute_change, asset_id)
+
+    if(isTruthy(input$portfolio)) {
+
+      if(input$indicator == "relative_change") {
+        tm_shape(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
+        ) +
+          tm_dots(
+            id = "asset_name",
+            col = input$indicator,
+            size = 0.04,
+            popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+            palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            breaks = c(-2, -1, 0, 1, 2),
+            style = "cont"
+          )
+      } else {
+        tm_shape(
+          distinct_geo_data %>%
+            inner_join(sub_analysis_financial_parameter, by = "asset_id") %>%
+            left_join(sub_analysis, by = "asset_id")
+        ) +
+          tm_dots(
+            id = "asset_name",
+            col = input$indicator,
+            size = 0.04,
+            popup.vars = c("Company" = "company_name", "Technology" = "technology", "Sector" = "sector", "Production" = "economic_value", "Unit" = "economic_unit", "relative_change"),
+            palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+            style = "cont"
+          )
+      }
+
+
+    } else {
+      tm_shape(distinct_geo_data  %>% slice_sample(n = 10000)) +
+        tm_dots(
+          id = "asset_id",
+          size = 0,
+          palette = rev(c(RColorBrewer::brewer.pal(11, "RdBu"))),
+          #breaks = c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1),
+          style = "cont"
+        ) #+
+    }
+  })
 
   output$asset_risk_histgram <- renderPlot({
     sub_analysis <- sub_analysis()
@@ -318,7 +318,7 @@ server <- function(input, output, session) {
 
     sub_analysis %>%
       r2dii.physical.risk:::plot_asset_risk_histgram() +
-      scale_fill_relative_risk()
+      r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
   output$company_risk_distribution <- renderPlot({
@@ -331,8 +331,8 @@ server <- function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis %>%
-      plot_company_risk_distribution() +
-      scale_fill_relative_risk()
+      r2dii.physical.risk:::plot_company_risk_distribution() +
+      r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
   output$portfolio_company_risk_distribution <- renderPlot({
@@ -345,8 +345,8 @@ server <- function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis %>%
-      plot_portfolio_company_risk_distribution() +
-      scale_fill_relative_risk()
+      r2dii.physical.risk:::plot_portfolio_company_risk_distribution() +
+      r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
 
@@ -361,8 +361,8 @@ server <- function(input, output, session) {
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      plot_sector_relative_portfolio_economic_value() +
-      scale_fill_relative_risk()
+      r2dii.physical.risk:::plot_sector_relative_portfolio_economic_value() +
+      r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
 
@@ -378,7 +378,7 @@ server <- function(input, output, session) {
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
       plot_sector_number_of_assets() +
-      scale_fill_relative_risk()
+      r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
   output$absolute_sector_production <- renderPlot({
@@ -393,7 +393,7 @@ server <- function(input, output, session) {
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
       plot_sector_absolute_portfolio_economic_value() +
-      scale_fill_relative_risk()
+      r2dii.physical.risk:::scale_fill_relative_risk()
   })
 }
 
