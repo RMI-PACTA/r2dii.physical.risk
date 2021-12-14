@@ -1,4 +1,5 @@
 
+
 for (asset_type in c("Equity", "Bonds")) {
   asset_type_sub <- asset_type
 
@@ -19,15 +20,15 @@ for (asset_type in c("Equity", "Bonds")) {
 
   cat(crayon::blue(crayon::bold("Processing", asset_type_sub, "\n")))
 
-  # TODO:
-  path_db_pacta_project_pr_output <- "C:/test"
+  # You can manually override the default output save path here
+  # path_db_pacta_project_pr_output <- "~/Desktop/test/"
 
   path_db_pacta_project_pr_output_asset_type <- fs::path(
     path_db_pacta_project_pr_output,
     asset_type_sub
   )
 
-  create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type)
+  r2dii.physical.risk:::create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type)
 
 
 
@@ -42,7 +43,7 @@ for (asset_type in c("Equity", "Bonds")) {
       portfolio
     )
 
-    create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type_portfolio)
+    r2dii.physical.risk:::create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type_portfolio)
 
 
     # =================================
@@ -87,7 +88,7 @@ for (asset_type in c("Equity", "Bonds")) {
     # merge ALD with Climate Data
     # ========
     analysis <- ald_sub %>%
-      left_join(climate_data_sub, by = "asset_id")
+      inner_join(climate_data_sub, by = "asset_id")
 
     # ========
     # merge asset level owners + calculate direct owned economic value
@@ -157,18 +158,18 @@ for (asset_type in c("Equity", "Bonds")) {
 
     # plot overview stats
     asset_type_sub_portfolio_sub %>%
-      plot_portfolio_geo_ald_value()
+      r2dii.physical.risk:::plot_portfolio_geo_ald_value()
 
-    save_overview_plot(
+    r2dii.physical.risk:::save_overview_plot(
       name = "portfolio_geo_ald_value",
       path = path_db_pacta_project_pr_output_asset_type_portfolio
     )
 
     # plot overview stats
     asset_type_sub_portfolio_sub %>%
-      plot_portfolio_geo_ald_holdings()
+      r2dii.physical.risk:::plot_portfolio_geo_ald_holdings()
 
-    save_overview_plot(
+    r2dii.physical.risk:::save_overview_plot(
       name = "portfolio_geo_ald_holdings",
       path = path_db_pacta_project_pr_output_asset_type_portfolio
     )
@@ -182,7 +183,7 @@ for (asset_type in c("Equity", "Bonds")) {
       if (paste0(allocation, asset_type_sub) != "ownershipBonds") {
         path_db_pacta_project_pr_output_asset_type_portfolio_allocation <- fs::path(path_db_pacta_project_pr_output_asset_type_portfolio, allocation)
 
-        create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type_portfolio_allocation)
+        r2dii.physical.risk:::create_db_pr_paths(paths = path_db_pacta_project_pr_output_asset_type_portfolio_allocation)
 
         cat(crayon::green(crayon::bold("Processing", allocation, "\n")))
 
@@ -206,7 +207,7 @@ for (asset_type in c("Equity", "Bonds")) {
         analysis_final %>%
           filter(security_mapped_sector == sector) %>%
           filter(is_reference_period == FALSE) %>%
-          for_loops_climate_data(
+          r2dii.physical.risk:::for_loops_climate_data(
             parent_path = fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation_plots),
             fns = function(data, final_path) {
 
@@ -269,45 +270,45 @@ for (asset_type in c("Equity", "Bonds")) {
 
               ####### asset_risk_histgram
               asset_risk_histgram <- data %>%
-                plot_asset_risk_histgram(text_size = 20) +
-                scale_fill_relative_risk()
+                r2dii.physical.risk:::plot_asset_risk_histgram(text_size = 20) +
+                r2dii.physical.risk:::scale_fill_relative_risk()
 
-              save_result_plot(name = "asset_risk_histgram", path = final_path)
+              r2dii.physical.risk:::save_result_plot(name = "asset_risk_histgram", path = final_path)
 
               ####### company_risk_distribution
               company_risk_distribution <- data %>%
-                plot_company_risk_distribution(text_size = 20) +
-                scale_fill_relative_risk()
+                r2dii.physical.risk:::plot_company_risk_distribution(text_size = 20) +
+                r2dii.physical.risk:::scale_fill_relative_risk()
 
-              save_result_plot(name = "company_risk_distribution", path = final_path)
+              r2dii.physical.risk:::save_result_plot(name = "company_risk_distribution", path = final_path)
 
               ####### portfolio_company_risk_distribution
               portfolio_company_risk_distribution <- data %>%
-                plot_portfolio_company_risk_distribution(text_size = 20) +
-                scale_fill_relative_risk()
+                r2dii.physical.risk:::plot_portfolio_company_risk_distribution(text_size = 20) +
+                r2dii.physical.risk:::scale_fill_relative_risk()
 
-              save_result_plot(name = "portfolio_company_risk_distribution", path = final_path)
+              r2dii.physical.risk:::save_result_plot(name = "portfolio_company_risk_distribution", path = final_path)
 
               ####### number_of_assets
               number_of_assets <- data %>%
-                plot_sector_number_of_assets(text_size = 20) +
-                scale_fill_relative_risk()
+                r2dii.physical.risk:::plot_sector_number_of_assets(text_size = 20) +
+                r2dii.physical.risk:::scale_fill_relative_risk()
 
-              save_result_plot(name = "number_of_assets", path = final_path)
+              r2dii.physical.risk:::save_result_plot(name = "number_of_assets", path = final_path)
 
               ####### relative_sector_production
               relative_sector_production <- data %>%
-                plot_sector_relative_portfolio_economic_value(text_size = 20) +
-                scale_fill_relative_risk()
+                r2dii.physical.risk:::plot_sector_relative_portfolio_economic_value(text_size = 20) +
+                r2dii.physical.risk:::scale_fill_relative_risk()
 
-              save_result_plot(name = "relative_sector_production", path = final_path)
+              r2dii.physical.risk:::save_result_plot(name = "relative_sector_production", path = final_path)
 
               ####### absolute_sector_production
               absolute_sector_production <- data %>%
-                plot_sector_absolute_portfolio_economic_value(text_size = 20) +
-                scale_fill_relative_risk()
+                r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(text_size = 20) +
+                r2dii.physical.risk:::scale_fill_relative_risk()
 
-              save_result_plot(name = "absolute_sector_production", path = final_path)
+              r2dii.physical.risk:::save_result_plot(name = "absolute_sector_production", path = final_path)
 
 
               data %>%
