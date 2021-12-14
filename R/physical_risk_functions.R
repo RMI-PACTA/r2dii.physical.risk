@@ -13,10 +13,10 @@ create_db_pr_paths <- function(paths = NULL) {
   # }
 
   if (!is.null(paths)) {
-    for(path in paths) {
+    for (path in paths) {
       current_path <- path
 
-      if(!fs::dir_exists(current_path)) {
+      if (!fs::dir_exists(current_path)) {
         fs::dir_create(current_path)
         message(paste("Just created", current_path))
       }
@@ -25,10 +25,9 @@ create_db_pr_paths <- function(paths = NULL) {
 }
 
 show_folder_structure <- function(path_pattern = "path") {
-
   all_paths <- NA
 
-  for(i in 1:length(ls(envir = .GlobalEnv)[stringr::str_detect(ls(envir = .GlobalEnv), path_pattern)])) {
+  for (i in 1:length(ls(envir = .GlobalEnv)[stringr::str_detect(ls(envir = .GlobalEnv), path_pattern)])) {
     current_path <- get(envir = .GlobalEnv, ls(envir = .GlobalEnv)[stringr::str_detect(ls(envir = .GlobalEnv), path_pattern)][i])
 
     current_path <- ifelse(is.function(current_path), NA, current_path)
@@ -40,28 +39,25 @@ show_folder_structure <- function(path_pattern = "path") {
 
   all_paths <- lapply(strsplit(all_paths, "/"), function(all_paths) as.data.frame(t(all_paths)))
   all_paths <- plyr::rbind.fill(all_paths)
-  all_paths$pathString <- apply(all_paths, 1, function(all_paths) paste(trimws(stats::na.omit(all_paths)), collapse="/"))
-  all_paths <- all_paths[order(all_paths$pathString),]
+  all_paths$pathString <- apply(all_paths, 1, function(all_paths) paste(trimws(stats::na.omit(all_paths)), collapse = "/"))
+  all_paths <- all_paths[order(all_paths$pathString), ]
 
   all_paths <- data.tree::as.Node(all_paths)
 
   print(all_paths)
   plot(all_paths)
-
 }
 
 show_diff_rows <- function(data, initial_n_rows, cause = "") {
   diff <- initial_n_rows - nrow(data)
-  if(diff > 0) cat(crayon::red("\n", diff, "rows have been removed", cause, "\n", "\n"))
-  if(diff == 0) cat(crayon::green("\n", "Number of rows has not changed", cause, "\n", "\n"))
-  if(diff < 0) cat(crayon::blue("\n", -diff, "rows have been added", cause, "\n", "\n"))
+  if (diff > 0) cat(crayon::red("\n", diff, "rows have been removed", cause, "\n", "\n"))
+  if (diff == 0) cat(crayon::green("\n", "Number of rows has not changed", cause, "\n", "\n"))
+  if (diff < 0) cat(crayon::blue("\n", -diff, "rows have been added", cause, "\n", "\n"))
 
   return(data)
 }
 
-load_distinct_geo_data <- function(
-  folder_distinct_geo_data = path_db_pr_ald_distinct_geo_data
-) {
+load_distinct_geo_data <- function(folder_distinct_geo_data = path_db_pr_ald_distinct_geo_data) {
   # create a list of files consisting of ALD with geo data
   file_list_distinct_geo_data <- list.files(folder_distinct_geo_data)
 
@@ -111,7 +107,7 @@ load_distinct_geo_data <- function(
     dplyr::bind_rows()
 
   # create sf data frame based on longitude and latitude
-  distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude","latitude"))
+  distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
 
   # assign crs to enable intersecting
   sf::st_crs(distinct_geo_data) <- 4326
@@ -120,13 +116,11 @@ load_distinct_geo_data <- function(
 }
 
 load_ald_data <- function(relevant_ald) {
-
   all_ald <- NULL
 
   for (i in 1:length(relevant_ald)) {
-
-    if(relevant_ald[[i]]$run_prepare_script_before_loading == TRUE) source(relevant_ald[[i]]$prepare_script_path)
-    if(relevant_ald[[i]]$load_data == TRUE) {
+    if (relevant_ald[[i]]$run_prepare_script_before_loading == TRUE) source(relevant_ald[[i]]$prepare_script_path)
+    if (relevant_ald[[i]]$load_data == TRUE) {
       ald <- vroom::vroom(fs::path(relevant_ald[[i]]$data_path))
 
       # make sure columns are available by selecting them
@@ -149,7 +143,7 @@ load_ald_data <- function(relevant_ald) {
         )
     }
 
-    if(is.null(all_ald) & relevant_ald[[i]]$load_data == TRUE) {
+    if (is.null(all_ald) & relevant_ald[[i]]$load_data == TRUE) {
       all_ald <- ald
     } else if (!is.null(all_ald) & relevant_ald[[i]]$load_data == TRUE) {
       all_ald <- rbind.data.frame(
@@ -163,32 +157,29 @@ load_ald_data <- function(relevant_ald) {
 }
 
 load_climate_data <- function(relevant_climate_data) {
-
   all_climate_data <- NULL
 
   for (i in 1:length(relevant_climate_data)) {
-
-    if(relevant_climate_data[[i]]$run_prepare_script_before_loading == TRUE) source(relevant_climate_data[[i]]$prepare_script_path)
-    if(relevant_climate_data[[i]]$load_data == TRUE) {
-
+    if (relevant_climate_data[[i]]$run_prepare_script_before_loading == TRUE) source(relevant_climate_data[[i]]$prepare_script_path)
+    if (relevant_climate_data[[i]]$load_data == TRUE) {
       file_list <- data.frame(data_paths = list.files(relevant_climate_data[[i]]$data_path, recursive = T))
 
-      if(!is.null(relevant_climate_data[[i]]$parameter$scenarios)) {
+      if (!is.null(relevant_climate_data[[i]]$parameter$scenarios)) {
         file_list <- file_list %>%
           dplyr::filter(stringr::str_detect(data_paths, paste(relevant_climate_data[[i]]$parameter$scenarios, collapse = "|")))
       }
 
-      if(!is.null(relevant_climate_data[[i]]$parameter$hazards)) {
+      if (!is.null(relevant_climate_data[[i]]$parameter$hazards)) {
         file_list <- file_list %>%
           dplyr::filter(stringr::str_detect(data_paths, paste(relevant_climate_data[[i]]$parameter$hazards, collapse = "|")))
       }
 
-      if(!is.null(relevant_climate_data[[i]]$parameter$models)) {
+      if (!is.null(relevant_climate_data[[i]]$parameter$models)) {
         file_list <- file_list %>%
           dplyr::filter(stringr::str_detect(data_paths, paste(relevant_climate_data[[i]]$parameter$models, collapse = "|")))
       }
 
-      if(!is.null(relevant_climate_data[[i]]$parameter$periods)) {
+      if (!is.null(relevant_climate_data[[i]]$parameter$periods)) {
         file_list <- file_list %>%
           dplyr::filter(stringr::str_detect(data_paths, paste(relevant_climate_data[[i]]$parameter$periods, collapse = "|")))
       }
@@ -200,8 +191,8 @@ load_climate_data <- function(relevant_climate_data) {
 
           data <- vroom::vroom(
             fs::path(
-              relevant_climate_data[[i]]$data_path, x),
-
+              relevant_climate_data[[i]]$data_path, x
+            ),
             col_types = c(
               provider = "c",
               model = "c",
@@ -220,11 +211,9 @@ load_climate_data <- function(relevant_climate_data) {
       )
 
       climate_data <- dplyr::bind_rows(climate_data)
-
-
     }
 
-    if(is.null(all_climate_data) & relevant_climate_data[[i]]$load_data == TRUE) {
+    if (is.null(all_climate_data) & relevant_climate_data[[i]]$load_data == TRUE) {
       all_climate_data <- climate_data
     } else if (!is.null(all_climate_data) & relevant_climate_data[[i]]$load_data == TRUE) {
       all_climate_data <- rbind.data.frame(
@@ -237,9 +226,7 @@ load_climate_data <- function(relevant_climate_data) {
   return(all_climate_data)
 }
 
-load_asset_level_owners <- function(
-  path = path_db_datastore_export
-) {
+load_asset_level_owners <- function(path = path_db_datastore_export) {
   # ald owners
   asset_level_owners <- vroom::vroom(
     fs::path(
@@ -261,9 +248,7 @@ load_asset_level_owners <- function(
   return(asset_level_owners)
 }
 
-load_company_financial_data <- function(
-  path = path_db_datastore_export
-) {
+load_company_financial_data <- function(path = path_db_datastore_export) {
   # company_financial_data
   company_financial_data <- vroom::vroom(
     fs::path(
@@ -286,12 +271,9 @@ load_company_financial_data <- function(
     )
 
   return(company_financial_data)
-
 }
 
-load_company_ownership_tree <- function(
-  path = path_db_datastore_export
-) {
+load_company_ownership_tree <- function(path = path_db_datastore_export) {
   # ownership_tree
   ownership_tree <- vroom::vroom(
     fs::path(
@@ -314,7 +296,6 @@ load_company_ownership_tree <- function(
     )
 
   return(ownership_tree)
-
 }
 
 load_company_id_cb_ticker <- function(path = path_db_datastore_export) {
@@ -336,12 +317,10 @@ load_company_id_cb_ticker <- function(path = path_db_datastore_export) {
 }
 
 
-save_climate_data <- function(
-  climate_data,
-  path_db_pr_climate_data_provider,
-  use_distinct_for_assets_between_two_rasters = TRUE,
-  drop_any_NAs = TRUE
-) {
+save_climate_data <- function(climate_data,
+                              path_db_pr_climate_data_provider,
+                              use_distinct_for_assets_between_two_rasters = TRUE,
+                              drop_any_NAs = TRUE) {
 
   # arrange final column structure and therefore verify that variables exist
   climate_data <- climate_data %>%
@@ -365,7 +344,8 @@ save_climate_data <- function(
     dplyr::filter(
       !dplyr::if_any(
         c("asset_id", "geometry_id", "model", "period", "is_reference_period", "scenario", "hazard"),
-        is.na)
+        is.na
+      )
     ) %>%
     assertr::verify(nrow(.) == nrow(climate_data))
 
@@ -407,11 +387,9 @@ save_climate_data <- function(
 }
 
 for_loops_climate_data <- function(data, parent_path, fns) {
-
   climate_data <- data
 
-  for(provider in stats::na.omit(unique(climate_data$provider))) {
-
+  for (provider in stats::na.omit(unique(climate_data$provider))) {
     provider_sub <<- provider
     cat(crayon::white(crayon::bold(paste("Processing", provider_sub, "\n"))))
 
@@ -420,13 +398,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
     path_db_pr_climate_data_provider <- fs::path(parent_path, provider_sub)
 
-    if(!dir.exists(path_db_pr_climate_data_provider)) {
+    if (!dir.exists(path_db_pr_climate_data_provider)) {
       fs::dir_create(path_db_pr_climate_data_provider)
       cat(crayon::white(crayon::bold(paste("Just created directory for", provider_sub, "\n"))))
     }
 
-    for(scenario in unique(climate_data_provider_sub$scenario)) {
-
+    for (scenario in unique(climate_data_provider_sub$scenario)) {
       scenario_sub <<- scenario
       cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
@@ -435,13 +412,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
       path_db_pr_climate_data_provider_scenario <- fs::path(path_db_pr_climate_data_provider, scenario_sub)
 
-      if(!dir.exists(path_db_pr_climate_data_provider_scenario)) {
+      if (!dir.exists(path_db_pr_climate_data_provider_scenario)) {
         fs::dir_create(path_db_pr_climate_data_provider_scenario)
         cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
       }
 
-      for(hazard in unique(climate_data_provider_sub_scenario_sub$hazard)) {
-
+      for (hazard in unique(climate_data_provider_sub_scenario_sub$hazard)) {
         hazard_sub <<- hazard
         cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
@@ -450,13 +426,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
         path_db_pr_climate_data_provider_scenario_hazards <- fs::path(path_db_pr_climate_data_provider_scenario, hazard_sub)
 
-        if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards)) {
+        if (!dir.exists(path_db_pr_climate_data_provider_scenario_hazards)) {
           fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards)
           cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
         }
 
-        for(model in unique(climate_data_provider_sub_scenario_sub_hazard_sub$model)) {
-
+        for (model in unique(climate_data_provider_sub_scenario_sub_hazard_sub$model)) {
           model_sub <<- model
           cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
@@ -465,13 +440,12 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 
           path_db_pr_climate_data_provider_scenario_hazards_models <- fs::path(path_db_pr_climate_data_provider_scenario_hazards, model_sub)
 
-          if(!dir.exists(path_db_pr_climate_data_provider_scenario_hazards_models)) {
+          if (!dir.exists(path_db_pr_climate_data_provider_scenario_hazards_models)) {
             fs::dir_create(path_db_pr_climate_data_provider_scenario_hazards_models)
             cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
           }
 
-          for(period in unique(climate_data_provider_sub_scenario_sub_hazard_sub_model_sub$period)) {
-
+          for (period in unique(climate_data_provider_sub_scenario_sub_hazard_sub_model_sub$period)) {
             period_sub <<- period
             cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
@@ -490,8 +464,8 @@ for_loops_climate_data <- function(data, parent_path, fns) {
 scale_fill_relative_risk <- function() {
   ggplot2::scale_fill_gradientn(
     colors = rev(RColorBrewer::brewer.pal(11, "RdBu")),
-    #breaks = c(-2, -1 , 0, 1, 2),
-    #limits = c(-2,2),
+    # breaks = c(-2, -1 , 0, 1, 2),
+    # limits = c(-2,2),
     na.value = "grey50",
     labels = scales::percent
   )
@@ -503,7 +477,7 @@ plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) 
     ggplot2::ggplot() +
     ggplot2::geom_col(aes(x = as.character(year), y = portfolio_economic_value, fill = relative_change)) +
     ggplot2::theme_minimal() +
-    ggplot2::facet_wrap( ~ sector, scales = "free", nrow = 1) +
+    ggplot2::facet_wrap(~sector, scales = "free", nrow = 1) +
     ggplot2::labs(
       x = "Year",
       caption = paste(
@@ -529,7 +503,7 @@ plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) 
     ggplot2::ggplot() +
     ggplot2::geom_col(aes(x = as.character(year), y = portfolio_economic_value_share_sector, fill = relative_change)) +
     ggplot2::scale_y_continuous(labels = scales::percent) +
-    ggplot2::facet_grid( ~ sector)  +
+    ggplot2::facet_grid(~sector) +
     ggplot2::theme_minimal() +
     ggplot2::labs(
       x = "Year",
@@ -558,7 +532,7 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
     ggplot() +
     ggplot2::geom_col(aes(x = as.character(year), y = n, fill = relative_change)) +
     ggplot2::theme_minimal() +
-    ggplot2::facet_wrap( ~ sector, scales = "free", nrow = 1) +
+    ggplot2::facet_wrap(~sector, scales = "free", nrow = 1) +
     ggplot2::labs(
       x = "Year",
       caption = paste(
@@ -579,13 +553,12 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
 }
 
 plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
-
   data <- data %>%
     dplyr::group_by(id_name, port_weight, relative_change) %>%
     dplyr::summarise(
       portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
     ) %>%
-    dplyr::mutate(new_metric = port_weight*portfolio_economic_value_share_sector_company) %>%
+    dplyr::mutate(new_metric = port_weight * portfolio_economic_value_share_sector_company) %>%
     dplyr::arrange(relative_change)
 
   data %>%
@@ -617,7 +590,6 @@ plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 
 
 plot_company_risk_distribution <- function(data, text_size = 12) {
-
   sub_set <- data %>%
     dplyr::distinct(holding_id, .keep_all = T) %>%
     dplyr::group_by(id_name) %>%
@@ -636,7 +608,7 @@ plot_company_risk_distribution <- function(data, text_size = 12) {
     )
 
   data <- data %>%
-    dplyr::mutate(id_name = paste(round(port_weight*100, 2), "% ", id_name)) %>%
+    dplyr::mutate(id_name = paste(round(port_weight * 100, 2), "% ", id_name)) %>%
     dplyr::group_by(id_name, port_weight, relative_change) %>%
     dplyr::summarise(
       portfolio_economic_value_share_sector_company = sum(portfolio_economic_value_share_sector_company, na.rm = T), .groups = "keep"
@@ -708,20 +680,19 @@ save_overview_plot <- function(name, path = final_path, height = 20, width = 30)
 }
 
 plot_portfolio_geo_ald_value <- function(data) {
-
   data %>%
     dplyr::group_by(portfolio_name, has_geo_ald) %>%
     dplyr::summarise(
-      sum_value_usd_mio = sum(value_usd, na.rm = T)/10^6, .groups = "keep"
+      sum_value_usd_mio = sum(value_usd, na.rm = T) / 10^6, .groups = "keep"
     ) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(portfolio_name) %>%
     dplyr::mutate(
-      share_value_usd = sum_value_usd_mio/sum(sum_value_usd_mio, na.rm = T),
+      share_value_usd = sum_value_usd_mio / sum(sum_value_usd_mio, na.rm = T),
     ) %>%
     ggplot2::ggplot() +
     ggplot2::geom_col(aes(x = portfolio_name, y = share_value_usd, fill = has_geo_ald)) +
-    ggplot2::scale_y_continuous(sec.axis = ggplot2::sec_axis(~ . * sum(asset_type_sub_portfolio_sub %>% dplyr::filter(portfolio_name %in% c("IE00B4L5Y983")) %>% dplyr::pull(value_usd))/10^6)) +
+    ggplot2::scale_y_continuous(sec.axis = ggplot2::sec_axis(~ . * sum(asset_type_sub_portfolio_sub %>% dplyr::filter(portfolio_name %in% c("IE00B4L5Y983")) %>% dplyr::pull(value_usd)) / 10^6)) +
     ggplot2::labs(
       x = "",
       y = "% Portfolio Value",
@@ -735,7 +706,6 @@ plot_portfolio_geo_ald_value <- function(data) {
 }
 
 plot_portfolio_geo_ald_holdings <- function(data) {
-
   data %>%
     dplyr::group_by(portfolio_name, has_geo_ald) %>%
     dplyr::summarise(
@@ -744,7 +714,7 @@ plot_portfolio_geo_ald_holdings <- function(data) {
     dplyr::ungroup() %>%
     dplyr::group_by(portfolio_name) %>%
     dplyr::mutate(
-      n = n/sum(n, na.rm = T)
+      n = n / sum(n, na.rm = T)
     ) %>%
     ggplot2::ggplot() +
     ggplot2::geom_col(aes(x = portfolio_name, y = n, fill = has_geo_ald)) +
