@@ -22,20 +22,14 @@ path_db_pr_climate_data_CDF_raw_geotiff_indices <- fs::path(path_db_pr_climate_d
 path_db_pr_climate_data_CDF_raw_geotiff_variables <- fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
 ### Raw climate analytics data
 path_db_pr_climate_data_raw <- fs::path(path_db_pr_climate_data_raw, "ClimateAnalytics")
-### WRI climate data
-path_db_pr_climate_data_WRI <- fs::path(path_db_pr_climate_data, "WRI_data")
 ## ALD directory
 path_db_pr_ald <- fs::path(path_db_pr_parent, "asset_level_data")
 ### full ALD data
 path_db_pr_ald_prepared <- fs::path(path_db_pr_ald, "prepared_ald")
 ### OSM data
 path_db_pr_ald_distinct_geo_data <- fs::path(path_db_pr_ald, "distinct_geo_data")
-# Analysis Inputs Path
-path_db_analysis_inputs <- fs::path(r2dii.utils::dbox_port_00(), "07_AnalysisInputs", "2019Q4_05172021_2021")
 # data store path
 path_db_datastore_export <- fs::path(r2dii.utils::dbox_port_00(), "06_DataStore", "DataStore_export_05172021", "2020Q4")
-# Github Path
-path_gh_pr <- fs::path(here::here(), "physical_risk")
 
 # ===============
 # set project paths
@@ -58,7 +52,6 @@ create_db_pr_paths(
     path_db_pacta_project_pr_output
   )
 )
-
 
 # visualise folder structure
 show_folder_structure(path_pattern = "path_")
