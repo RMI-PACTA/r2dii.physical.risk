@@ -1,2 +1,13 @@
 ^LICENSE\.md$
 ^vignettes/articles$
+^.*\.Rproj$
+^\.Rproj\.user$
+
+^analysis\.R$
+^app\.R$
+^prepare_AR_data\.R$
+^prepare_CDF_data\.R$
+^prepare_climate_analytics_data\.R$
+^prepare_OSM_data\.R$
+^set_up_project_specifications\.R$
+^summaries_results\.R$
