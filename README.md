@@ -20,41 +20,33 @@ Things such as paths to input and output data directories are set in this file.
 The physical risk module requires many different inputs and outputs. An example 
 full directory structure might look something like: 
 ``` bash
-  Users                                                                  
-   °--Path                                                               
-       ¦--to                                                             
-       ¦   °--github                                                     
-       ¦       °--folder                                                 
-       ¦           °--r2dii.physical.risk  #path to this repo            
-       ¦               °--physical_risk                                  
-       °--Dropbox (2° Investing)                                         
-          ¦--PortCheck_v2                                                
-          ¦   °--10_Projects                                             
-          ¦       °--Some_Project                                        
-          ¦           °--06_Physical_Risk   #path to final output        
-          °--PortCheck                                                   
-              °--00_Data                                                 
-                  ¦--00_RawData                                          
-                  ¦   °--15_Risk                                         
-                  ¦       ¦--Climate Data Factory #raw CDF data          
-                  ¦       ¦   °--TCFD_Climate_Data-GeoTiff               
-                  ¦       ¦       °--GeoTIFF                             
-                  ¦       ¦           ¦--Indices                         
-                  ¦       ¦           °--Variables                       
-                  ¦       °--ClimateAnalytics #raw climate analytics data
-                  ¦--01_ProcessedData                                    
-                  ¦   °--08_RiskData                                     
-                  ¦       ¦--asset_level_data #processed asset-level data
-                  ¦       ¦   ¦--distinct_geo_data                       
-                  ¦       ¦   °--prepared_ald                            
-                  ¦       °--climate_data #processed climate risk data   
-                  ¦           ¦--CDF                                     
-                  ¦           °--WRI_data                                
-                  ¦--06_DataStore #datastore export                      
-                  ¦   °--DataStore_export_05172021                       
-                  ¦       °--2020Q4                                      
-                  °--07_AnalysisInputs #processed asset-level data       
-                      °--2019Q4_05172021_2021                            
+1  Users                                                    
+2   °--path_to                                              
+3       °--Dropbox                                          
+4           ¦--PortCheck_v2                                 
+5           ¦   °--10_Projects                              
+6           ¦       °--SomeProject                          
+7           ¦           °--60_Physical_Risk                 
+8           °--PortCheck                                    
+9               °--00_Data                                  
+10                  ¦--00_RawData                           
+11                  ¦   °--15_Risk                          
+12                  ¦       ¦--Climate Data Factory         
+13                  ¦       ¦   °--TCFD_Climate_Data-GeoTiff
+14                  ¦       ¦       °--GeoTIFF              
+15                  ¦       ¦           ¦--Indices          
+16                  ¦       ¦           °--Variables        
+17                  ¦       °--ClimateAnalytics             
+18                  ¦--01_ProcessedData                     
+19                  ¦   °--08_RiskData                      
+20                  ¦       ¦--asset_level_data             
+21                  ¦       ¦   ¦--distinct_geo_data        
+22                  ¦       ¦   °--prepared_ald             
+23                  ¦       °--climate_data                 
+24                  ¦           °--CDF                      
+25                  °--06_DataStore                         
+26                      °--DataStore_export_timestamp       
+27                          °--quarter                      
 ```
 
 It is very important that the output data folder locations are set properly in 
