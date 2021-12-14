@@ -36,12 +36,7 @@ structure might look something like:
 ``` bash
   Users                                                                  
    °--Path                                                               
-       ¦--to                                                             
-       ¦   °--github                                                     
-       ¦       °--folder                                                 
-       ¦           °--r2dii.physical.risk  #path to this repo            
-       ¦               °--physical_risk                                  
-       °--Dropbox (2° Investing)                                         
+       °--Dropbox                                                        
           ¦--PortCheck_v2                                                
           ¦   °--10_Projects                                             
           ¦       °--Some_Project                                        
@@ -62,13 +57,10 @@ structure might look something like:
                   ¦       ¦   ¦--distinct_geo_data                       
                   ¦       ¦   °--prepared_ald                            
                   ¦       °--climate_data #processed climate risk data   
-                  ¦           ¦--CDF                                     
-                  ¦           °--WRI_data                                
+                  ¦           °--CDF                                     
                   ¦--06_DataStore #datastore export                      
                   ¦   °--DataStore_export_05172021                       
                   ¦       °--2020Q4                                      
-                  °--07_AnalysisInputs #processed asset-level data       
-                      °--2019Q4_05172021_2021                            
 ```
 
 It is very important that the output data folder locations are set
