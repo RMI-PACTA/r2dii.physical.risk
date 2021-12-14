@@ -2,13 +2,13 @@ library(shiny)
 library(leaflet)
 library(spData)
 library(tmap)
-devtools::load_all(".")
+library(r2dii.physical.risk)
 
 linebreaks <- function(n) {
   HTML(strrep(br(), n))
 }
 
-distinct_geo_data <- load_distinct_geo_data()
+distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
 result_files <- list.files(path_db_pacta_project_pr_output, recursive = T)[stringr::str_detect(list.files(path_db_pacta_project_pr_output, recursive = T), "results")]
 
@@ -317,7 +317,7 @@ server <- function(input, output, session) {
     period_sub <<- input$period
 
     sub_analysis %>%
-      plot_asset_risk_histgram() +
+      r2dii.physical.risk:::plot_asset_risk_histgram() +
       scale_fill_relative_risk()
   })
 

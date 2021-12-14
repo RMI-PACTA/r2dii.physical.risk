@@ -1,7 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(sf)
-devtools::load_all(".")
+library(r2dii.physical.risk)
 
 # =================================
 # set paths # naming convention (path_*, followed by location (e.g. db = dropbox / gh = github), followed by individual folder structures)
@@ -56,7 +56,7 @@ path_db_pacta_project <- fs::path(r2dii.utils::dbox_port2_10proj(), pacta_projec
 path_db_pacta_project_pr_output <- fs::path(path_db_pacta_project, "06_Physical_Risk")
 
 # create PACTA project output path
-create_db_pr_paths(
+r2dii.physical.risk:::create_db_pr_paths(
   paths = c(
     path_db_pacta_project_pr_output
   )
@@ -64,7 +64,7 @@ create_db_pr_paths(
 
 
 # visualise folder structure
-show_folder_structure(path_pattern = "path_")
+r2dii.physical.risk:::show_folder_structure(path_pattern = "path_")
 # fs::dir_tree(path_db_pr_parent, type = "directory") #to many entries to be Understandable
 
 # =================================
@@ -72,13 +72,13 @@ show_folder_structure(path_pattern = "path_")
 # =================================
 
 # company_id_cb_ticker
-company_id_cb_ticker <- load_company_id_cb_ticker(path = path_db_datastore_export)
+company_id_cb_ticker <- r2dii.physical.risk:::load_company_id_cb_ticker(path = path_db_datastore_export)
 
 # asset_level_owners
-asset_level_owners <- load_asset_level_owners(path = path_db_datastore_export)
+asset_level_owners <- r2dii.physical.risk:::load_asset_level_owners(path = path_db_datastore_export)
 
 # company_ownership_tree
-company_ownership_tree <- load_company_ownership_tree(path = path_db_datastore_export)
+company_ownership_tree <- r2dii.physical.risk:::load_company_ownership_tree(path = path_db_datastore_export)
 
 # rename to have target_company_id as company_id
 company_ownership_tree <- company_ownership_tree %>%
@@ -96,12 +96,12 @@ company_ownership_tree <- company_ownership_tree %>%
 # convention: files: XXX_data.csv; scripts: prepare_XXX_data.R)
 # =================================
 
-ald <- load_ald_data( # TODO: work with ALD timestamps
+ald <- r2dii.physical.risk:::load_ald_data( # TODO: work with ALD timestamps
   relevant_ald = list(
     list(
       data_path = fs::path(path_db_pr_ald_prepared, "AR_data", ext = "csv"), # where does the prepared ald data lie?
       run_prepare_script_before_loading = FALSE, # do you want to run the corresponding prepare script beforehand?
-      prepare_script_path = "physical_risk/prepare_AR_data.R", # where does the prepare script lie?
+      prepare_script_path = "prepare_AR_data.R", # where does the prepare script lie?
       load_data = TRUE # do you ultimately want to load the ALD of this source?
     ),
 
@@ -109,7 +109,7 @@ ald <- load_ald_data( # TODO: work with ALD timestamps
     list(
       data_path = fs::path(path_db_pr_ald_prepared, "OSM_data", ext = "csv"), # where does the prepared AR data lie?
       run_prepare_script_before_loading = FALSE, # do you want to run the corresponding prepare script beforehand?
-      prepare_script_path = "physical_risk/prepare_OSM_data.R", # where does the prepare script lie?
+      prepare_script_path = "prepare_OSM_data.R", # where does the prepare script lie?
       load_data = FALSE # do you ultimately want to load the ALD of this source?
     )
   )
@@ -123,7 +123,7 @@ ald <- ald %>%
 # load climate data
 # =================================
 
-climate_data <- load_climate_data(
+climate_data <- r2dii.physical.risk:::load_climate_data(
   relevant_climate_data = list(
 
     # cdf data
@@ -168,13 +168,35 @@ climate_data <- load_climate_data(
 
       # parameters can differ for each provider, scenrio, hazard, model and time period (if NULL, all elements of a parameter are used)
       parameter = list(
-        scenarios = c("rcp85", "ngfs_delayed"),
-        hazards = NULL,
+        scenarios = "rcp",
+        hazards = c(
+          #"tasAdjust", # air temperature
+          #"tasminAdjust", # daily minimum air temperature
+          # "tasmaxAdjust", # daily maximum air temperature
+          "prAdjust" # precipitation
+          #"hursAdjust", # relative humidity
+          #"prsnAdjust", # snowfall
+          #"hussAdjust", # specific humidity
+          # "sfcWindAdjust", # wind speed
+          #"ec4", # 1-in-100-year expected damage from tropical cyclones
+          #"ec2", # annual expected damage from river floods
+          #"ec3", # annual expected damage from tropical cyclones
+          #"ec1", # labour productivity due to heat stress
+          #"lec", # land fraction annually exposed to crop failures
+          # "leh", # land fraction annually exposed to heat waves
+          # "fldfrc", # land fraction annually exposed to river floods
+          # "lew", # land fraction annually exposed to wild fires,
+          # "flddph" # river flood depth
+          #"maxdis", # maximum daily river discharge
+          #"mindis", # minimum daily river discharge
+          #"dis", # river discharge
+          #"qs" # surface runoff
+        ),
         models = NULL,
         periods = c(
-          "2030",
-          "2050"
-          # "2100"
+          #"2030",
+          #"2050",
+          "2100"
         )
       )
     )
