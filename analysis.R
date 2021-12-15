@@ -209,7 +209,13 @@ for (asset_type in c("Equity", "Bonds")) {
           filter(is_reference_period == FALSE) %>%
           r2dii.physical.risk:::for_loops_climate_data(
             parent_path = fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation_plots),
-            fns = function(data, final_path) {
+            fns = function(data,
+                           final_path,
+                           provider_sub,
+                           scenario_sub,
+                           hazard_sub,
+                           model_sub,
+                           period_sub) {
 
               # filter rows with belong to assets
               data <- data %>%

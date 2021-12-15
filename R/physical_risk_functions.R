@@ -448,7 +448,14 @@ for_loops_climate_data <- function(data, parent_path, fns) {
               dplyr::filter(period == period_sub)
 
             climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub %>%
-              fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
+              fns(
+                path_db_pr_climate_data_provider_scenario_hazards_models,
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub
+                )
           }
         }
       }
