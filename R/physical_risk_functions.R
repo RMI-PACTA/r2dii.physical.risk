@@ -473,7 +473,13 @@ scale_fill_relative_risk <- function() {
   )
 }
 
-plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) {
+plot_sector_absolute_portfolio_economic_value <- function(data,
+                                                          provider_sub,
+                                                          scenario_sub,
+                                                          hazard_sub,
+                                                          model_sub,
+                                                          period_sub,
+                                                          text_size = 12) {
   data %>%
     dplyr::arrange(relative_change) %>%
     ggplot2::ggplot() +
@@ -499,7 +505,13 @@ plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) 
     )
 }
 
-plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) {
+plot_sector_relative_portfolio_economic_value <- function(data,
+                                                          provider_sub,
+                                                          scenario_sub,
+                                                          hazard_sub,
+                                                          model_sub,
+                                                          period_sub,
+                                                          text_size = 12) {
   data %>%
     dplyr::arrange(relative_change) %>%
     ggplot2::ggplot() +
@@ -526,7 +538,13 @@ plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) 
     )
 }
 
-plot_sector_number_of_assets <- function(data, text_size = 12) {
+plot_sector_number_of_assets <- function(data,
+                                         provider_sub,
+                                         scenario_sub,
+                                         hazard_sub,
+                                         model_sub,
+                                         period_sub,
+                                         text_size = 12) {
   data %>%
     dplyr::distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>% # some assets producing different technologies (automotive!!)
     dplyr::count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
@@ -554,7 +572,13 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
     )
 }
 
-plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
+plot_portfolio_company_risk_distribution <- function(data,
+                                                     provider_sub,
+                                                     scenario_sub,
+                                                     hazard_sub,
+                                                     model_sub,
+                                                     period_sub,
+                                                     text_size = 12) {
   data <- data %>%
     dplyr::group_by(id_name, port_weight, relative_change) %>%
     dplyr::summarise(
@@ -591,7 +615,13 @@ plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 }
 
 
-plot_company_risk_distribution <- function(data, text_size = 12) {
+plot_company_risk_distribution <- function(data,
+                                           provider_sub,
+                                           scenario_sub,
+                                           hazard_sub,
+                                           model_sub,
+                                           period_sub,
+                                           text_size = 12) {
   sub_set <- data %>%
     dplyr::distinct(holding_id, .keep_all = T) %>%
     dplyr::group_by(id_name) %>%
@@ -642,7 +672,13 @@ plot_company_risk_distribution <- function(data, text_size = 12) {
     )
 }
 
-plot_asset_risk_histgram <- function(data, text_size = 12) {
+plot_asset_risk_histgram <- function(data,
+                                     provider_sub,
+                                     scenario_sub,
+                                     hazard_sub,
+                                     model_sub,
+                                     period_sub,
+                                     text_size = 12) {
   data %>%
     dplyr::mutate(relative_change = round(relative_change, 1)) %>%
     dplyr::count(sector, relative_change) %>%
@@ -669,7 +705,15 @@ plot_asset_risk_histgram <- function(data, text_size = 12) {
     )
 }
 
-save_result_plot <- function(name, path = final_path, height = 20, width = 30) {
+save_result_plot <- function(name,
+                             provider_sub,
+                             scenario_sub,
+                             hazard_sub,
+                             model_sub,
+                             period_sub,
+                             path = final_path,
+                             height = 20,
+                             width = 30) {
   ggplot2::ggsave(fs::path(path, paste(name, provider_sub, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = height, width = width)
 
   cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", provider_sub, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
