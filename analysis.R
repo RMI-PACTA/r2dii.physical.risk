@@ -209,7 +209,13 @@ for (asset_type in c("Equity", "Bonds")) {
           filter(is_reference_period == FALSE) %>%
           r2dii.physical.risk:::for_loops_climate_data(
             parent_path = fs::path(path_db_pacta_project_pr_output_asset_type_portfolio_allocation_plots),
-            fns = function(data, final_path) {
+            fns = function(data,
+                           final_path,
+                           provider_sub,
+                           scenario_sub,
+                           hazard_sub,
+                           model_sub,
+                           period_sub) {
 
               # filter rows with belong to assets
               data <- data %>%
@@ -270,45 +276,134 @@ for (asset_type in c("Equity", "Bonds")) {
 
               ####### asset_risk_histgram
               asset_risk_histgram <- data %>%
-                r2dii.physical.risk:::plot_asset_risk_histgram(text_size = 20) +
+                r2dii.physical.risk:::plot_asset_risk_histgram(
+                  provider_sub,
+                  scenario_sub,
+                  hazard_sub,
+                  model_sub,
+                  period_sub,
+                  text_size = 20
+                  ) +
                 r2dii.physical.risk:::scale_fill_relative_risk()
 
-              r2dii.physical.risk:::save_result_plot(name = "asset_risk_histgram", path = final_path)
+              r2dii.physical.risk:::save_result_plot(
+                "asset_risk_histgram",
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub,
+                path = final_path
+                )
 
               ####### company_risk_distribution
               company_risk_distribution <- data %>%
-                r2dii.physical.risk:::plot_company_risk_distribution(text_size = 20) +
+                r2dii.physical.risk:::plot_company_risk_distribution(
+                  provider_sub,
+                  scenario_sub,
+                  hazard_sub,
+                  model_sub,
+                  period_sub,
+                  text_size = 20
+                  ) +
                 r2dii.physical.risk:::scale_fill_relative_risk()
 
-              r2dii.physical.risk:::save_result_plot(name = "company_risk_distribution", path = final_path)
+              r2dii.physical.risk:::save_result_plot(
+                "company_risk_distribution",
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub,
+                path = final_path
+                )
 
               ####### portfolio_company_risk_distribution
               portfolio_company_risk_distribution <- data %>%
-                r2dii.physical.risk:::plot_portfolio_company_risk_distribution(text_size = 20) +
+                r2dii.physical.risk:::plot_portfolio_company_risk_distribution(
+                  provider_sub,
+                  scenario_sub,
+                  hazard_sub,
+                  model_sub,
+                  period_sub,
+                  text_size = 20
+                  ) +
                 r2dii.physical.risk:::scale_fill_relative_risk()
 
-              r2dii.physical.risk:::save_result_plot(name = "portfolio_company_risk_distribution", path = final_path)
+              r2dii.physical.risk:::save_result_plot(
+                "portfolio_company_risk_distribution",
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub,
+                path = final_path)
 
               ####### number_of_assets
               number_of_assets <- data %>%
-                r2dii.physical.risk:::plot_sector_number_of_assets(text_size = 20) +
+                r2dii.physical.risk:::plot_sector_number_of_assets(
+                  provider_sub,
+                  scenario_sub,
+                  hazard_sub,
+                  model_sub,
+                  period_sub,
+                  text_size = 20
+                  ) +
                 r2dii.physical.risk:::scale_fill_relative_risk()
 
-              r2dii.physical.risk:::save_result_plot(name = "number_of_assets", path = final_path)
+              r2dii.physical.risk:::save_result_plot(
+                "number_of_assets",
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub,
+                path = final_path
+                )
 
               ####### relative_sector_production
               relative_sector_production <- data %>%
-                r2dii.physical.risk:::plot_sector_relative_portfolio_economic_value(text_size = 20) +
+                r2dii.physical.risk:::plot_sector_relative_portfolio_economic_value(
+                  provider_sub,
+                  scenario_sub,
+                  hazard_sub,
+                  model_sub,
+                  period_sub,
+                  text_size = 20
+                  ) +
                 r2dii.physical.risk:::scale_fill_relative_risk()
 
-              r2dii.physical.risk:::save_result_plot(name = "relative_sector_production", path = final_path)
+              r2dii.physical.risk:::save_result_plot(
+                "relative_sector_production",
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub,
+                path = final_path
+                )
 
               ####### absolute_sector_production
               absolute_sector_production <- data %>%
-                r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(text_size = 20) +
+                r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(
+                  provider_sub,
+                  scenario_sub,
+                  hazard_sub,
+                  model_sub,
+                  period_sub,
+                  text_size = 20
+                  ) +
                 r2dii.physical.risk:::scale_fill_relative_risk()
 
-              r2dii.physical.risk:::save_result_plot(name = "absolute_sector_production", path = final_path)
+              r2dii.physical.risk:::save_result_plot(
+                "absolute_sector_production",
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub,
+                path = final_path
+                )
 
 
               data %>%

@@ -310,42 +310,60 @@ server <- function(input, output, session) {
   output$asset_risk_histgram <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    provider_sub <<- input$provider
-    model_sub <<- input$model
-    scenario_sub <<- input$scenario
-    hazard_sub <<- input$hazard
-    period_sub <<- input$period
+    provider_sub <- input$provider
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
-      r2dii.physical.risk:::plot_asset_risk_histgram() +
+      r2dii.physical.risk:::plot_asset_risk_histgram(
+        provider_sub,
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ) +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
   output$company_risk_distribution <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    provider_sub <<- input$provider
-    model_sub <<- input$model
-    scenario_sub <<- input$scenario
-    hazard_sub <<- input$hazard
-    period_sub <<- input$period
+    provider_sub <- input$provider
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
-      r2dii.physical.risk:::plot_company_risk_distribution() +
+      r2dii.physical.risk:::plot_company_risk_distribution(
+        provider_sub,
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ) +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
   output$portfolio_company_risk_distribution <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    provider_sub <<- input$provider
-    model_sub <<- input$model
-    scenario_sub <<- input$scenario
-    hazard_sub <<- input$hazard
-    period_sub <<- input$period
+    provider_sub <- input$provider
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
-      r2dii.physical.risk:::plot_portfolio_company_risk_distribution() +
+      r2dii.physical.risk:::plot_portfolio_company_risk_distribution(
+        provider_sub,
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ) +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
@@ -353,15 +371,21 @@ server <- function(input, output, session) {
   output$relative_sector_production <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    provider_sub <<- input$provider
-    model_sub <<- input$model
-    scenario_sub <<- input$scenario
-    hazard_sub <<- input$hazard
-    period_sub <<- input$period
+    provider_sub <- input$provider
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      r2dii.physical.risk:::plot_sector_relative_portfolio_economic_value() +
+      r2dii.physical.risk:::plot_sector_relative_portfolio_economic_value(
+        provider_sub,
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ) +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
@@ -369,30 +393,42 @@ server <- function(input, output, session) {
   output$number_of_assets <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    provider_sub <<- input$provider
-    model_sub <<- input$model
-    scenario_sub <<- input$scenario
-    hazard_sub <<- input$hazard
-    period_sub <<- input$period
+    provider_sub <- input$provider
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      r2dii.physical.risk:::plot_sector_number_of_assets() +
+      r2dii.physical.risk:::plot_sector_number_of_assets(
+        provider_sub,
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ) +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 
   output$absolute_sector_production <- renderPlot({
     sub_analysis <- sub_analysis()
 
-    provider_sub <<- input$provider
-    model_sub <<- input$model
-    scenario_sub <<- input$scenario
-    hazard_sub <<- input$hazard
-    period_sub <<- input$period
+    provider_sub <- input$provider
+    model_sub <- input$model
+    scenario_sub <- input$scenario
+    hazard_sub <- input$hazard
+    period_sub <- input$period
 
     sub_analysis %>%
       filter(sector == security_mapped_sector) %>%
-      r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value() +
+      r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(
+        provider_sub,
+        scenario_sub,
+        hazard_sub,
+        model_sub,
+        period_sub
+      ) +
       r2dii.physical.risk:::scale_fill_relative_risk()
   })
 }
