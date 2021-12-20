@@ -12,3 +12,64 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(r2dii.physical.risk)
 ```
+
+This article will document the methodology used by this repository to estimate
+the risk a portfolio incurs as a result of physical risks (stemming from climate
+change). 
+
+## Input Portfolio
+A typical "input portfolio" to PACTA looks something like this: 
+``` {r}
+portfolio <- tibble::tribble(
+                        ~isin, ~market_value, ~currency,
+               "JP3868400007",       50000L,     "GBP",
+               "FR0000571218",       28136L,     "GBP",
+               "FR0011883966",      117291L,     "GBP"
+               )
+
+portfolio
+
+```
+
+The input portfolio that is actually used in the physical risk assessment is
+already slightly processed. The actual file used is the `total_portfolio.rda`
+file that can be found in the folder `30_Processed_Inputs` of a typical PACTA
+project. What this means is that it has already been extended using Bloomberg
+financial data, and contains some columns that are not present in the above
+dataset. Crucially, it contains the following columns:
+
+``` {r}
+portfolio <- tibble::tribble(
+                ~portfolio_name,    ~company_name, ~company_id, ~corporate_bond_ticker,          ~isin, ~holding_id, ~asset_type, ~security_mapped_sector, ~value_usd,
+               "some portfolio", "some wind farm",          1L,                  "ABC", "AB1234567890",        123L,    "Equity",                 "Power",     45000L
+               )
+
+portfolio
+```
+
+## Physical Assets
+
+```{r}
+ald <- tibble::tribble(
+             ~asset_name, ~asset_location, ~latitude, ~longitude, ~sector,     ~technology, ~year, ~economic_unit, ~economic_output,
+        "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2020L,           "MW",             400L,
+        "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2021L,           "MW",             420L,
+        "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2022L,           "MW",             440L
+        )
+
+ald
+```
+
+## Climate Hazard Scenarios 
+### Climate Analytics
+
+```{r}
+climate_data <- tibble::tribble(
+       ~asset_name, ~scenario,     ~model, ~period,    ~hazard, ~relative_change,
+  "Some Wind Farm",   "rcp26", "Ensemble",   2100L, "prAdjust",            0.004,
+  "Some Wind Farm",   "rcp45", "Ensemble",   2100L, "prAdjust",             0.03,
+  "Some Wind Farm",   "rcp60", "Ensemble",   2100L, "prAdjust",             0.04
+  )
+
+climate_data
+```
