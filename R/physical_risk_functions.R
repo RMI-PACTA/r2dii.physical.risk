@@ -389,8 +389,7 @@ save_climate_data <- function(climate_data,
 for_loops_climate_data <- function(data, parent_path, fns) {
   climate_data <- data
 
-  for (provider in stats::na.omit(unique(climate_data$provider))) {
-    provider_sub <<- provider
+  for (provider_sub in stats::na.omit(unique(climate_data$provider))) {
     cat(crayon::white(crayon::bold(paste("Processing", provider_sub, "\n"))))
 
     climate_data_provider_sub <- climate_data %>%
@@ -403,8 +402,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
       cat(crayon::white(crayon::bold(paste("Just created directory for", provider_sub, "\n"))))
     }
 
-    for (scenario in unique(climate_data_provider_sub$scenario)) {
-      scenario_sub <<- scenario
+    for (scenario_sub in unique(climate_data_provider_sub$scenario)) {
       cat(crayon::red(crayon::bold(paste("Processing", scenario_sub, "\n"))))
 
       climate_data_provider_sub_scenario_sub <- climate_data_provider_sub %>%
@@ -417,8 +415,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
         cat(crayon::red(crayon::bold(paste("Just created directory for", scenario_sub, "\n"))))
       }
 
-      for (hazard in unique(climate_data_provider_sub_scenario_sub$hazard)) {
-        hazard_sub <<- hazard
+      for (hazard_sub in unique(climate_data_provider_sub_scenario_sub$hazard)) {
         cat(crayon::blue(crayon::bold(paste("Processing", hazard_sub, "\n"))))
 
         climate_data_provider_sub_scenario_sub_hazard_sub <- climate_data_provider_sub_scenario_sub %>%
@@ -431,8 +428,7 @@ for_loops_climate_data <- function(data, parent_path, fns) {
           cat(crayon::blue(crayon::bold(paste("Just created directory for", hazard_sub, "in", scenario_sub, "\n"))))
         }
 
-        for (model in unique(climate_data_provider_sub_scenario_sub_hazard_sub$model)) {
-          model_sub <<- model
+        for (model_sub in unique(climate_data_provider_sub_scenario_sub_hazard_sub$model)) {
           cat(crayon::cyan(crayon::bold(paste("Processing", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
           climate_data_provider_sub_scenario_sub_hazard_sub_model_sub <- climate_data_provider_sub_scenario_sub_hazard_sub %>%
@@ -445,15 +441,21 @@ for_loops_climate_data <- function(data, parent_path, fns) {
             cat(crayon::cyan(crayon::bold(paste("Just created directory for", model_sub, "in", hazard_sub, "in", scenario_sub, "\n"))))
           }
 
-          for (period in unique(climate_data_provider_sub_scenario_sub_hazard_sub_model_sub$period)) {
-            period_sub <<- period
+          for (period_sub in unique(climate_data_provider_sub_scenario_sub_hazard_sub_model_sub$period)) {
             cat(crayon::green(crayon::bold(paste("Processing", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
 
             climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub <- climate_data_provider_sub_scenario_sub_hazard_sub_model_sub %>%
               dplyr::filter(period == period_sub)
 
             climate_data_provider_sub_scenario_sub_hazard_sub_model_sub_period_sub %>%
-              fns(final_path = path_db_pr_climate_data_provider_scenario_hazards_models)
+              fns(
+                path_db_pr_climate_data_provider_scenario_hazards_models,
+                provider_sub,
+                scenario_sub,
+                hazard_sub,
+                model_sub,
+                period_sub
+                )
           }
         }
       }
@@ -471,7 +473,13 @@ scale_fill_relative_risk <- function() {
   )
 }
 
-plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) {
+plot_sector_absolute_portfolio_economic_value <- function(data,
+                                                          provider_sub,
+                                                          scenario_sub,
+                                                          hazard_sub,
+                                                          model_sub,
+                                                          period_sub,
+                                                          text_size = 12) {
   data %>%
     dplyr::arrange(relative_change) %>%
     ggplot2::ggplot() +
@@ -497,7 +505,13 @@ plot_sector_absolute_portfolio_economic_value <- function(data, text_size = 12) 
     )
 }
 
-plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) {
+plot_sector_relative_portfolio_economic_value <- function(data,
+                                                          provider_sub,
+                                                          scenario_sub,
+                                                          hazard_sub,
+                                                          model_sub,
+                                                          period_sub,
+                                                          text_size = 12) {
   data %>%
     dplyr::arrange(relative_change) %>%
     ggplot2::ggplot() +
@@ -524,7 +538,13 @@ plot_sector_relative_portfolio_economic_value <- function(data, text_size = 12) 
     )
 }
 
-plot_sector_number_of_assets <- function(data, text_size = 12) {
+plot_sector_number_of_assets <- function(data,
+                                         provider_sub,
+                                         scenario_sub,
+                                         hazard_sub,
+                                         model_sub,
+                                         period_sub,
+                                         text_size = 12) {
   data %>%
     dplyr::distinct(portfolio_name, hazard, model, period, asset_id, year, .keep_all = T) %>% # some assets producing different technologies (automotive!!)
     dplyr::count(portfolio_name, hazard, model, period, sector, technology, year, relative_change) %>%
@@ -552,7 +572,13 @@ plot_sector_number_of_assets <- function(data, text_size = 12) {
     )
 }
 
-plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
+plot_portfolio_company_risk_distribution <- function(data,
+                                                     provider_sub,
+                                                     scenario_sub,
+                                                     hazard_sub,
+                                                     model_sub,
+                                                     period_sub,
+                                                     text_size = 12) {
   data <- data %>%
     dplyr::group_by(id_name, port_weight, relative_change) %>%
     dplyr::summarise(
@@ -589,7 +615,13 @@ plot_portfolio_company_risk_distribution <- function(data, text_size = 12) {
 }
 
 
-plot_company_risk_distribution <- function(data, text_size = 12) {
+plot_company_risk_distribution <- function(data,
+                                           provider_sub,
+                                           scenario_sub,
+                                           hazard_sub,
+                                           model_sub,
+                                           period_sub,
+                                           text_size = 12) {
   sub_set <- data %>%
     dplyr::distinct(holding_id, .keep_all = T) %>%
     dplyr::group_by(id_name) %>%
@@ -640,7 +672,13 @@ plot_company_risk_distribution <- function(data, text_size = 12) {
     )
 }
 
-plot_asset_risk_histgram <- function(data, text_size = 12) {
+plot_asset_risk_histgram <- function(data,
+                                     provider_sub,
+                                     scenario_sub,
+                                     hazard_sub,
+                                     model_sub,
+                                     period_sub,
+                                     text_size = 12) {
   data %>%
     dplyr::mutate(relative_change = round(relative_change, 1)) %>%
     dplyr::count(sector, relative_change) %>%
@@ -667,7 +705,15 @@ plot_asset_risk_histgram <- function(data, text_size = 12) {
     )
 }
 
-save_result_plot <- function(name, path = final_path, height = 20, width = 30) {
+save_result_plot <- function(name,
+                             provider_sub,
+                             scenario_sub,
+                             hazard_sub,
+                             model_sub,
+                             period_sub,
+                             path = final_path,
+                             height = 20,
+                             width = 30) {
   ggplot2::ggsave(fs::path(path, paste(name, provider_sub, scenario_sub, hazard_sub, model_sub, period_sub), ext = "png"), height = height, width = width)
 
   cat(crayon::yellow(crayon::bold(paste("Saved plot", name, "for", provider_sub, "for", period_sub, "of", model_sub, "of", hazard_sub, "of", scenario_sub, "\n"))))
