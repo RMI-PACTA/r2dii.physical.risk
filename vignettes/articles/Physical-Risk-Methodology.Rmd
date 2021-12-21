@@ -13,55 +13,66 @@ knitr::opts_chunk$set(
 library(r2dii.physical.risk)
 ```
 
-This article will document the methodology used by this repository to estimate
-the risk a portfolio incurs as a result of physical risks (stemming from climate
-change). 
+This article documents the methodology used by this repository to estimate
+the risk a financial portfolio incurs as a result of changing physical hazards, 
+caused by climate change. 
 
 ## Input Portfolio
 A typical "input portfolio" to PACTA looks something like this: 
 ``` {r}
 portfolio <- tibble::tribble(
-                        ~isin, ~market_value, ~currency,
-               "JP3868400007",       50000L,     "GBP",
-               "FR0000571218",       28136L,     "GBP",
-               "FR0011883966",      117291L,     "GBP"
-               )
+  ~isin, ~market_value, ~currency,
+  "JP3868400007",       50000L,     "GBP",
+  "FR0000571218",       28136L,     "GBP",
+  "FR0011883966",      117291L,     "GBP"
+)
 
 portfolio
 
 ```
 
 The input portfolio that is actually used in the physical risk assessment is
-already slightly processed. The actual file used is the `total_portfolio.rda`
-file that can be found in the folder `30_Processed_Inputs` of a typical PACTA
-project. What this means is that it has already been extended using Bloomberg
-financial data, and contains some columns that are not present in the above
-dataset. Crucially, it contains the following columns:
+already slightly pre-processed. The actual file used is the
+`total_portfolio.rda` file that can be found in the folder `30_Processed_Inputs`
+of a typical PACTA project. What this means is that it has already been extended
+using financial data, and contains some columns that are not present in the
+above dataset. Crucially, it contains the following columns:
 
 ``` {r}
 portfolio <- tibble::tribble(
-                ~portfolio_name,    ~company_name, ~company_id, ~corporate_bond_ticker,          ~isin, ~holding_id, ~asset_type, ~security_mapped_sector, ~value_usd,
-               "some portfolio", "some wind farm",          1L,                  "ABC", "AB1234567890",        123L,    "Equity",                 "Power",     45000L
-               )
+  ~portfolio_name,    ~company_name, ~company_id, ~corporate_bond_ticker,          ~isin, ~holding_id, ~asset_type, ~security_mapped_sector, ~value_usd,
+  "some portfolio", "some wind farm",          1L,                  "ABC", "AB1234567890",        123L,    "Equity",                 "Power",     45000L
+)
 
 portfolio
 ```
 
 ## Physical Assets
 
+The physical asset data used looks something like this: 
+
 ```{r}
 ald <- tibble::tribble(
-             ~asset_name, ~asset_location, ~latitude, ~longitude, ~sector,     ~technology, ~year, ~economic_unit, ~economic_output,
-        "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2020L,           "MW",             400L,
-        "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2021L,           "MW",             420L,
-        "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2022L,           "MW",             440L
-        )
+  ~asset_name, ~asset_location, ~latitude, ~longitude, ~sector,     ~technology, ~year, ~economic_unit, ~economic_output,
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2020L,           "MW",             400L,
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2021L,           "MW",             420L,
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2022L,           "MW",             440L
+)
 
 ald
 ```
 
+This data contains physical assets, including geographic latitude and longitude
+coordinates, for a variety of sectors, as well as production or capacity values 
+for each asset. 
+
 ## Climate Hazard Scenarios 
 ### Climate Analytics
+
+Climate data is "pre-processed", and harmonized with the physical asset data. 
+For each combination of asset, scenario, model, period and hazard, there is an 
+associated `relative_change` value. This value represents the estimated relative 
+difference in the hazard (e.g. expected preciptation):
 
 ```{r}
 climate_data <- tibble::tribble(
@@ -73,3 +84,26 @@ climate_data <- tibble::tribble(
 
 climate_data
 ```
+
+# Methodology
+
+The process to estimate the portfolio's exposure to various physical hazards is
+as follows:
+
+- Individual physical assets are linked to each company in their corporate 
+ownership structure 
+- Production/ Capacity of each asset is divided amongst immediate asset owners 
+by their ownership stake
+- Production/ Capacity is propagated up the corporate ownership tree by the 
+linking stake of each company
+- Formatted climate data is linked to each individual asset
+- Combined "climate data" and "physical asset data" is linked to the portfolio 
+(based on either the `company_id` for equity, or `corporate_bond_ticker` for 
+bonds)
+- Exposure to each asset is estimated as either the `ownership_weight` or 
+`portfolio_weight` multiplied by the economic_value associated with the asset 
+(either "production" or "capacity")
+- Physical risk exposure is indicated by the "amount" of each economic exposure 
+indicator that falls into each "relative_change" bin. Histograms can be drawn, 
+indicating where the majority of exposure in various sectors is in comparison to 
+the risk indicator chosen. 
