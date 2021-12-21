@@ -3,6 +3,7 @@
 ^\.Rproj\.user$
 
 ^analysis\.R$
+^analysis_loop_portfolios\.R$
 ^app\.R$
 ^prepare_AR_data\.R$
 ^prepare_CDF_data\.R$
