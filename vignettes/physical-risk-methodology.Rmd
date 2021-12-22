@@ -1,5 +1,10 @@
 ---
 title: "Physical Risk Methodology"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{physical-risk-methodology}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
