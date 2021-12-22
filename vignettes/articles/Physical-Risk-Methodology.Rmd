@@ -10,15 +10,21 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+library(dplyr)
 library(r2dii.physical.risk)
 ```
 
-This article documents the methodology used by this repository to estimate
+This article documents the methodology used in this repository to estimate
 the risk a financial portfolio incurs as a result of changing physical hazards, 
-caused by climate change. 
+caused by climate change. The article assumes a working understanding of PACTA. 
+
+# Data
+
+First, we will give a brief overview of the crucial datasets used. 
 
 ## Input Portfolio
 A typical "input portfolio" to PACTA looks something like this: 
+
 ``` {r}
 portfolio <- tibble::tribble(
   ~isin, ~market_value, ~currency,
@@ -32,20 +38,60 @@ portfolio
 ```
 
 The input portfolio that is actually used in the physical risk assessment is
-already slightly pre-processed. The actual file used is the
-`total_portfolio.rda` file that can be found in the folder `30_Processed_Inputs`
-of a typical PACTA project. What this means is that it has already been extended
-using financial data, and contains some columns that are not present in the
-above dataset. Crucially, it contains the following columns:
+already slightly pre-processed. The file used is the `total_portfolio.rda` file
+that can be found in the folder `30_Processed_Inputs` of a typical PACTA
+project. What this means is that it has already been extended using financial
+data, and contains some columns that are not present in the above dataset.
+Crucially, it contains the following columns:
 
 ``` {r}
 portfolio <- tibble::tribble(
   ~portfolio_name,    ~company_name, ~company_id, ~corporate_bond_ticker,          ~isin, ~holding_id, ~asset_type, ~security_mapped_sector, ~value_usd,
-  "some portfolio", "some wind farm",          1L,                  "ABC", "AB1234567890",        123L,    "Equity",                 "Power",     45000L
+  "some portfolio", "some wind farm",          "C5",                  "ABC", "AB1234567890",        123L,    "Equity",                 "Power",     45000L
 )
 
 portfolio
 ```
+
+## Financial Data
+Further financial data is used to understand the company ownership structure of 
+any company in the portfolio. The goal is to be able to link each company that 
+is present in the portfolio, all the way down to the individual physical assets 
+that it might own and operate. 
+
+First, we need to understand which companies own the individual asset:
+
+``` {r}
+asset_level_owners <- tibble::tribble(
+  ~company_id,        ~asset_id, ~ownership_share,
+  "C1",    "A1",              25,
+  "C2",    "A1",              25,
+  "C3",  "A1",                50
+)
+
+asset_level_owners
+
+```
+
+In this case, we see that the power plant with ID `"A1"` is jointly owned by 
+companies with IDs `c("C1", "C2", "C3")`. 
+
+However, the only company in the portfolio (above) has the ID `"C5"`? We will 
+see below that this company owns a stake of the above company. 
+
+To understand this, we need a dataset indicating the corporate ownership 
+structure of each physical asset-owning company. This dataset looks something 
+like this: 
+
+``` {r}
+company_ownership_tree <- tibble::tribble(
+  ~company_id, ~subsidiary_id, ~linking_stake, ~ownership_level,
+          "C5",         "C1",             50,                2,
+          "C6",         "C1",             50,                2,
+          "C5",         "C3",             100,                2
+  )
+```
+
 
 ## Physical Assets
 
@@ -53,10 +99,10 @@ The physical asset data used looks something like this:
 
 ```{r}
 ald <- tibble::tribble(
-  ~asset_name, ~asset_location, ~latitude, ~longitude, ~sector,     ~technology, ~year, ~economic_unit, ~economic_output,
-  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2020L,           "MW",             400L,
-  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2021L,           "MW",             420L,
-  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2022L,           "MW",             440L
+  ~asset_name, ~asset_location, ~latitude, ~longitude, ~sector,     ~technology, ~year, ~economic_unit, ~economic_output, ~asset_id,
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2020L,           "MW",             400L,      "A1",
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2021L,           "MW",             420L,      "A1",
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2022L,           "MW",             440L,      "A1"
 )
 
 ald
