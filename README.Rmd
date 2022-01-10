@@ -27,7 +27,7 @@ You can install the development version of r2dii.physical.risk from [GitHub](htt
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("2DegreesInvesting/r2dii.physical.risk")
+devtools::install_github("2DegreesInvesting/r2dii.physical.risk", build_vignettes = T)
 ```
 
 To access the workflows, you must also clone the repo itself: 
