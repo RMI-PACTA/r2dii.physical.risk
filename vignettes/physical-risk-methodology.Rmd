@@ -263,10 +263,10 @@ out <- out %>%
 We can now produce our output plots. These are simply bar charts that show how
 much of the production owned by the portfolio can be found in different risk
 quantiles. For the example above, consider we split the risk magnitude into a
-couple of chunks, $0 - 0.01$ relative change, $0.01 - 0.02$ and so on. We can display
-how much of the production owned by the portfolios is exposed to the low-risk
-quantiles ($0 - 0.01$ relative change) compared to how much is exposed to the
-high-risk quantiles. This gives us an overall estimate of how exposed the
+couple of chunks, $0 - 0.01$ relative change, $0.01 - 0.02$ and so on. We can
+display how much of the production owned by the portfolios is exposed to the
+low-risk quantiles ($0 - 0.01$ relative change) compared to how much is exposed
+to the high-risk quantiles. This gives us an overall estimate of how exposed the
 portfolio is to the particular hazard being studied.
 
 ``` {r}
