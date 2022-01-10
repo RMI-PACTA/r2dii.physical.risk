@@ -20,25 +20,28 @@ library(r2dii.physical.risk)
 ```
 
 This article documents the methodology used in this repository to estimate the
-risk a financial portfolio incurs as a result of changing physical hazards,
-caused by climate change. The article assumes a basic understanding of
-PACTA.
+risk a financial portfolio incurs as a result of physical hazards caused by
+climate change. The article assumes a basic understanding of PACTA.
 
 # Physical Risk
 
-Climate change poses a financial risk from several different angles. Transition
-risk is associated with the economic transition from high- to low-carbon
-technologies. If the transition is unmediated, it could cause a shock to the
-financial system. Litigation risk is the risk associated with potential lawsuits
-against companies that contribute significantly to climate change. Finally,
-physical risk, is associated with the real physical risk that climate hazards
-pose to assets. 
+Climate change poses a financial risk from at least three different angles:
+Transition, Litigation and Physical. Transition risk is associated with the
+economic transition from high- to low-carbon technologies. If the transition is
+unmediated, it could cause a shock to the financial system. Litigation risk is
+the risk associated with potential lawsuits against companies that contribute
+significantly to climate change. Finally, physical risk, is associated with the
+real physical risk that climate hazards pose to assets. Here, we will focus on 
+physical risks. 
 
-Physical risks can be classified as either acute or chronic. 
+Physical risks can be classified as either acute or chronic. Acute risks refer
+to a frequency of isolated events, whereas chronic risks describe those risks
+that increase gradually and consistently.
+
 - An example of an acute physical risk might be the risk of increased flood
-frequency on real estate
+frequency on real estate.
 - For chronic risks, you might imagine how the consistent increase in
-temperature, or precipitation, might affect agriculture
+temperature, or precipitation, might affect agriculture.
 
 As you can imagine, there are many different potential physical hazards that
 arise from climate change.
@@ -53,17 +56,17 @@ where:
 - $Hazard$ quantifies the physical hazard itself (e.g. increase in river flood
 depth) 
 - $Exposure$ quantifies how many assets are actually exposed to the $Hazard$
-(e.g which many physical are located in areas with increased risk to river
+(e.g which physical assets are located in areas with increased risk to river
 flood)
 - $Vulnerability$ quantifies how much the $Hazard$ may damage the exposed assets
-(sometimes described as "damage functions")
+(sometimes described as a "damage function")
 
-Crucially, our model currently lacks "damage functions". This methodology spans
-only the $Hazard$ and $Exposure$ estimations.
+Crucially, our model currently lacks "damage functions". This methodology currently 
+spans only the $Hazard$ and $Exposure$ estimations.
 
 # Methodology
 
-Now, let's go over the physical risk methodology presented in this repository. 
+Let's go over the physical risk methodology presented in this repository. 
 
 ## Data
 
@@ -89,7 +92,7 @@ portfolio
 The input portfolio that is actually used in this physical risk assessment is
 already slightly pre-processed. The file used is the `total_portfolio.rda` file
 that can be found in the folder `30_Processed_Inputs` of a typical PACTA
-project. What this means is that it has already been extended using financial
+project. This means that it has already been extended using financial
 data, and contains some columns that are not present in the above dataset.
 Crucially, it contains the following columns:
 
@@ -103,8 +106,8 @@ portfolio
 ```
 
 ## Financial Data
-Further financial data is used to understand the company ownership structure of 
-any company in the portfolio. The goal is to be able to link each company that 
+Further financial data is used to map out the company ownership structure of 
+each company in the portfolio. The goal is to be able to link each company that 
 is present in the portfolio, all the way down to the individual physical assets 
 that it might own and operate. 
 
@@ -115,7 +118,7 @@ asset_level_owners <- tribble(
   ~company_id,        ~asset_id, ~ownership_share,
   "C2",    "A1",              25,
   "C3",    "A1",              25,
-  "C4",  "A1",                50
+  "C4",    "A1",              50
 )
 
 asset_level_owners
@@ -135,7 +138,7 @@ like this:
 ``` {r}
 company_ownership_tree <- tribble(
   ~company_id, ~subsidiary_id, ~linking_stake, ~ownership_level,
-          "C1",         "C2",             100,                 2,
+          "C1",         "C2",             100,                2,
           "C2",         "C2",             100,                1,
           "C3",         "C3",             100,                1,
           "C4",         "C5",             100,                1
@@ -170,7 +173,7 @@ for each asset.
 Climate data is "pre-processed", and harmonized with the physical asset data. 
 For each combination of asset, scenario, model, period and hazard, there is an 
 associated `relative_change` value. This value represents the estimated relative 
-difference in the hazard (e.g. expected preciptation):
+difference in the hazard (e.g. expected precipitation):
 
 ```{r}
 climate_data <- tibble::tribble(
@@ -198,11 +201,13 @@ out <- portfolio %>%
 ```
 
 We then allocate an amount of economic output proportional to the ownership of
-the asset, to the portfolio:
+each company as well as the ownership of the asset the asset, to the portfolio:
 
 ``` {r}
 out <- out %>% 
-  mutate(portfolio_economic_value = (linking_stake/100) * (ownership_share/100) * economic_output)
+  mutate(
+    portfolio_economic_value = (linking_stake/100) * (ownership_share/100) * economic_output
+    )
 
   select(
     out,
@@ -219,7 +224,7 @@ out <- out %>%
     )
 ```
 
-With the portoflio now linked to it's physical assets, and some proportional 
+With the portfolio now linked to it's physical assets, and some proportional 
 amount of production connected to each asset linked to the portfolio, we can 
 begin to connect the climate hazards. 
 
@@ -249,9 +254,22 @@ out <- out %>%
 
 out <- out %>% 
   group_by(sector) %>% 
-  mutate(portfolio_economic_value_share_sector = portfolio_economic_value/sum(portfolio_economic_value)) %>% 
+  mutate(
+    portfolio_economic_value_share_sector = portfolio_economic_value/sum(portfolio_economic_value)
+    ) %>% 
   ungroup()
+```
 
+We can now produce our output plots. These are simply bar charts that show how
+much of the production owned by the portfolio can be found in different risk
+quantiles. For the example above, consider we split the risk magnitude into a
+couple of chunks, $0 - 0.01$ relative change, $0.01 - 0.02$ and so on. We can display
+how much of the production owned by the portfolios is exposed to the low-risk
+quantiles ($0 - 0.01$ relative change) compared to how much is exposed to the
+high-risk quantiles. This gives us an overall estimate of how exposed the
+portfolio is to the particular hazard being studied.
+
+``` {r}
 provider <- "Fake Data Provider"
 scenario <- "rcp26"
 hazard <- unique(out$hazard)
