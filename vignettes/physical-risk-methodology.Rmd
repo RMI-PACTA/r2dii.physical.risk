@@ -1,5 +1,5 @@
 ---
-title: "Physical Risk Methodology"
+title: "physical-risk-methodology"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{physical-risk-methodology}
@@ -21,7 +21,7 @@ library(r2dii.physical.risk)
 
 This article documents the methodology used in this repository to estimate the
 risk a financial portfolio incurs as a result of changing physical hazards,
-caused by climate change. The article assumes an existing basic understanding of
+caused by climate change. The article assumes a basic understanding of
 PACTA.
 
 # Physical Risk
@@ -49,6 +49,7 @@ Physical risk can be expressed using the canonical risk formulation (below):
 
 $$ Risk = Hazard * Exposure * Vulnerability $$
 where: 
+
 - $Hazard$ quantifies the physical hazard itself (e.g. increase in river flood
 depth) 
 - $Exposure$ quantifies how many assets are actually exposed to the $Hazard$
