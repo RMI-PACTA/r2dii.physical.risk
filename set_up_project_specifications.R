@@ -4,7 +4,8 @@ library(sf)
 library(r2dii.physical.risk)
 
 # =================================
-# set paths # naming convention (path_*, followed by location (e.g. db = dropbox / gh = github), followed by individual folder structures)
+# set paths: naming convention follows: (path_*, followed by location
+# (e.g. db = dropbox/ gh = github), followed by individual folder structures)
 # =================================
 
 # ================
@@ -12,66 +13,125 @@ library(r2dii.physical.risk)
 # ===============
 
 # parent directory
-path_db_pr_parent <- fs::path(r2dii.utils::dbox_port_00(), "01_ProcessedData", "08_RiskData")
-### Raw climate risk data
-path_db_pr_climate_data_raw <- fs::path(r2dii.utils::dbox_port_00(), "00_RawData", "15_Risk")
-## climate data directory
-path_db_pr_climate_data <- fs::path(path_db_pr_parent, "climate_data")
-### CDF climate data
+path_db_pr_parent <- fs::path(
+  r2dii.utils::dbox_port_00(),
+  "01_ProcessedData", "08_RiskData"
+  )
+
+# raw climate risk data
+path_db_pr_climate_data_raw <- fs::path(
+  r2dii.utils::dbox_port_00(),
+  "00_RawData",
+  "15_Risk"
+  )
+
+# climate data directory
+path_db_pr_climate_data <- fs::path(
+  path_db_pr_parent,
+  "climate_data"
+  )
+
+# CDF climate data
 path_db_pr_climate_data_CDF <- fs::path(path_db_pr_climate_data, "CDF")
-path_db_pr_climate_data_CDF_raw <- fs::path(path_db_pr_climate_data_raw, "Climate Data Factory")
-path_db_pr_climate_data_CDF_raw_geotiff <- fs::path(path_db_pr_climate_data_CDF_raw, "TCFD_Climate_Data-GeoTiff", "GeoTIFF")
-path_db_pr_climate_data_CDF_raw_geotiff_indices <- fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Indices")
-path_db_pr_climate_data_CDF_raw_geotiff_variables <- fs::path(path_db_pr_climate_data_CDF_raw_geotiff, "Variables")
-### Raw climate analytics data
-path_db_pr_climate_data_raw <- fs::path(path_db_pr_climate_data_raw, "ClimateAnalytics")
-## ALD directory
+
+path_db_pr_climate_data_CDF_raw <- fs::path(
+  path_db_pr_climate_data_raw,
+  "Climate Data Factory"
+  )
+
+path_db_pr_climate_data_CDF_raw_geotiff <- fs::path(
+  path_db_pr_climate_data_CDF_raw,
+  "TCFD_Climate_Data-GeoTiff",
+  "GeoTIFF"
+  )
+
+path_db_pr_climate_data_CDF_raw_geotiff_indices <- fs::path(
+  path_db_pr_climate_data_CDF_raw_geotiff,
+  "Indices"
+  )
+
+path_db_pr_climate_data_CDF_raw_geotiff_variables <- fs::path(
+  path_db_pr_climate_data_CDF_raw_geotiff,
+  "Variables"
+  )
+
+# raw climate analytics data
+path_db_pr_climate_data_raw <- fs::path(
+  path_db_pr_climate_data_raw,
+  "ClimateAnalytics"
+  )
+
+# ALD directory
 path_db_pr_ald <- fs::path(path_db_pr_parent, "asset_level_data")
-### full ALD data
-path_db_pr_ald_prepared <- fs::path(path_db_pr_ald, "prepared_ald")
-### OSM data
-path_db_pr_ald_distinct_geo_data <- fs::path(path_db_pr_ald, "distinct_geo_data")
+
+# full ALD data
+path_db_pr_ald_prepared <- fs::path(
+  path_db_pr_ald,
+  "prepared_ald"
+  )
+
+# OSM data
+path_db_pr_ald_distinct_geo_data <- fs::path(
+  path_db_pr_ald,
+  "distinct_geo_data"
+  )
+
 # data store path
-path_db_datastore_export <- fs::path(r2dii.utils::dbox_port_00(), "06_DataStore", "DataStore_export_05172021", "2020Q4")
+path_db_datastore_export <- fs::path(
+  r2dii.utils::dbox_port_00(),
+  "06_DataStore",
+  "DataStore_export_05172021",
+  "2020Q4"
+  )
 
 # ===============
-# set project paths
+# set PACTA project paths
 # ===============
 
 # PACTA project path
-pacta_project <- "EiopaOrsa"
-path_db_pacta_project <- fs::path(r2dii.utils::dbox_port2_10proj(), pacta_project)
+pacta_project <- "IDB_Chile"
+
+path_db_pacta_project <- fs::path(
+  r2dii.utils::dbox_port2_10proj(),
+  pacta_project
+  )
 
 # ===============
 # set output paths
 # ===============
 
 # PACTA project output path
-path_db_pacta_project_pr_output <- fs::path(path_db_pacta_project, "06_Physical_Risk")
+path_db_pacta_project_pr_output <- fs::path(
+  path_db_pacta_project,
+  "60_Physical_Risk"
+  )
 
 # create PACTA project output path
 r2dii.physical.risk:::create_db_pr_paths(
-  paths = c(
-    path_db_pacta_project_pr_output
-  )
+  paths = c(path_db_pacta_project_pr_output)
 )
 
-# visualise folder structure
+# visualize folder structure
 r2dii.physical.risk:::show_folder_structure(path_pattern = "path_")
-# fs::dir_tree(path_db_pr_parent, type = "directory") #to many entries to be Understandable
 
 # =================================
 # load financial data
 # =================================
 
 # company_id_cb_ticker
-company_id_cb_ticker <- r2dii.physical.risk:::load_company_id_cb_ticker(path = path_db_datastore_export)
+company_id_cb_ticker <- r2dii.physical.risk:::load_company_id_cb_ticker(
+  path = path_db_datastore_export
+  )
 
 # asset_level_owners
-asset_level_owners <- r2dii.physical.risk:::load_asset_level_owners(path = path_db_datastore_export)
+asset_level_owners <- r2dii.physical.risk:::load_asset_level_owners(
+  path = path_db_datastore_export
+  )
 
 # company_ownership_tree
-company_ownership_tree <- r2dii.physical.risk:::load_company_ownership_tree(path = path_db_datastore_export)
+company_ownership_tree <- r2dii.physical.risk:::load_company_ownership_tree(
+  path = path_db_datastore_export
+  )
 
 # rename to have target_company_id as company_id
 company_ownership_tree <- company_ownership_tree %>%
@@ -119,54 +179,54 @@ ald <- ald %>%
 climate_data <- r2dii.physical.risk:::load_climate_data(
   relevant_climate_data = list(
 
-    # cdf data
-    list(
-      data_path = fs::path(path_db_pr_climate_data, "CDF"), # from which data provider do you want to load climate data?
-      run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
-      prepare_script_path = "prepare_CDF_data.R", # where does the preparation script lie?
-      load_data = TRUE, # do you ultimately want to load the climate data of this source?
-
-      # parameters can differ for each provider, scenrio, hazard, model and time period
-      parameter = list(
-        scenarios = c(
-          "RCP85"
-        ),
-        hazards = c(
-          # "cold_days_percent_wrt_10th_percentile_of_reference_period",
-          # "heavy_precipitation_days_index_per_time_period",
-          # "number_of_5day_heavy_precipitation_periods_per_time_period",
-          # "number_of_cdd_periods_with_more_than_5days_per_time_period",
-          "warm_spell_periods_per_time_period"
-          # "dry_days_index_per_time_period"
-        ),
-        models = c(
-          # "MIROC5",
-          "GFDL-ESM2M"
-        ),
-        periods = c(
-          # "1991-2020",
-          "2021-2050"
-          # "2051-2080"
-          # "2071-2100"
-        )
-      )
-    ),
+    # # cdf data
+    # list(
+    #   data_path = fs::path(path_db_pr_climate_data, "CDF"), # from which data provider do you want to load climate data?
+    #   run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
+    #   prepare_script_path = "prepare_CDF_data.R", # where does the preparation script lie?
+    #   load_data = TRUE, # do you ultimately want to load the climate data of this source?
+    #
+    #   # parameters can differ for each provider, scenrio, hazard, model and time period
+    #   parameter = list(
+    #     scenarios = c(
+    #       "RCP85"
+    #     ),
+    #     hazards = c(
+    #       # "cold_days_percent_wrt_10th_percentile_of_reference_period",
+    #       # "heavy_precipitation_days_index_per_time_period",
+    #       # "number_of_5day_heavy_precipitation_periods_per_time_period",
+    #       # "number_of_cdd_periods_with_more_than_5days_per_time_period",
+    #       "warm_spell_periods_per_time_period"
+    #       # "dry_days_index_per_time_period"
+    #     ),
+    #     models = c(
+    #       # "MIROC5",
+    #       "GFDL-ESM2M"
+    #     ),
+    #     periods = c(
+    #       # "1991-2020",
+    #       "2021-2050"
+    #       # "2051-2080"
+    #       # "2071-2100"
+    #     )
+    #   )
+    # ),
 
     # climate analytics data
     list(
       data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"), # from which data provider do you want to load climate data?
       run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
       prepare_script_path = "prepare_climate_analytics_data.R", # where does the preparation script lie?
-      load_data = T, # do you ultimately want to load the climate data of this source?
+      load_data = TRUE, # do you ultimately want to load the climate data of this source?
 
       # parameters can differ for each provider, scenrio, hazard, model and time period (if NULL, all elements of a parameter are used)
       parameter = list(
         scenarios = "rcp",
         hazards = c(
-          #"tasAdjust", # air temperature
+          "tasAdjust" # air temperature
           #"tasminAdjust", # daily minimum air temperature
           # "tasmaxAdjust", # daily maximum air temperature
-          "prAdjust" # precipitation
+          #"prAdjust" # precipitation
           #"hursAdjust", # relative humidity
           #"prsnAdjust", # snowfall
           #"hussAdjust", # specific humidity
@@ -217,67 +277,15 @@ climate_data <- climate_data %>%
 # =================================
 
 # load pacta total portfolio
-total_portfolio <- readRDS(fs::path(
-  path_db_pacta_project,
-  "30_Processed_Inputs",
-  base::paste0("total_portfolio"),
-  ext = "rda"
-))
-
-# calculate portfolio value
-total_portfolio <- total_portfolio %>%
-  group_by(portfolio_name) %>%
-  mutate(portfolio_value = sum(value_usd, na.rm = TRUE)) %>%
-  ungroup()
-
-# calculate portfolio sector value
-total_portfolio <- total_portfolio %>%
-  group_by(portfolio_name, security_mapped_sector) %>%
-  mutate(portfolio_sector_value = sum(value_usd, na.rm = TRUE)) %>%
-  ungroup()
-
-# calculate weights
-total_portfolio <- total_portfolio %>%
-  mutate(
-    portfolio_sector_share = portfolio_sector_value / portfolio_value,
-    port_weight = value_usd / portfolio_value,
-    ownership_weight = number_of_shares / current_shares_outstanding_all_classes
+total_portfolio_raw <- readRDS(
+  fs::path(
+    path_db_pacta_project,
+    "30_Processed_Inputs",
+    base::paste0("total_portfolio"),
+    ext = "rda"
   )
+)
 
-# calculate portfolio asset type value
-total_portfolio <- total_portfolio %>%
-  group_by(portfolio_name, asset_type) %>%
-  mutate(portfolio_asset_type_value = sum(value_usd, na.rm = TRUE)) %>%
-  ungroup()
-
-# calculate portfolio asset type sector value
-total_portfolio <- total_portfolio %>%
-  group_by(portfolio_name, asset_type, security_mapped_sector) %>%
-  mutate(portfolio_asset_type_sector_value = sum(value_usd, na.rm = TRUE)) %>%
-  ungroup()
-
-# calculate asset type weights
-total_portfolio <- total_portfolio %>%
-  mutate(
-    portfolio_asset_type_sector_share = portfolio_asset_type_sector_value / portfolio_asset_type_value,
-    asset_type_port_weight = value_usd / portfolio_asset_type_value
-  )
-
-# select relevant column for total portfolio
-total_portfolio <- total_portfolio %>%
-  select(
-    portfolio_name,
-    company_name,
-    company_id,
-    corporate_bond_ticker,
-    isin,
-    holding_id,
-    asset_type,
-    security_mapped_sector,
-    value_usd,
-    port_weight,
-    asset_type_port_weight,
-    ownership_weight,
-    portfolio_sector_share,
-    portfolio_asset_type_sector_share
+total_portfolio <- r2dii.physical.risk:::format_portfolio_data(
+  total_portfolio_raw
   )
