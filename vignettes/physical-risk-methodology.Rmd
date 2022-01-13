@@ -126,9 +126,9 @@ asset_level_owners
 ```
 
 In this case, we see that the power plant with ID `"A1"` is jointly owned by 
-companies with IDs `c("C1", "C2", "C3")`. 
+companies with IDs `c("C2", "C3", "C4")`. 
 
-However, the only company in the portfolio (above) has the ID `"C5"`? We will 
+However, the only company in the portfolio (above) has the ID `"C1"`? We will 
 see below that this company owns a stake of the above company. 
 
 To understand this, we need a dataset indicating the corporate ownership 
@@ -201,7 +201,7 @@ out <- portfolio %>%
 ```
 
 We then allocate an amount of economic output proportional to the ownership of
-each company as well as the ownership of the asset the asset, to the portfolio:
+each company as well as the ownership of the asset, to the portfolio:
 
 ``` {r}
 out <- out %>% 
