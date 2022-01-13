@@ -39,7 +39,7 @@ vignette('physical-risk-methodology')
 
 ### Setting up Project Specifications
 
-Project specifications mustn be first set in the file
+Project specifications must be first set in the file
 `setup_project_specifications.R`. Things such as paths to input and
 output data directories are set in this file. The physical risk module
 requires many different inputs and outputs. An example full directory
