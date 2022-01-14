@@ -55,9 +55,9 @@ where:
 
 - $Hazard$ quantifies the physical hazard itself (e.g. increase in river flood
 depth) 
-- $Exposure$ quantifies how many assets are actually exposed to the $Hazard$
-(e.g which physical assets are located in areas with increased risk to river
-flood)
+- $Exposure$ quantifies which assets will be affected by the $Hazard$, for
+example by number of assets or value of assets exposed (e.g which physical
+assets are located in areas with increased risk to river flood)
 - $Vulnerability$ quantifies how much the $Hazard$ may damage the exposed assets
 (sometimes described as a "damage function")
 
@@ -173,7 +173,7 @@ for each asset.
 Climate data is "pre-processed", and harmonized with the physical asset data. 
 For each combination of asset, scenario, model, period and hazard, there is an 
 associated `relative_change` value. This value represents the estimated relative 
-difference in the hazard (e.g. expected precipitation):
+difference in the hazard (e.g. expected precipitation) in comparison to a reference period:
 
 ```{r}
 climate_data <- tibble::tribble(
