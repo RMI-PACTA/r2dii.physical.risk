@@ -1,4 +1,5 @@
 ^LICENSE\.md$
+^vignettes/articles$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 

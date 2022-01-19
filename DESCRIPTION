@@ -50,3 +50,7 @@ Imports:
     vroom
 Remotes: 
     2DegreesInvesting/r2dii.utils
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

@@ -1,0 +1,288 @@
+---
+title: "physical-risk-methodology"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{physical-risk-methodology}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+suppressPackageStartupMessages(library(dplyr))
+library(r2dii.physical.risk)
+```
+
+This article documents the methodology used in this repository to estimate the
+risk a financial portfolio incurs as a result of physical hazards caused by
+climate change. The article assumes a basic understanding of PACTA.
+
+# Physical Risk
+
+Climate change poses a financial risk from at least three different angles:
+Transition, Litigation and Physical. Transition risk is associated with the
+economic transition from high- to low-carbon technologies. If the transition is
+unmediated, it could cause a shock to the financial system. Litigation risk is
+the risk associated with potential lawsuits against companies that contribute
+significantly to climate change. Finally, physical risk, is associated with the
+real physical risk that climate hazards pose to assets. Here, we will focus on 
+physical risks. 
+
+Physical risks can be classified as either acute or chronic. Acute risks refer
+to a frequency of isolated events, whereas chronic risks describe those risks
+that increase gradually and consistently.
+
+- An example of an acute physical risk might be the risk of increased flood
+frequency on real estate.
+- For chronic risks, you might imagine how the consistent increase in
+temperature, or precipitation, might affect agriculture.
+
+As you can imagine, there are many different potential physical hazards that
+arise from climate change.
+
+## Canonical Risk Formulation
+
+Physical risk can be expressed using the canonical risk formulation (below): 
+
+$$ Risk = Hazard * Exposure * Vulnerability $$
+where: 
+
+- $Hazard$ quantifies the physical hazard itself (e.g. increase in river flood
+depth) 
+- $Exposure$ quantifies which assets will be affected by the $Hazard$, for
+example by number of assets or value of assets exposed (e.g which physical
+assets are located in areas with increased risk to river flood)
+- $Vulnerability$ quantifies how much the $Hazard$ may damage the exposed assets
+(sometimes described as a "damage function")
+
+Crucially, our model currently lacks "damage functions". This methodology currently 
+spans only the $Hazard$ and $Exposure$ estimations.
+
+# Methodology
+
+Let's go over the physical risk methodology presented in this repository. 
+
+## Data
+
+First, we will give a brief overview of the crucial datasets used in this 
+methodology. 
+
+## Input Portfolio
+
+A typical "input portfolio" might look something like this: 
+
+``` {r}
+portfolio <- tribble(
+  ~isin, ~market_value, ~currency,
+  "JP3868400007",       50000L,     "GBP",
+  "FR0000571218",       28136L,     "GBP",
+  "FR0011883966",      117291L,     "GBP"
+)
+
+portfolio
+
+```
+
+The input portfolio that is actually used in this physical risk assessment is
+already slightly pre-processed. The file used is the `total_portfolio.rda` file
+that can be found in the folder `30_Processed_Inputs` of a typical PACTA
+project. This means that it has already been extended using financial
+data, and contains some columns that are not present in the above dataset.
+Crucially, it contains the following columns:
+
+``` {r}
+portfolio <- tribble(
+  ~portfolio_name,    ~company_name, ~company_id, ~corporate_bond_ticker,          ~isin, ~holding_id, ~asset_type, ~security_mapped_sector, ~value_usd,
+  "some portfolio", "a power company",          "C1",                  "ABC", "AB1234567890",        123L,    "Equity",                 "Power",     45000L
+)
+
+portfolio
+```
+
+## Financial Data
+Further financial data is used to map out the company ownership structure of 
+each company in the portfolio. The goal is to be able to link each company that 
+is present in the portfolio, all the way down to the individual physical assets 
+that it might own and operate. 
+
+First, we need to understand which companies own the individual asset:
+
+``` {r}
+asset_level_owners <- tribble(
+  ~company_id,        ~asset_id, ~ownership_share,
+  "C2",    "A1",              25,
+  "C3",    "A1",              25,
+  "C4",    "A1",              50
+)
+
+asset_level_owners
+
+```
+
+In this case, we see that the power plant with ID `"A1"` is jointly owned by 
+companies with IDs `c("C2", "C3", "C4")`. 
+
+However, the only company in the portfolio (above) has the ID `"C1"`? We will 
+see below that this company owns a stake of the above company. 
+
+To understand this, we need a dataset indicating the corporate ownership 
+structure of each physical asset-owning company. This dataset looks something 
+like this: 
+
+``` {r}
+company_ownership_tree <- tribble(
+  ~company_id, ~subsidiary_id, ~linking_stake, ~ownership_level,
+          "C1",         "C2",             100,                2,
+          "C2",         "C2",             100,                1,
+          "C3",         "C3",             100,                1,
+          "C4",         "C5",             100,                1
+  )
+
+company_ownership_tree
+```
+
+
+## Physical Assets
+
+The physical asset data used looks something like this: 
+
+```{r}
+ald <- tribble(
+  ~asset_name, ~asset_location, ~latitude, ~longitude, ~sector,     ~technology, ~year, ~economic_unit, ~economic_output, ~asset_id,
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2020L,           "MW",             400L,      "A1",
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2021L,           "MW",             420L,      "A1",
+  "Some Wind Farm",            "ES",       42L,        -3L, "Power", "RenewablesCap", 2022L,           "MW",             440L,      "A1"
+)
+
+ald
+```
+
+This data contains physical assets, including geographic latitude and longitude
+coordinates, for a variety of sectors, as well as production or capacity values 
+for each asset. 
+
+## Climate Hazard Scenarios 
+### Climate Analytics
+
+Climate data is "pre-processed", and harmonized with the physical asset data. 
+For each combination of asset, scenario, model, period and hazard, there is an 
+associated `relative_change` value. This value represents the estimated relative 
+difference in the hazard (e.g. expected precipitation) in comparison to a 
+reference period:
+
+```{r}
+climate_data <- tibble::tribble(
+  ~asset_name, ~scenario,     ~model, ~period,    ~hazard, ~relative_change, ~asset_id,
+  "Some Wind Farm",   "rcp26", "Ensemble",   2100L, "prAdjust",            0.004,      "A1",
+  "Some Wind Farm",   "rcp45", "Ensemble",   2100L, "prAdjust",             0.03,      "A1",
+  "Some Wind Farm",   "rcp60", "Ensemble",   2100L, "prAdjust",             0.04,      "A1"
+)
+
+climate_data
+```
+
+# Methodology
+
+Now let's explain the methodology, by using the above datasets directly. 
+
+First, we expand each company in the portfolio by all of it's subsidiary 
+companies. Companies with no matching data will be dropped.
+
+``` {r}
+out <- portfolio %>% 
+  inner_join(company_ownership_tree, by = "company_id") %>% # join ownership
+  inner_join(asset_level_owners, by = c(subsidiary_id = "company_id")) %>% # join asset owners
+  inner_join(ald, by = "asset_id")
+```
+
+We then allocate an amount of economic output proportional to the ownership of
+each company as well as the ownership of the asset, to the portfolio:
+
+``` {r}
+out <- out %>% 
+  mutate(
+    portfolio_economic_value = (linking_stake/100) * (ownership_share/100) * economic_output
+    )
+
+  select(
+    out,
+    company_name, 
+    value_usd, 
+    asset_location, 
+    latitude, 
+    longitude, 
+    sector, 
+    technology, 
+    year, 
+    economic_unit, 
+    portfolio_economic_value
+    )
+```
+
+With the portfolio now linked to it's physical assets, and some proportional 
+amount of production connected to each asset linked to the portfolio, we can 
+begin to connect the climate hazards. 
+
+Since the hazards' geographic locations have already been harmonized to the 
+asset locations, we simply match each asset to the portfolio by `asset_id`: 
+
+``` {r}
+out <- out %>% 
+  inner_join(climate_data, by = "asset_id") %>% 
+    select(
+    company_name, 
+    value_usd, 
+    asset_location, 
+    latitude, 
+    longitude, 
+    sector, 
+    technology, 
+    year, 
+    economic_unit, 
+    portfolio_economic_value,
+    scenario, 
+    model, 
+    period, 
+    hazard,
+    relative_change
+    )
+
+out <- out %>% 
+  group_by(sector) %>% 
+  mutate(
+    portfolio_economic_value_share_sector = portfolio_economic_value/sum(portfolio_economic_value)
+    ) %>% 
+  ungroup()
+```
+
+We can now produce our output plots. These are simply bar charts that show how
+much of the production owned by the portfolio can be found in different risk
+quantiles. For the example above, consider we split the risk magnitude into a
+couple of chunks, $0 - 0.01$ relative change, $0.01 - 0.02$ and so on. We can
+display how much of the production owned by the portfolios is exposed to the
+low-risk quantiles ($0 - 0.01$ relative change) compared to how much is exposed
+to the high-risk quantiles. This gives us an overall estimate of how exposed the
+portfolio is to the particular hazard being studied.
+
+``` {r}
+provider <- "Fake Data Provider"
+scenario <- "rcp26"
+hazard <- unique(out$hazard)
+model <- unique(out$model)
+period <- unique(out$period)
+
+r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(
+  out, 
+  provider_sub = "Climate Data", 
+  scenario_sub = scenario,
+  hazard_sub = hazard,
+  model_sub = model,
+  period_sub = period
+    )
+```
