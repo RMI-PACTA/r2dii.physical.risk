@@ -16,7 +16,7 @@ You can install the development version of r2dii.physical.risk from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("2DegreesInvesting/r2dii.physical.risk")
+devtools::install_github("2DegreesInvesting/r2dii.physical.risk", build_vignettes = T)
 ```
 
 To access the workflows, you must also clone the repo itself:
@@ -25,9 +25,21 @@ To access the workflows, you must also clone the repo itself:
 git clone https://github.com/2DegreesInvesting/r2dii.physical.risk.git
 ```
 
+## Methodology
+
+The physical risk methodology implemented here is too detailed to be
+included concisely in this README. Once you have installed the R
+package, you can access the methodology from the R console by calling:
+
+``` r
+vignette('physical-risk-methodology')
+```
+
+## Usage
+
 ### Setting up Project Specifications
 
-Project specifications can be set in the file
+Project specifications must be first set in the file
 `setup_project_specifications.R`. Things such as paths to input and
 output data directories are set in this file. The physical risk module
 requires many different inputs and outputs. An example full directory
@@ -62,6 +74,9 @@ structure might look something like:
                   ¦   °--DataStore_export_05172021                       
                   ¦       °--2020Q4                                      
 ```
+
+Unfortunately, at this point, most of these datasets are proprietary,
+and 2DII internal.
 
 It is very important that the output data folder locations are set
 properly in the `setup_project_specifications.R` file (otherwise you
