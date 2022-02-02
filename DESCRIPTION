@@ -11,6 +11,10 @@ Authors@R:
              role = "aut",
              email = "jackson.hoffart@gmail.com",
              comment = c(ORCID = "0000-0002-8600-5042")),
+     person(given = "Linda",
+             family = "Delacombaz",
+             role = "aut",
+             email = "linda@2degrees-investing.org"),       
       person(given = "2 Degrees Investing Initiative",
              role = c("cph", "fnd"),
              email = "contact@2degrees-investing.org"))
