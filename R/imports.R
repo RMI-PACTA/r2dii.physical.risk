@@ -46,6 +46,7 @@ globalVariables(
     "path_db_pr_ald_distinct_geo_data",
     "period",
     "period_sub",
+    "plot",
     "port_weight",
     "portfolio_asset_type_sector_share",
     "portfolio_asset_type_sector_value",
