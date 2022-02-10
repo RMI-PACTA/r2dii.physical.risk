@@ -31,7 +31,6 @@ Imports:
     dplyr,
     fs,
     ggplot2,
-    graphics,
     janitor,
     leaflet,
     magrittr,

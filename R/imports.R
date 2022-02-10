@@ -1,5 +1,4 @@
 #' @importFrom ggplot2 ggplot aes
-#' @importFrom graphics plot
 NULL
 
 globalVariables(
