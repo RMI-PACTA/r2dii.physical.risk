@@ -54,7 +54,11 @@ Imports:
     vroom
 Remotes: 
     2DegreesInvesting/r2dii.utils
-Suggests: 
+Suggests:
+    spelling, 
+    testthat (>= 3.0.0),
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Config/testthat/edition: 3
+Language: en-US
