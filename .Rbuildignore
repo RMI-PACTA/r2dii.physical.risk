@@ -11,4 +11,3 @@
 ^prepare_climate_analytics_data\.R$
 ^prepare_OSM_data\.R$
 ^set_up_project_specifications\.R$
-^summaries_results\.R$
