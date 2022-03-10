@@ -1,16 +1,59 @@
 #for PASTAX project
 get_distinct_geo_data <- function(company_data) {
 
-  distinct_company_data <- company_data %>%
-    dplyr::select(asset_id, longitude, latitude)
+  distinct_geo_data <- purrr::map(
+    path_db_pr_ald_distinct_geo_data, function(x) {
 
-  # create sf data frame based on longitude and latitude, geometry are sfc_POINTs
-  # Note: Return sf object to a data frame by setting geometry to NULL st_set_geometry(points_sf, NULL) to remove it and convert to df/tibble again
+      # message which files get read
+      message(paste0("Processing ", x))
 
-  distinct_company_geo_data <- sf::st_as_sf(distinct_company_data, coords = c("longitude","latitude"))
+      # read file
+      distinct_geo_data <- vroom::vroom(
+        fs::path(
+          path_db_pr_ald_distinct_geo_data,
+          "company_distinct_geo_data.csv"
+        )
+      )
 
-  return(distinct_company_geo_data)
+      # select relevant columns (ideally only those should be in the data actually)
+      distinct_geo_data <- distinct_geo_data %>%
+        dplyr::select(asset_id, longitude, latitude)
+
+
+      # verify assumptions of the data -> assumptions should be ensured when creating the data, not after loading it
+
+      ## verify that there are no NAs in the data
+      distinct_geo_data %>%
+        tidyr::drop_na() %>%
+        assertr::verify(nrow(.) == nrow(distinct_geo_data))
+
+      ## verify that there are no duplicates
+      distinct_geo_data %>%
+        dplyr::distinct() %>%
+        assertr::verify(nrow(.) == nrow(distinct_geo_data))
+
+      ## verify that longitude and latitude are doubles
+      distinct_geo_data %>%
+        dplyr::filter(!is.double(longitude) | !is.double(latitude)) %>%
+        assertr::verify(nrow(.) == 0)
+
+      return(distinct_geo_data)
+    }
+  )
+
+  # bind rows of files with geo data
+  distinct_geo_data <- distinct_geo_data %>%
+    dplyr::bind_rows()
+
+  # create sf data frame based on longitude and latitude
+  distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
+
+  # assign crs to enable intersecting
+  sf::st_crs(distinct_geo_data) <- 4326
+
+  return(distinct_geo_data)
 }
+
 
 load_distinct_geo_data <- function(folder_distinct_geo_data = path_db_pr_ald_distinct_geo_data) {
   # create a list of files consisting of ALD with geo data

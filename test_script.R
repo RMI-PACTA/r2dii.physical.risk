@@ -79,7 +79,7 @@ get_distinct_geo_data <- function(company_data) {
 distinct_geo_company_data <- get_distinct_geo_data(company_data)
 
 vroom::vroom_write(
-  distinct_geo_company_data,
+  distinct_company_data,
   fs::path(
     path_db_pr_ald_distinct_geo_data,
     "company_distinct_geo_data",

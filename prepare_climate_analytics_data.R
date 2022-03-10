@@ -4,26 +4,9 @@ library(r2dii.physical.risk)
 # load distinct_geo_data which will subset the raw climate data
 # =================================
 
-# distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+#distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
-distinct_geo_data <- vroom::vroom(
-  fs::path(
-    path_db_pr_ald_distinct_geo_data,
-    "company_distinct_geo_data.csv"
-  )
-)
-
-distinct_geo_data <- distinct_geo_company_data
-
-# bind rows of files with geo data
-distinct_geo_data <- distinct_geo_data %>%
-  dplyr::bind_rows()
-
-# create sf data frame based on longitude and latitude
-distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
-
-# assign crs to enable intersecting
-sf::st_crs(distinct_geo_data) <- 4326
+distinct_geo_data <- get_distinct_geo_data(company_data)
 
 # =================================
 # load list of all countries iso codes
