@@ -26,10 +26,15 @@ path_db_pr_climate_data_raw <- fs::path(
   )
 
 # climate data directory
+# path_db_pr_climate_data <- fs::path(
+#   path_db_pr_parent,
+#   "climate_data"
+#   )
+
 path_db_pr_climate_data <- fs::path(
   path_db_pr_parent,
-  "climate_data"
-  )
+  "climate_data_sme"
+)
 
 # CDF climate data
 path_db_pr_climate_data_CDF <- fs::path(path_db_pr_climate_data, "CDF")
@@ -77,6 +82,7 @@ path_db_pr_ald_distinct_geo_data <- fs::path(
   )
 
 # data store path
+
 path_db_datastore_export <- fs::path(
   r2dii.utils::dbox_port_00(),
   "06_DataStore",
@@ -89,7 +95,8 @@ path_db_datastore_export <- fs::path(
 # ===============
 
 # PACTA project path
-pacta_project <- "IDB_Chile"
+pacta_project <- "IDB_Chile_Linda"
+
 
 path_db_pacta_project <- fs::path(
   r2dii.utils::dbox_port2_10proj(),

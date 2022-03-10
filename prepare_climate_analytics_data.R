@@ -4,7 +4,26 @@ library(r2dii.physical.risk)
 # load distinct_geo_data which will subset the raw climate data
 # =================================
 
-distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+# distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+
+distinct_geo_data <- vroom::vroom(
+  fs::path(
+    path_db_pr_ald_distinct_geo_data,
+    "company_distinct_geo_data.csv"
+  )
+)
+
+distinct_geo_data <- distinct_geo_company_data
+
+# bind rows of files with geo data
+distinct_geo_data <- distinct_geo_data %>%
+  dplyr::bind_rows()
+
+# create sf data frame based on longitude and latitude
+distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
+
+# assign crs to enable intersecting
+sf::st_crs(distinct_geo_data) <- 4326
 
 # =================================
 # load list of all countries iso codes
@@ -163,7 +182,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
       # prep sumamry of parameter information
       summary <- summary %>%
-        tidyr::pivot_wider(id_cols = "v2", names_from = "v1", values_from = "v2") %>%
+        #tidyr::pivot_wider(id_cols = "v2", names_from = "v1", values_from = "v2") %>%
+        tidyr::pivot_wider(names_from = "v1", values_from = "v2") %>%
         janitor::clean_names(case = "snake")
 
       # kickout rows which contain parameter information
@@ -393,7 +413,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     # save downloaded all data
     all_data %>%
       r2dii.physical.risk:::for_loops_climate_data(
-        parent_path = fs::path(path_db_pr_climate_data_raw),
+        #parent_path = fs::path(path_db_pr_climate_data_raw),
+        parent_path = fs::path("/Users/linda/Dropbox (2° Investing)/PortCheck/00_Data/01_ProcessedData/08_RiskData/climate_data/ClimateAnalytics_company_level"),
         fns = function(data, final_path) {
           readr::write_csv(
             data,

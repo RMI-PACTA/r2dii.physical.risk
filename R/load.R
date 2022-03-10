@@ -1,3 +1,17 @@
+#for PASTAX project
+get_distinct_geo_data <- function(company_data) {
+
+  distinct_company_data <- company_data %>%
+    dplyr::select(asset_id, longitude, latitude)
+
+  # create sf data frame based on longitude and latitude, geometry are sfc_POINTs
+  # Note: Return sf object to a data frame by setting geometry to NULL st_set_geometry(points_sf, NULL) to remove it and convert to df/tibble again
+
+  distinct_company_geo_data <- sf::st_as_sf(distinct_company_data, coords = c("longitude","latitude"))
+
+  return(distinct_company_geo_data)
+}
+
 load_distinct_geo_data <- function(folder_distinct_geo_data = path_db_pr_ald_distinct_geo_data) {
   # create a list of files consisting of ALD with geo data
   file_list_distinct_geo_data <- list.files(folder_distinct_geo_data)

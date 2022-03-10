@@ -56,8 +56,8 @@ company_data <- company_data %>%
 vroom::vroom_write(
   company_data,
   fs::path(
-    path_db_pr_ald_distinct_geo_data,
-    "SMEs_distinct_geo_data",
+    path_db_pr_ald_prepared,
+    "company_level_data",
     ext = "csv"
   ),
   delim = ","
@@ -78,6 +78,17 @@ get_distinct_geo_data <- function(company_data) {
 
 distinct_geo_company_data <- get_distinct_geo_data(company_data)
 
+vroom::vroom_write(
+  distinct_geo_company_data,
+  fs::path(
+    path_db_pr_ald_distinct_geo_data,
+    "company_distinct_geo_data",
+    ext = "csv"
+  ),
+  delim = ","
+)
+
+
 ## climate data
 climate_data <- tibble::tribble(
   ~scenario,     ~model, ~period,    ~hazard, ~relative_change, ~asset_id
@@ -94,8 +105,8 @@ company_climate_data <- company_data %>%
     value_eur,
     company_country,
     address,
-    lat,
-    long,
+    latitude,
+    longitude,
     sector,
     year_established,
     scenario,
@@ -132,7 +143,6 @@ r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(
   model_sub = model,
   period_sub = period
 )
-
 
 
 ## joining portfolio with ald
