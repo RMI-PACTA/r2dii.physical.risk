@@ -11,31 +11,36 @@ library(tmaptools)
 
 # METHODOLOGY Example Workflow
 
-## information on companies level - scraped from e.g public data source, based on Mauro's work
-smes <- tribble(
-   ~asset_name, ~address, ~country, ~phone_numer, ~entity_type, ~year_established, ~date_last_update, ~activity, ~activity_classification_name, ~activity_classification_code, ~corporate_capital, ~corporate_capital_currency, ~company_code, ~company_size_at_adress, ~company_size, ~company_id_external, ~certification_type, ~banks_import_area, ~turnover, ~net_profit, ~main_activity, ~secondary_activity, ~legal_address, ~legal_adress_country, ~sector, ~sector_classification_name, ~sector_classification_code,~asset_id,~company_id,
-   "Mr Carl Carlos", "Lycee Pro Le Bocage Don Bosco | 69003 LYON 03", "France", "0033420042", "Headquarters", "2006", "Jan 13", "Plant propagation", "NAF08", "0130Z", 10000L, "EUR", "FR000666", "0-9", "20", "FR00007", "ISO9001", "West.Europe", 45000L, 20, "Trees", "Plants", "4040 Rue de Elephants Mame TER,69003 LYON 03", "France", "Plant propagation" , "NACE", "0130", "A1","C1"
+## information on companies level
+# smes <- tribble(
+#    ~asset_name, ~address, ~country, ~phone_numer, ~entity_type, ~year_established, ~date_last_update, ~activity, ~activity_classification_name, ~activity_classification_code, ~corporate_capital, ~corporate_capital_currency, ~company_code, ~company_size_at_adress, ~company_size, ~company_id_external, ~certification_type, ~banks_import_area, ~turnover, ~net_profit, ~main_activity, ~secondary_activity, ~legal_address, ~legal_adress_country, ~sector, ~sector_classification_name, ~sector_classification_code,~asset_id,~company_id,
+#    "Mr Carl Carlos", "Lycee Pro Le Bocage Don Bosco | 69003 LYON 03", "France", "0033420042", "Headquarters", "2006", "Jan 13", "Plant propagation", "NAF08", "0130Z", 10000L, "EUR", "FR000666", "0-9", "20", "FR00007", "ISO9001", "West.Europe", 45000L, 20, "Trees", "Plants", "4040 Rue de Elephants Mame TER|69003 LYON 03", "France", "Plant propagation" , "NACE", "0130", "A1","C1"
+# )
+
+## scraped data from europages
+
+europages <-  vroom::vroom(
+  fs::path(
+    "/Users/linda/Desktop",
+    "europages_agriculture_livestock_demo_2022-03-10.csv"
+  )
 )
 
-## remove spaces from address
-smes <-  smes %>%
-  dplyr::mutate(
-    address =  gsub("[[:space:]]", "", address)
-  )
+smes <- europages
 
-## separate with "|" and retrieve the postcode only (will work in EU because postcode always 5 digit)
+## separate with "|" and retrieve the postcode only
+
 smes <-  smes %>%
-  dplyr::mutate(
-      post_code = separate(smes, address, into = c("pre", "post")) %>%
-        pull("post") %>%
-        substring(0,5)
-      )
+  separate(address, into = c("address", "city"), sep="\\|") %>%
+  separate(city, into = c("city", "postcode"), sep="\\s") %>%
+  select(-("city"))
 
 ## change postcodes into coordinates
+
 coordinates <- smes %>%
   tidygeocoder::geocode(
-    postalcode = post_code,
-    country = country,
+    postalcode = postcode,
+    country = company_country,
     method = "osm"
   )
 
@@ -63,20 +68,11 @@ vroom::vroom_write(
   delim = ","
 )
 
-get_distinct_geo_data <- function(company_data) {
+## select only coordinates for joining spatially in preparing climate analytics
 
-  distinct_company_data <- company_data %>%
-    dplyr::select(asset_id, longitude, latitude)
-
-  # create sf data frame based on longitude and latitude #geometry are sfc_POINT
-  # Note: Return sf object to a data frame by setting geometry to NULL st_set_geometry(points_sf, NULL) to remove it and convert to df/tibble again
-
-  distinct_company_geo_data <- sf::st_as_sf(distinct_company_data, coords = c("longitude","latitude"))
-
-  return(distinct_company_geo_data)
-}
-
-distinct_geo_company_data <- get_distinct_geo_data(company_data)
+distinct_company_data <- company_data %>%
+  select("latitude","longitude") %>%
+  drop_na()
 
 vroom::vroom_write(
   distinct_company_data,
@@ -88,6 +84,7 @@ vroom::vroom_write(
   delim = ","
 )
 
+#then join at prepare_climate_analytics_data.R
 
 ## climate data
 climate_data <- tibble::tribble(

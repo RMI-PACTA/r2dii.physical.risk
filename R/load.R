@@ -1,5 +1,5 @@
 #for PASTAX project
-get_distinct_geo_data <- function(company_data) {
+get_distinct_geo_data <- function() {
 
   distinct_geo_data <- purrr::map(
     path_db_pr_ald_distinct_geo_data, function(x) {
@@ -17,12 +17,11 @@ get_distinct_geo_data <- function(company_data) {
 
       # select relevant columns (ideally only those should be in the data actually)
       distinct_geo_data <- distinct_geo_data %>%
-        dplyr::select(asset_id, longitude, latitude)
-
+        dplyr::select(longitude, latitude)
 
       # verify assumptions of the data -> assumptions should be ensured when creating the data, not after loading it
 
-      ## verify that there are no NAs in the data
+      # verify that there are no NAs in the data
       distinct_geo_data %>%
         tidyr::drop_na() %>%
         assertr::verify(nrow(.) == nrow(distinct_geo_data))

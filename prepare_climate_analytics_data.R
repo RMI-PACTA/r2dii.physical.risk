@@ -6,7 +6,19 @@ library(r2dii.physical.risk)
 
 #distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
-distinct_geo_data <- get_distinct_geo_data(company_data)
+distinct_geo_data <- get_distinct_geo_data()
+
+distinct_geo_data <- distinct_company_data
+
+# bind rows of files with geo data
+distinct_geo_data <- distinct_geo_data %>%
+  dplyr::bind_rows()
+
+# create sf data frame based on longitude and latitude
+distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
+
+# assign crs to enable intersecting
+sf::st_crs(distinct_geo_data) <- 4326
 
 # =================================
 # load list of all countries iso codes
@@ -335,6 +347,9 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
+    #otherwise it throw an error message where invalid spherical geomtry, could be my computer version that is off
+    sf::sf_use_s2(FALSE)
+
     asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
 
     asset_scenario_data <- asset_scenario_data %>%
@@ -358,7 +373,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     asset_scenario_data <- asset_scenario_data %>%
       sf::st_drop_geometry() %>%
-      select(asset_id, geometry_id)
+      select(geometry_id)
+      #select(asset_id, geometry_id)
 
 
     asset_scenario_data <- asset_scenario_data %>%
@@ -370,7 +386,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     asset_scenario_data <- asset_scenario_data %>%
       transmute(
-        asset_id,
+        #asset_id,
         provider,
         hazard,
         scenario,
