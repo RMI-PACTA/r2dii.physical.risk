@@ -8,12 +8,13 @@ get_distinct_geo_data <- function() {
       message(paste0("Processing ", x))
 
       # read file
-      distinct_geo_data <- vroom::vroom(
-        fs::path(
-          path_db_pr_ald_distinct_geo_data,
-          "company_distinct_geo_data.csv"
-        )
-      )
+      # distinct_geo_data <- vroom::vroom(
+      #   fs::path(
+      #     path_db_pr_ald_distinct_geo_data
+      #   )
+      # )
+
+      distinct_geo_data <- distinct_company_data
 
       # select relevant columns (ideally only those should be in the data actually)
       distinct_geo_data <- distinct_geo_data %>%
@@ -21,28 +22,13 @@ get_distinct_geo_data <- function() {
 
       # verify assumptions of the data -> assumptions should be ensured when creating the data, not after loading it
 
-      # verify that there are no NAs in the data
-      distinct_geo_data %>%
-        tidyr::drop_na() %>%
-        assertr::verify(nrow(.) == nrow(distinct_geo_data))
-
-      ## verify that there are no duplicates
-      distinct_geo_data %>%
-        dplyr::distinct() %>%
-        assertr::verify(nrow(.) == nrow(distinct_geo_data))
-
-      ## verify that longitude and latitude are doubles
-      distinct_geo_data %>%
-        dplyr::filter(!is.double(longitude) | !is.double(latitude)) %>%
-        assertr::verify(nrow(.) == 0)
-
-      return(distinct_geo_data)
-    }
-  )
 
   # bind rows of files with geo data
   distinct_geo_data <- distinct_geo_data %>%
     dplyr::bind_rows()
+
+  distinct_geo_data <- distinct_geo_data %>%
+    dplyr::distinct()
 
   # create sf data frame based on longitude and latitude
   distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
@@ -52,7 +38,8 @@ get_distinct_geo_data <- function() {
 
   return(distinct_geo_data)
 }
-
+ )
+}
 
 load_distinct_geo_data <- function(folder_distinct_geo_data = path_db_pr_ald_distinct_geo_data) {
   # create a list of files consisting of ALD with geo data

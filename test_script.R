@@ -6,43 +6,46 @@ library(sf)
 library(r2dii.physical.risk)
 library(r2dii.utils)
 library(tidygeocoder)
-library(tmaptools)
 
+# devtools::install_github("2DegreesInvesting/pastax.data")
 
 # METHODOLOGY Example Workflow
 
-## information on companies level
-# smes <- tribble(
-#    ~asset_name, ~address, ~country, ~phone_numer, ~entity_type, ~year_established, ~date_last_update, ~activity, ~activity_classification_name, ~activity_classification_code, ~corporate_capital, ~corporate_capital_currency, ~company_code, ~company_size_at_adress, ~company_size, ~company_id_external, ~certification_type, ~banks_import_area, ~turnover, ~net_profit, ~main_activity, ~secondary_activity, ~legal_address, ~legal_adress_country, ~sector, ~sector_classification_name, ~sector_classification_code,~asset_id,~company_id,
-#    "Mr Carl Carlos", "Lycee Pro Le Bocage Don Bosco | 69003 LYON 03", "France", "0033420042", "Headquarters", "2006", "Jan 13", "Plant propagation", "NAF08", "0130Z", 10000L, "EUR", "FR000666", "0-9", "20", "FR00007", "ISO9001", "West.Europe", 45000L, 20, "Trees", "Plants", "4040 Rue de Elephants Mame TER|69003 LYON 03", "France", "Plant propagation" , "NACE", "0130", "A1","C1"
-# )
-
 ## scraped data from europages
 
-europages <-  vroom::vroom(
-  fs::path(
-    "/Users/linda/Desktop",
-    "europages_agriculture_livestock_demo_2022-03-10.csv"
-  )
-)
+europages <- pastax.data::europages_agriculture_livestock_demo
+
+# europages <-  vroom::vroom(
+#   fs::path(
+#     "/Users/linda/Desktop",
+#     "europages_agriculture_livestock_demo_2022-03-10.csv"
+#   )
+# )
 
 smes <- europages
 
 ## separate with "|" and retrieve the postcode only
 
-smes <-  smes %>%
-  separate(address, into = c("address", "city"), sep="\\|") %>%
-  separate(city, into = c("city", "postcode"), sep="\\s") %>%
-  select(-("city"))
+smes_v1 <-  smes %>%
+  separate(address, into = c("address", "city","extra"), sep="\\|", fill = "right")
+
+#if there are several "|" or un-consistencies
+smes_v1$city <- if_else(is.na(smes_v1$extra), smes_v1$city, smes_v1$extra)
+
+smes_vf <- smes_v1 %>%
+  separate(city, into = c("city","postcode") ,sep = "\\s", extra = "drop") %>%
+  select(-c("city", "extra"))
 
 ## change postcodes into coordinates
 
 coordinates <- smes %>%
   tidygeocoder::geocode(
-    postalcode = postcode,
+    city = company_city,
     country = company_country,
     method = "osm"
   )
+
+no_coordinates <-  subset(coordinates, is.na(coordinates$lat))
 
 company_data <- coordinates %>%
   dplyr::rename(
@@ -86,11 +89,13 @@ vroom::vroom_write(
 
 #then join at prepare_climate_analytics_data.R
 
-## climate data
-climate_data <- tibble::tribble(
-  ~scenario,     ~model, ~period,    ~hazard, ~relative_change, ~asset_id
-  "rcp26", "Ensemble",   2100L, "prAdjust",            0.004,      "A1"
-)
+## climate data already downloaded in set_up_project_specifications.R
+
+distinct_geo_data <- get_distinct_geo_data()
+
+
+#joined_climate_company_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
+
 
 ## joining with climate data
 #Q3 :OK what is the asset_id that is found again in the climate data ? Where does it comes from ? - from AR_distinct geodata that links asset_id & coordinates.
@@ -99,59 +104,16 @@ company_climate_data <- company_data %>%
   inner_join(climate_data, by = "asset_id") %>%
   select(
     company_name,
-    value_eur,
     company_country,
     address,
     latitude,
     longitude,
     sector,
-    year_established,
     scenario,
     model,
     period,
     hazard,
     relative_change
   )
-
-
-#its not actually the portfolio_economic_value but its just to have the same name variables to fake plot
-company_climate_data  <- company_climate_data  %>%
-  group_by(sector) %>%
-  mutate(
-    portfolio_economic_value = value_eur/sum(value_eur, na.rm = TRUE),
-    year = year_established
-  ) %>%
-  ungroup()
-
-
-provider <- "Fake Data Provider"
-scenario <- "rcp26"
-hazard <- unique(out$hazard)
-model <- unique(out$model)
-period <- unique(out$period)
-
-
-#useless blob just for fun
-r2dii.physical.risk:::plot_sector_absolute_portfolio_economic_value(
-  out,
-  provider_sub = "Climate Data",
-  scenario_sub = scenario,
-  hazard_sub = hazard,
-  model_sub = model,
-  period_sub = period
-)
-
-
-## joining portfolio with ald
-out <- portfolio %>%
-  inner_join(company_data, by = c("asset_id", "company_id"))
-
-
-## let's imagine a portfolio made of one SME, of which asset_id = company_id
-portfolio <- tribble(
-  ~portfolio_name,    ~company_name, ~company_adress, ~company_country, ~company_id, ~asset_id, ~corporate_bond_ticker,          ~isin, ~holding_id, ~asset_type, ~security_mapped_sector, ~value_eur,
-  "pastax", "Mr Carl Carlos", "Lycee Pro Le Bocage Don Bosco | 69003 LYON 03", "France",    "C1",  "A1",                "ABC", "AB1234567890",        123L,    "Equity",                 "Agriculture",     4000L
-)
-
 
 

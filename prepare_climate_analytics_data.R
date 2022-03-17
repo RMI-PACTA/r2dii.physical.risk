@@ -4,21 +4,9 @@ library(r2dii.physical.risk)
 # load distinct_geo_data which will subset the raw climate data
 # =================================
 
-#distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+# distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
 distinct_geo_data <- get_distinct_geo_data()
-
-distinct_geo_data <- distinct_company_data
-
-# bind rows of files with geo data
-distinct_geo_data <- distinct_geo_data %>%
-  dplyr::bind_rows()
-
-# create sf data frame based on longitude and latitude
-distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
-
-# assign crs to enable intersecting
-sf::st_crs(distinct_geo_data) <- 4326
 
 # =================================
 # load list of all countries iso codes
@@ -254,7 +242,10 @@ for (sub_indicator in unique(api_paramter$indicator)) {
   diff_longs <- all_longs[-1] - all_longs[-length(all_longs)]
   median_diff_longs <- median(diff_longs, na.rm = TRUE)
   cat(crayon::red("Using", median_diff_longs, "as median long", "\n"))
-
+  #--------
+  #all_data_saved <- all_data
+  all_data <- all_data_saved
+  #--------
 
   if (nrow(all_data > 0)) {
     all_data <- all_data %>%
@@ -264,7 +255,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
           scenario == "h_cpol" ~ "ngfs_current_policies",
           scenario == "d_delfrag" ~ "ngfs_delayed_2_degrees",
           scenario == "o_1p5c" ~ "ngfs_net_zero",
-          TRUE ~ scenario
+          #TRUE ~ == scenario,
+          TRUE ~ as.character(scenario)
         ),
         model = "Ensemble", # to many models -> just say ensemble
         provider = "ClimateAnalytics"
@@ -325,7 +317,6 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       ) %>%
       as.data.frame()
 
-
     # build polygons based on calculated "corners"
     all_data_distinct_geo_data_polygons <- lapply(
       1:nrow(all_data_distinct_geo_data), function(x) {
@@ -333,7 +324,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         res <- matrix(c(
           all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "north_lat"],
           all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "north_lat"],
-          all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "south_lat"],
+          # all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "south_lat"],
           all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "south_lat"],
           all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "north_lat"]
         ) ## need to close the polygon
@@ -345,11 +336,25 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       }
     )
 
-    all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
+  all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
-    #otherwise it throw an error message where invalid spherical geomtry, could be my computer version that is off
+#---------
+    vroom::vroom_write(
+      all_data_distinct_geo_data,
+      fs::path(
+        "/Users/linda/Desktop",
+        "all_data_distinct_geo_data",
+        ext = "csv"
+      ),
+      delim = ","
+    )
+
+    all_data_distinct_geo_data_saved <- all_data_distinct_geo_data
+
+    #otherwise it throw an error message where invalid spherical geometry, could be my computer version that is off
     sf::sf_use_s2(FALSE)
-
+    #--------
+    #to get the points that falls into the polygons created before
     asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
 
     asset_scenario_data <- asset_scenario_data %>%
@@ -386,7 +391,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     asset_scenario_data <- asset_scenario_data %>%
       transmute(
-        #asset_id,
+        asset_id,
         provider,
         hazard,
         scenario,

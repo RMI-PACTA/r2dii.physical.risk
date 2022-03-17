@@ -25,12 +25,13 @@ path_db_pr_climate_data_raw <- fs::path(
   "15_Risk"
   )
 
-# climate data directory
+# #climate data directory
 # path_db_pr_climate_data <- fs::path(
 #   path_db_pr_parent,
 #   "climate_data"
 #   )
 
+#for PASTAX - mask for sourcing set up spec
 path_db_pr_climate_data <- fs::path(
   path_db_pr_parent,
   "climate_data_sme"
@@ -76,9 +77,14 @@ path_db_pr_ald_prepared <- fs::path(
   )
 
 # OSM data
+# path_db_pr_ald_distinct_geo_data <- fs::path(
+#   path_db_pr_ald,
+#   "distinct_geo_data"
+#   )
+
 path_db_pr_ald_distinct_geo_data <- fs::path(
   path_db_pr_ald,
-  "distinct_geo_data"
+  "company_distinct_geo_data"
   )
 
 # data store path
