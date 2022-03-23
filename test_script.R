@@ -1,7 +1,6 @@
 library(dplyr)
 library(tidyr)
 library(purrr)
-library(ggplot2)
 library(sf)
 library(r2dii.physical.risk)
 library(r2dii.utils)
@@ -14,13 +13,6 @@ library(tidygeocoder)
 ## scraped data from europages
 
 europages <- pastax.data::europages_agriculture_livestock_demo
-
-# europages <-  vroom::vroom(
-#   fs::path(
-#     "/Users/linda/Desktop",
-#     "europages_agriculture_livestock_demo_2022-03-10.csv"
-#   )
-# )
 
 smes <- europages
 
@@ -38,9 +30,9 @@ smes_vf <- smes_v1 %>%
 
 ## change postcodes into coordinates
 
-coordinates <- smes %>%
+coordinates <- smes_vf %>%
   tidygeocoder::geocode(
-    city = company_city,
+    postalcode = postcode,
     country = company_country,
     method = "osm"
   )
