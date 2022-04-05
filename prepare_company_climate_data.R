@@ -14,9 +14,7 @@ library(dplyr)
 ## 1. IMPORT - Import one file from climate analytics as a test. Here is one temperature data, tasAdjust
 ## in Germany.
 
-path_desktop <- here("/Users/linda/Desktop/data")
-
-raw_climate_data <- read_csv(here(path_desktop, "tasAdjust_DEU_1.5_vs_1986-2006_annual.csv"))
+raw_climate_data <- read_csv(here("data","tasAdjust_DEU_1.5_vs_1986-2006_annual.csv"))
 
 ## 2. TRANFORM - Transform the data into a usable format to change it into a sf object.
 
@@ -345,5 +343,5 @@ for (sub_link in api_paramter_sub$link[1]) {
 
     all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
-    qsave(all_data_distinct_geo_data, here(path_desktop, "myfile.qs"))
+    qsave(all_data_distinct_geo_data, here(path_desktop, "company_distinct_geo_data.qs"))
   }

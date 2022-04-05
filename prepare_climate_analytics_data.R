@@ -1,12 +1,13 @@
 library(r2dii.physical.risk)
+library(sf)
 
 # =================================
 # load distinct_geo_data which will subset the raw climate data
 # =================================
 
-# distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
-distinct_geo_data <- get_distinct_geo_data()
+#distinct_geo_data <- get_distinct_geo_data()
 
 # =================================
 # load list of all countries iso codes
@@ -289,6 +290,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_data <- all_data %>%
       dplyr::mutate(geometry_id = openssl::md5(as.character(geometry)))
 
+    qsave(all_data, here("data", "all_data.qs"))
+
     # create sf data frame based on longitude and latitude
     all_data_distinct_geo_data <- all_data %>%
       sf::st_drop_geometry() %>%
@@ -324,7 +327,6 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         res <- matrix(c(
           all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "north_lat"],
           all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "north_lat"],
-          # all_data_distinct_geo_data[x, "east_lng"], all_data_distinct_geo_data[x, "south_lat"],
           all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "south_lat"],
           all_data_distinct_geo_data[x, "west_lng"], all_data_distinct_geo_data[x, "north_lat"]
         ) ## need to close the polygon
@@ -337,6 +339,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     )
 
   all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
+
+  qsave(all_data_distinct_geo_data, here("data","all_data_distinct_geo_data.qs"))
 
 #---------
     vroom::vroom_write(
@@ -352,7 +356,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_data_distinct_geo_data_saved <- all_data_distinct_geo_data
 
     #otherwise it throw an error message where invalid spherical geometry, could be my computer version that is off
-    sf::sf_use_s2(FALSE)
+    # sf::sf_use_s2(FALSE)
     #--------
     #to get the points that falls into the polygons created before
     asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)

@@ -1,27 +1,13 @@
 #for PASTAX project
-get_distinct_geo_data <- function() {
+get_distinct_geo_data <- function(name_file = "company_distinct_geo_data.qs") {
 
-  distinct_geo_data <- purrr::map(
-    path_db_pr_ald_distinct_geo_data, function(x) {
+  #how to pass name_file to qread ?
+  #read file
+  distinct_geo_data <- qread(here("data","company_distinct_geo_data.qs"))
 
-      # message which files get read
-      message(paste0("Processing ", x))
-
-      # read file
-      # distinct_geo_data <- vroom::vroom(
-      #   fs::path(
-      #     path_db_pr_ald_distinct_geo_data
-      #   )
-      # )
-
-      distinct_geo_data <- distinct_company_data
-
-      # select relevant columns (ideally only those should be in the data actually)
-      distinct_geo_data <- distinct_geo_data %>%
-        dplyr::select(longitude, latitude)
-
-      # verify assumptions of the data -> assumptions should be ensured when creating the data, not after loading it
-
+  # select relevant columns (ideally only those should be in the data actually)
+  distinct_geo_data <- distinct_geo_data %>%
+    dplyr::select(longitude, latitude)
 
   # bind rows of files with geo data
   distinct_geo_data <- distinct_geo_data %>%
@@ -37,8 +23,6 @@ get_distinct_geo_data <- function() {
   sf::st_crs(distinct_geo_data) <- 4326
 
   return(distinct_geo_data)
-}
- )
 }
 
 load_distinct_geo_data <- function(folder_distinct_geo_data = path_db_pr_ald_distinct_geo_data) {

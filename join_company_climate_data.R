@@ -1,5 +1,10 @@
 library(r2dii.physical.risk)
+library(sf)
+library(qs)
+library(here)
+library(dplyr)
 
+source("R/load.R")
 
 ## This script will join the company data (as an sf object), to the climate data.
 ## It uses the sf package, and the sf::join function which will join the two data
@@ -10,11 +15,21 @@ library(r2dii.physical.risk)
 
 ## 1. IMPORT - from two functions that will get climate and company datasets
 
-distinct_geo_data <- get_distinct_geo_data(distinct_company_data = distinct_company_data)
+distinct_geo_data <- get_distinct_geo_data()
 
-#something like this for the other function all_data_distinct_geo_data <- get_all_data_distinct_geo_data
+## FIXME : degenerate edge on loop, from row 5435
 
-asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data[1,])
+#this is the geo data from climate analytics, which has only coordinates in it.
+all_data_distinct_geo_data <- qs::qread(here("data", "myfile.qs"))
+
+#joining the climate analytics data with the geo data from the smes - this is where I have the message error
+
+#this does not work - from row 5435
+# asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
+
+#this work
+
+asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data[1:5434,])
 
 asset_scenario_data <- asset_scenario_data %>%
   filter(!is.na(geometry_id))

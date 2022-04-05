@@ -25,17 +25,17 @@ path_db_pr_climate_data_raw <- fs::path(
   "15_Risk"
   )
 
-# #climate data directory
-# path_db_pr_climate_data <- fs::path(
-#   path_db_pr_parent,
-#   "climate_data"
-#   )
-
-#for PASTAX - mask for sourcing set up spec
+#climate data directory
 path_db_pr_climate_data <- fs::path(
   path_db_pr_parent,
-  "climate_data_sme"
-)
+  "climate_data"
+  )
+
+#for PASTAX - mask for sourcing set up spec
+# path_db_pr_climate_data <- fs::path(
+#   path_db_pr_parent,
+#   "climate_data_sme"
+# )
 
 # CDF climate data
 path_db_pr_climate_data_CDF <- fs::path(path_db_pr_climate_data, "CDF")

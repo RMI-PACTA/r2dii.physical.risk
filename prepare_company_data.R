@@ -4,8 +4,9 @@ library(tidyr)
 library(tidygeocoder)
 library(pastax.data)
 library(here)
+library(qs)
 
-# devtools::install_github("2DegreesInvesting/pastax.data") install it regularely to be in sync with Mauro's update
+# devtools::install_github("2DegreesInvesting/pastax.data") re-install it regularly to be in sync with Mauro's updates
 
 ## This script will prepare the data scraped from public data sources, like for e.g Europages or Kompass.
 ## It will essentially transform the postcodes into latitude and longitude coordinates, and also create a
@@ -35,14 +36,21 @@ europages <- europages %>%
 
 ## change postcodes into coordinates using Open Street Map
 
-company_data <- europages %>%
+company_data_osm <- europages %>%
   tidygeocoder::geocode(
     postalcode = postcode,
     country = company_country,
     method = "osm"
   )
 
-company_data <- company_data %>%
+#use cache
+
+
+qsave(company_data_osm, here("data","company_data_osm.qs"))
+
+# company_data_osm <- qread("data/company_data_osm.qs")
+
+company_data <- company_data_osm %>%
   dplyr::rename(
     longitude = long,
     latitude = lat
@@ -60,17 +68,5 @@ distinct_company_data <- company_data %>%
   dplyr::filter(has_geo_data == TRUE) %>%
   dplyr::select("latitude","longitude")#, "company_id")
 
-vroom::vroom_write(
-  distinct_company_data,
-  fs::path(
-    # create new path in the Dropbox only for PASTAX ? - set_up_path script ?
-    # path_db_pr_ald_distinct_geo_data,
-    # here("company_data", "company_distinct_geo_data.csv")
-    "company_distinct_geo_data",
-    ext = "csv"
-  ),
-  delim = ","
-)
-
-
-
+##question for Mauro : better to save in a qs or csv file ? depends on if the user wants to take a look at it ?
+qsave(distinct_company_data, here("data", "company_distinct_geo_data.qs"))
