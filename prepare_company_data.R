@@ -36,19 +36,21 @@ europages <- europages %>%
 
 ## change postcodes into coordinates using Open Street Map
 
-company_data_osm <- europages %>%
-  tidygeocoder::geocode(
-    postalcode = postcode,
-    country = company_country,
-    method = "osm"
-  )
+company_data_osm <- qread("data/company_data_osm.qs")
 
-#use cache
+# company_data_osm <- europages %>%
+#   tidygeocoder::geocode(
+#     postalcode = postcode,
+#     country = company_country,
+#     method = "osm"
+#   )
 
+#FIXME : arrow package - see dependencies
+#use cache - pin package // arrow error
 
-qsave(company_data_osm, here("data","company_data_osm.qs"))
+# qsave(company_data_osm, here("data","company_data_osm.qs"))
 
-# company_data_osm <- qread("data/company_data_osm.qs")
+company_data_osm <- qread("data/company_data_osm.qs")
 
 company_data <- company_data_osm %>%
   dplyr::rename(
@@ -68,5 +70,5 @@ distinct_company_data <- company_data %>%
   dplyr::filter(has_geo_data == TRUE) %>%
   dplyr::select("latitude","longitude")#, "company_id")
 
-##question for Mauro : better to save in a qs or csv file ? depends on if the user wants to take a look at it ?
+## save the data
 qsave(distinct_company_data, here("data", "company_distinct_geo_data.qs"))

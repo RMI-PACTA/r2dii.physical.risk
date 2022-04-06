@@ -29,6 +29,11 @@ all_data_distinct_geo_data <- qs::qread(here("data", "myfile.qs"))
 
 #this work
 
+## returns 22 outputs of the joining, out of 114 inputs
+
+## approach : create a small data set like distinct geo data where you know it will successfully join
+## like a little unit test
+
 asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data[1:5434,])
 
 asset_scenario_data <- asset_scenario_data %>%
