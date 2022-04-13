@@ -61,6 +61,8 @@ asset_scenario_data <- asset_scenario_data %>%
 #select(asset_id, geometry_id)
 
 
+all_data <- qread(here("data/all_data.qs"))
+
 asset_scenario_data <- asset_scenario_data %>%
   left_join(
     all_data %>%
@@ -70,7 +72,6 @@ asset_scenario_data <- asset_scenario_data %>%
 
 asset_scenario_data <- asset_scenario_data %>%
   transmute(
-    asset_id,
     provider,
     hazard,
     scenario,
@@ -83,7 +84,6 @@ asset_scenario_data <- asset_scenario_data %>%
     absolute_change = NA,
     geometry_id
   )
-
 
 # save data
 asset_scenario_data %>%

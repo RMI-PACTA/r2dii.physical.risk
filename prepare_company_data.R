@@ -5,8 +5,13 @@ library(tidygeocoder)
 library(pastax.data)
 library(here)
 library(qs)
+library(fs)
+library(vroom)
 
-# devtools::install_github("2DegreesInvesting/pastax.data") re-install it regularly to be in sync with Mauro's updates
+#devtools::install_github("2DegreesInvesting/pastax.data")
+
+
+## re-install it regularly to be in sync with Mauro's updates
 
 ## This script will prepare the data scraped from public data sources, like for e.g Europages or Kompass.
 ## It will essentially transform the postcodes into latitude and longitude coordinates, and also create a
@@ -19,14 +24,19 @@ library(qs)
 
 ## 1. IMPORT - download the data from europages, from the package pastax.data
 
-europages <- pastax.data::europages_agriculture_livestock_demo
+europages <- pastax.data::ep_agriculture_livestock
+
+adresses <- europages %>%
+  select(address)
+
+null <- adresses %>%
+  filter(address == "null VIA VINCINELLA SANTO STEFANO DI MAGRA")
 
 ## 2. TIDY - separate the address into two parts, with the | separator
+## if there are several "|" or un-consistencies, I put them in the column called "extra"
 
 europages <-  europages %>%
   tidyr::separate(address, into = c("address", "city", "extra"), sep="\\|", fill = "right")
-
-## if there are several "|" or un-consistencies
 
 europages$city <- if_else(is.na(europages$extra), europages$city, europages$extra)
 
@@ -34,16 +44,55 @@ europages <- europages %>%
   tidyr::separate(city, into = c("city","postcode") ,sep = "\\s", extra = "drop") %>%
   dplyr::select(-c("city", "extra"))
 
+## FIXME Santo and Albeda does not have any postcode - do not know how to remove the rows yet.
+
+tidy_europages <- europages %>%
+  filter(!is.na(postcode))
+
 ## change postcodes into coordinates using Open Street Map
+## FIXME see how the speed up the process -  Mauro : it is very slow (4 hours to convert all the adresses. + there is a maximum
+## (2500) of demands per day. Also for every chunk (230 rows), there are less that are passed (like 180-199).
+## I would like to filter first before putting them into the functions...)
 
-company_data_osm <- qread("data/company_data_osm.qs")
+# company_data_osm <- qread("data/company_data_osm.qs")
 
-# company_data_osm <- europages %>%
-#   tidygeocoder::geocode(
-#     postalcode = postcode,
-#     country = company_country,
-#     method = "osm"
-#   )
+chunks <- 500
+chunked <- europages %>%
+  mutate(chunk = as.integer(cut(row_number(), chunks)))
+
+## FIXME how to use here function here ?
+# out <- here("osm_data")
+
+out <- path(here(), "output")
+if (!dir_exists(out)) dir_create(out)
+
+for (i in unique(chunked$chunk)) {
+
+  # 1. Match this chunk against the entire `ald` dataset.
+  this_chunk <- filter(chunked, chunk == i)
+
+  this_result <- this_chunk %>%
+    tidygeocoder::geocode(
+    postalcode = postcode,
+    country = country,
+    method = "osm"
+  )
+
+  # 2. If this chunk matched nothing, move to the next chunk
+  osm_nothing <- nrow(this_result) == 0L
+  if (osm_nothing) next()
+
+  # 3. Else, save the result to a .csv file.
+  vroom_write(this_result, path(out, paste0(i, ".csv")))
+
+}
+
+company_data_osm <- europages_1 %>%
+  tidygeocoder::geocode(
+    postalcode = postcode,
+    country = country,
+    method = "osm"
+  )
 
 #FIXME : arrow package - see dependencies
 #use cache - pin package // arrow error
