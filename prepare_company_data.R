@@ -10,7 +10,6 @@ library(vroom)
 
 #devtools::install_github("2DegreesInvesting/pastax.data")
 
-
 ## re-install it regularly to be in sync with Mauro's updates
 
 ## This script will prepare the data scraped from public data sources, like for e.g Europages or Kompass.
@@ -56,7 +55,7 @@ tidy_europages <- europages %>%
 
 # company_data_osm <- qread("data/company_data_osm.qs")
 
-chunks <- 500
+chunks <- 80
 chunked <- europages %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
 
@@ -87,6 +86,8 @@ for (i in unique(chunked$chunk)) {
 
 }
 
+company_data_osm <- vroom(dir_ls(out))
+
 company_data_osm <- europages_1 %>%
   tidygeocoder::geocode(
     postalcode = postcode,
@@ -97,7 +98,7 @@ company_data_osm <- europages_1 %>%
 #FIXME : arrow package - see dependencies
 #use cache - pin package // arrow error
 
-# qsave(company_data_osm, here("data","company_data_osm.qs"))
+qsave(company_data_osm, here("data","company_data_osm.qs"))
 
 company_data_osm <- qread("data/company_data_osm.qs")
 
@@ -115,9 +116,11 @@ company_data <- company_data_osm %>%
 
 ## create new data with only the latitude and longitude with a company_id
 
+## out of 5062 companies, 4909 have long and lat coordinates
+
 distinct_company_data <- company_data %>%
   dplyr::filter(has_geo_data == TRUE) %>%
-  dplyr::select("latitude","longitude")#, "company_id")
+  dplyr::select(latitude, longitude, company_name)
 
 ## save the data
 qsave(distinct_company_data, here("data", "company_distinct_geo_data.qs"))
