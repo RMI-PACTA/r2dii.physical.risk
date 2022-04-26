@@ -7,10 +7,16 @@ library(here)
 library(qs)
 library(fs)
 library(vroom)
+library(pak)
+library(tibble)
 
-#devtools::install_github("2DegreesInvesting/pastax.data")
+## re-install pastax.data regularly to be in sync with Mauro's updates
 
-## re-install it regularly to be in sync with Mauro's updates
+# remove.packages("pastax.data")
+# create_github_token()
+# gitcreds::gitcreds_set()
+# pak::pkg_install("2DegreesInvesting/pastax.data")
+
 
 ## This script will prepare the data scraped from public data sources, like for e.g Europages or Kompass.
 ## It will essentially transform the postcodes into latitude and longitude coordinates, and also create a
@@ -25,12 +31,6 @@ library(vroom)
 
 europages <- pastax.data::ep_agriculture_livestock
 
-adresses <- europages %>%
-  select(address)
-
-null <- adresses %>%
-  filter(address == "null VIA VINCINELLA SANTO STEFANO DI MAGRA")
-
 ## 2. TIDY - separate the address into two parts, with the | separator
 ## if there are several "|" or un-consistencies, I put them in the column called "extra"
 
@@ -40,32 +40,36 @@ europages <-  europages %>%
 europages$city <- if_else(is.na(europages$extra), europages$city, europages$extra)
 
 europages <- europages %>%
-  tidyr::separate(city, into = c("city","postcode") ,sep = "\\s", extra = "drop") %>%
-  dplyr::select(-c("city", "extra"))
+  tidyr::separate(city, into = c("city_1","postcode") ,sep = "\\s", remove = FALSE, extra = "drop") %>%
+  dplyr::select(-c("extra", "city_1"))
 
-## FIXME Santo and Albeda does not have any postcode - do not know how to remove the rows yet.
+## FIXME Santo and Albeda does not have any postcodes - do not know how to remove the rows yet.
 
 tidy_europages <- europages %>%
   filter(!is.na(postcode))
 
 ## change postcodes into coordinates using Open Street Map
-## FIXME see how the speed up the process -  Mauro : it is very slow (4 hours to convert all the adresses. + there is a maximum
+## FIXME see how the speed up the process -  Mauro : it is very slow (4 hours to convert all the addresses. + there is a maximum
 ## (2500) of demands per day. Also for every chunk (230 rows), there are less that are passed (like 180-199).
 ## I would like to filter first before putting them into the functions...)
 
 # company_data_osm <- qread("data/company_data_osm.qs")
 
-chunks <- 80
-chunked <- europages %>%
+chunks <- nrow(tidy_europages)
+chunked <- tidy_europages %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
 
 ## FIXME how to use here function here ?
 # out <- here("osm_data")
 
+here()
+
 out <- path(here(), "output")
 if (!dir_exists(out)) dir_create(out)
 
-for (i in unique(chunked$chunk)) {
+chunked_1 <- slice(chunked,-(1:8489))
+
+for (i in unique(chunked_1$chunk)) {
 
   # 1. Match this chunk against the entire `ald` dataset.
   this_chunk <- filter(chunked, chunk == i)
@@ -88,7 +92,7 @@ for (i in unique(chunked$chunk)) {
 
 company_data_osm <- vroom(dir_ls(out))
 
-company_data_osm <- europages_1 %>%
+company_data_osm <- tidy_europages %>%
   tidygeocoder::geocode(
     postalcode = postcode,
     country = country,

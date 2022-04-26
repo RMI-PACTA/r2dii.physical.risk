@@ -11,3 +11,6 @@
 ^prepare_climate_analytics_data\.R$
 ^prepare_OSM_data\.R$
 ^set_up_project_specifications\.R$
+^r2dii.physical.risk\.Rcheck$
+^r2dii.physical.risk.*\.tar\.gz$
+^r2dii.physical.risk.*\.tgz$

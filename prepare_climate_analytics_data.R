@@ -1,11 +1,15 @@
 library(r2dii.physical.risk)
 library(sf)
+library(qs)
+library(here)
 
 # =================================
 # load distinct_geo_data which will subset the raw climate data
 # =================================
 
-distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+#distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
+
+distinct_geo_data <- qread(here("data", "distinct_geo_data.qs"))
 
 #distinct_geo_data <- get_distinct_geo_data()
 
@@ -243,10 +247,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
   diff_longs <- all_longs[-1] - all_longs[-length(all_longs)]
   median_diff_longs <- median(diff_longs, na.rm = TRUE)
   cat(crayon::red("Using", median_diff_longs, "as median long", "\n"))
-  #--------
-  #all_data_saved <- all_data
-  all_data <- all_data_saved
-  #--------
+
 
   if (nrow(all_data > 0)) {
     all_data <- all_data %>%
@@ -342,21 +343,11 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
   qsave(all_data_distinct_geo_data, here("data","all_data_distinct_geo_data.qs"))
 
-#---------
-    vroom::vroom_write(
-      all_data_distinct_geo_data,
-      fs::path(
-        "/Users/linda/Desktop",
-        "all_data_distinct_geo_data",
-        ext = "csv"
-      ),
-      delim = ","
-    )
+  all_data_distinct_geo_data<- qread(here("data","all_data_distinct_geo_data.qs"))
 
-    all_data_distinct_geo_data_saved <- all_data_distinct_geo_data
+  all_data <-qread(here("data","all_data.qs"))
 
-    #otherwise it throw an error message where invalid spherical geometry, could be my computer version that is off
-    # sf::sf_use_s2(FALSE)
+
     #--------
     #to get the points that falls into the polygons created before
     asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)

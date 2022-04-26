@@ -11,3 +11,6 @@
 Desktop.ini
 *.icloud
 inst/doc
+r2dii.physical.risk.Rcheck/
+r2dii.physical.risk*.tar.gz
+r2dii.physical.risk*.tgz

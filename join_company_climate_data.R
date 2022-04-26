@@ -18,26 +18,14 @@ source("R/load.R")
 ## TODO : So there is a lot of duplicates. From 4909 after distinct() - goes to 2902 obs. it is not a problem
 ## per say, as long as we then link the lat and long back to their respective companies.
 
-distinct_geo_data <- get_distinct_geo_data(name_file = "company_distinct_geo_data.qs")
-
-## FIXME : degenerate edge on loop, from row 5435
+distinct_geo_data <- qread(here("data", "distinct_geo_data.qs"))
 
 #this is the geo data from climate analytics, which has only coordinates in it.
 all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data.qs"))
 
 #joining the climate analytics data with the geo data from the smes - this is where I have the message error
 
-#this does not work - from row 5435
-# asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
-
-#this work
-
-## returns 22 outputs of the joining, out of 114 inputs
-
-## approach : create a small data set like distinct geo data where you know it will successfully join
-## like a little unit test
-
-asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data[1:4037,])
+asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
 
 asset_scenario_data <- asset_scenario_data %>%
   filter(!is.na(geometry_id))
