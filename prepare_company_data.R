@@ -31,7 +31,7 @@ library(tibble)
 
 europages <- pastax.data::ep_agriculture_livestock
 
-## 2. TIDY - separate the address into two parts, with the | separator
+## 2. TRANSFORM- separate the address into two parts, with the | separator
 ## if there are several "|" or un-consistencies, I put them in the column called "extra"
 
 europages <-  europages %>%
@@ -43,10 +43,16 @@ europages <- europages %>%
   tidyr::separate(city, into = c("city_1","postcode") ,sep = "\\s", remove = FALSE, extra = "drop") %>%
   dplyr::select(-c("extra", "city_1"))
 
-## FIXME Santo and Albeda does not have any postcodes - do not know how to remove the rows yet.
+## 1. TIDY - remove non-existent or obsolete postcodes
 
 tidy_europages <- europages %>%
   filter(!is.na(postcode))
+
+# this will only retrieve postcode that are numbers, hence removing the addresses that
+# does not have any postcodes.
+
+tidy_europages_1<-tidy_europages %>%
+  filter(grepl("[0-9]+", postcode))
 
 ## Change postcodes into coordinates using Open Street Map
 ## It is a very slow process, can take up to 8 hours passing row by row the addresses.
@@ -85,9 +91,20 @@ for (i in unique(chunked_1$chunk)) {
 
 }
 
-## FIXME : too many files open
-company_data_osm <- vroom(dir_ls(out))
+files <- dir_ls(out)
 
+files_cut <- cut(files)
+
+# split out into different part and then bind rows - could be faster / break problem into chunks
+# write function that takes the path and splits the df into n numbers
+
+list_files <- purrr::map_df(files[101:1000], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
+
+qsave(list_files, here("company_data_100.qs"))
+qsave(list_files, here("company_data_101_1000.qs"))
+qs_files <- dir_ls(here(), regexp = "[.]qs$")
+
+company_data <- purrr::map_df(qs_files, qs::qread)
 
 #FIXME : use cache
 
