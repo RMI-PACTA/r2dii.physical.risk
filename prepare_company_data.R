@@ -48,13 +48,12 @@ europages <- europages %>%
 tidy_europages <- europages %>%
   filter(!is.na(postcode))
 
-## change postcodes into coordinates using Open Street Map
-## FIXME see how the speed up the process -  Mauro : it is very slow (4 hours to convert all the addresses. + there is a maximum
-## (2500) of demands per day. Also for every chunk (230 rows), there are less that are passed (like 180-199).
-## I would like to filter first before putting them into the functions...)
+## Change postcodes into coordinates using Open Street Map
+## It is a very slow process, can take up to 8 hours passing row by row the addresses.
 
 # company_data_osm <- qread("data/company_data_osm.qs")
 
+#chunk the data set row by row
 chunks <- nrow(tidy_europages)
 chunked <- tidy_europages %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
@@ -67,7 +66,7 @@ chunked_1 <- slice(chunked,-(1:48464))
 
 for (i in unique(chunked_1$chunk)) {
 
-  # 1. Match this chunk against the entire `ald` dataset.
+  # 1. Pass this chunk's address into the geocode function that convert it into coordinates.
   this_chunk <- filter(chunked, chunk == i)
 
   this_result <- this_chunk %>%
@@ -77,7 +76,7 @@ for (i in unique(chunked_1$chunk)) {
     method = "osm"
   )
 
-  # 2. If this chunk matched nothing, move to the next chunk
+  # 2. If this chunk converted nothing, move to the next chunk
   osm_nothing <- (is.na(this_result$lat) && is.na(this_result$long))
   if (osm_nothing) next()
 
@@ -86,17 +85,11 @@ for (i in unique(chunked_1$chunk)) {
 
 }
 
+## FIXME : too many files open
 company_data_osm <- vroom(dir_ls(out))
 
-chunked_2 <- chunked_1 %>%
-  tidygeocoder::geocode(
-    postalcode = postcode,
-    country = country,
-    method = "osm"
-  )
 
-#FIXME : arrow package - see dependencies
-#use cache - pin package // arrow error
+#FIXME : use cache
 
 qsave(company_data_osm, here("data","company_data_osm.qs"))
 
@@ -115,8 +108,6 @@ company_data <- company_data_osm %>%
   )
 
 ## create new data with only the latitude and longitude with a company_id
-
-## out of 5062 companies, 4909 have long and lat coordinates
 
 distinct_company_data <- company_data %>%
   dplyr::filter(has_geo_data == TRUE) %>%
