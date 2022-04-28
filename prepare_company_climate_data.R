@@ -10,6 +10,9 @@ library(dplyr)
 ## Transformation on these data will be to create sf objects, to be then join with the company data,
 ## in another script (function).
 
+#TODO : should this script exist or should we give the climate analytics data directly?
+#One positive point of scraping it locally could be that the data is up to date with the climate analytics
+# latests updates
 
 # =================================
 # load list of all countries iso codes
