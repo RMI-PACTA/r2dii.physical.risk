@@ -59,15 +59,11 @@ chunks <- nrow(tidy_europages)
 chunked <- tidy_europages %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
 
-## FIXME how to use here function here ?
-# out <- here("osm_data")
-
-here()
 
 out <- path(here(), "output")
 if (!dir_exists(out)) dir_create(out)
 
-chunked_1 <- slice(chunked,-(1:8489))
+chunked_1 <- slice(chunked,-(1:48464))
 
 for (i in unique(chunked_1$chunk)) {
 
@@ -82,7 +78,7 @@ for (i in unique(chunked_1$chunk)) {
   )
 
   # 2. If this chunk matched nothing, move to the next chunk
-  osm_nothing <- nrow(this_result) == 0L
+  osm_nothing <- (is.na(this_result$lat) && is.na(this_result$long))
   if (osm_nothing) next()
 
   # 3. Else, save the result to a .csv file.
@@ -92,7 +88,7 @@ for (i in unique(chunked_1$chunk)) {
 
 company_data_osm <- vroom(dir_ls(out))
 
-company_data_osm <- tidy_europages %>%
+chunked_2 <- chunked_1 %>%
   tidygeocoder::geocode(
     postalcode = postcode,
     country = country,
