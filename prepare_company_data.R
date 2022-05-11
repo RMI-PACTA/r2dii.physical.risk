@@ -70,7 +70,7 @@ out <- path(here(), "output")
 out_2 <- path(here(), "output_2")
 if (!dir_exists(out_2)) dir_create(out_2)
 
-chunked_1 <- slice(chunked,-(1:16124))
+chunked_1 <- slice(chunked,-(1:20485))
 
 for (i in unique(chunked_1$chunk)) {
 
