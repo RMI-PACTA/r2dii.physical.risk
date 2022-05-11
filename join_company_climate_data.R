@@ -18,7 +18,7 @@ source("R/load.R")
 ## TODO : So there is a lot of duplicates. From 4909 after distinct() - goes to 2902 obs. it is not a problem
 ## per say, as long as we then link the lat and long back to their respective companies.
 
-distinct_geo_data <- qread(here("data", "distinct_geo_data.qs"))
+distinct_geo_data <- get_distinct_geo_data()
 
 #this is the geo data from climate analytics, which has only coordinates in it.
 all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data.qs"))

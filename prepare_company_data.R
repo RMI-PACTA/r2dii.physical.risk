@@ -51,7 +51,7 @@ tidy_europages <- europages %>%
 # this will only retrieve postcode that are numbers, hence removing the addresses that
 # does not have any postcodes.
 
-tidy_europages_1<-tidy_europages %>%
+tidy_europages <-tidy_europages %>%
   filter(grepl("[0-9]+", postcode))
 
 ## Change postcodes into coordinates using Open Street Map
@@ -66,14 +66,16 @@ chunked <- tidy_europages %>%
 
 
 out <- path(here(), "output")
-if (!dir_exists(out)) dir_create(out)
 
-chunked_1 <- slice(chunked,-(1:48464))
+out_2 <- path(here(), "output_2")
+if (!dir_exists(out_2)) dir_create(out_2)
+
+chunked_1 <- slice(chunked,-(1:16124))
 
 for (i in unique(chunked_1$chunk)) {
 
   # 1. Pass this chunk's address into the geocode function that convert it into coordinates.
-  this_chunk <- filter(chunked, chunk == i)
+  this_chunk <- filter(chunked_1, chunk == i)
 
   this_result <- this_chunk %>%
     tidygeocoder::geocode(
@@ -87,26 +89,33 @@ for (i in unique(chunked_1$chunk)) {
   if (osm_nothing) next()
 
   # 3. Else, save the result to a .csv file.
-  vroom_write(this_result, path(out, paste0(i, ".csv")))
+  vroom_write(this_result, path(out_2, paste0(i, ".csv")))
 
 }
 
-files <- dir_ls(out)
-
-files_cut <- cut(files)
+files <- dir_ls(out_2)
 
 # split out into different part and then bind rows - could be faster / break problem into chunks
 # write function that takes the path and splits the df into n numbers
 
-list_files <- purrr::map_df(files[101:1000], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
+for (i in getlength(files)) {
+
+  this_list <- purrr::map_df(files[i:i+1000], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
+
+  i <- i+1000
+
+  this_name <- c("company_data",i,".qs")
+
+  qsave(this_list, here("output_osm", this_name))
+}
+
+list_files <- purrr::map_df(files[10382:10383], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
 
 qsave(list_files, here("company_data_100.qs"))
 qsave(list_files, here("company_data_101_1000.qs"))
 qs_files <- dir_ls(here(), regexp = "[.]qs$")
 
-company_data <- purrr::map_df(qs_files, qs::qread)
-
-#FIXME : use cache
+company_data_osm <- purrr::map_df(qs_files, qs::qread)
 
 qsave(company_data_osm, here("data","company_data_osm.qs"))
 

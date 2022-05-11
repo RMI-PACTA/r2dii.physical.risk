@@ -7,7 +7,7 @@ get_distinct_geo_data <- function(name_file = "company_distinct_geo_data.qs") {
 
   # select relevant columns (ideally only those should be in the data actually)
   distinct_geo_data <- distinct_geo_data %>%
-    dplyr::select(longitude, latitude)
+    dplyr::select(longitude, latitude, company_name)
 
   # bind rows of files with geo data
   distinct_geo_data <- distinct_geo_data %>%
