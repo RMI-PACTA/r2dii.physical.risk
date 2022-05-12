@@ -1,0 +1,162 @@
+---
+title: "PR coordinates to climate analytics"
+author: "Linda Delacombaz"
+date: '2022-05-12'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First let us 
+```{r}
+library(r2dii.physical.risk)
+library(dplyr)
+library(tidyr)
+library(tidygeocoder)
+library(pastax.data)
+library(here)
+library(qs)
+library(fs)
+library(vroom)
+library(pak)
+library(tibble)
+
+set.seed(123)
+```
+
+## 1. Prepare company data
+
+We will use three companies as a first demo.
+
+```{r cars}
+three_companies <- dplyr::slice_sample(ep_agriculture_livestock, n = 3)
+```
+
+We then use the address information of the company and use the "|" separator to retrieve the postcode only/
+
+```{r}
+three_companies <-  three_companies %>%
+  tidyr::separate(address, into = c("address", "city", "extra"), sep="\\|", fill = "right")
+
+three_companies$city <- if_else(is.na(three_companies$extra), three_companies$city, three_companies$extra)
+
+three_companies <- three_companies %>%
+  tidyr::separate(city, into = c("city_1","postcode") ,sep = "\\s", remove = FALSE, extra = "drop") %>%
+  dplyr::select(-c("extra", "city_1"))
+
+```
+
+We then pass the postcode into a function called "geocoder", that use Open Street Map to transform the postcode into longitude and latitude coordinates. 
+
+```{r}
+three_companies_with_coordinates <- three_companies %>%
+    tidygeocoder::geocode(
+    postalcode = postcode,
+    country = country,
+    method = "osm"
+  )
+
+three_companies_with_coordinates <- three_companies_with_coordinates %>% 
+  mutate(latitude = lat,
+         longitude = long)
+```
+
+We then transform the data frame into a smaller one that contain the essential information to join with the Climate Analytics data - essentially the company_name (or an unique id), the latitude and longitude.
+
+It also needs an extra transformation that will create a geographical object out of the coordinates - in order to map this correctly with the Climate Analytics geographical data.
+
+```{r}
+distinct_geo_data <- three_companies_with_coordinates %>%
+    dplyr::select(longitude, latitude, company_name)
+
+# create sf data frame based on longitude and latitude
+distinct_geo_data <- sf::st_as_sf(distinct_geo_data, coords = c("longitude", "latitude"))
+
+# assign crs to enable intersecting
+sf::st_crs(distinct_geo_data) <- 4326
+
+```
+
+## 2. Join the company data with Climate Analytics
+
+Here I load all the Climate Analytics data, that has only the geographical object informations. (Meaning - only the regions that has been shaped into a "square" to re-create the mapping)
+
+```{r}
+all_data_distinct_geo_data <- qread(here("data", "all_data_distinct_geo_data.qs"))
+```
+
+Now that we have the geographical coordinates in common, all we have to do is joining the company_data with the Climate Analytics one;
+
+```{r}
+company_climate_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
+```
+
+We can already see that one of the company did not join to any of the Climate Analytics data. (TBD : coverage of Climate Analytics with the regions).
+
+We then want to have this linked to the Climate Analytics information, so we have to transform the geographical object back into a data frame.
+
+```{r}
+company_climate_data<- company_climate_data %>%
+  filter(!is.na(geometry_id))
+
+company_climate_data_geometry <- company_climate_data %>%
+  select(geometry)
+
+scenario_geometry <- company_climate_data %>%
+  sf::st_drop_geometry() %>%
+  sf::st_as_sf(coords = c("long", "lat")) %>%
+  select(geometry)
+
+sf::st_crs(scenario_geometry) <- 4326
+
+company_climate_data$dist <- sf::st_distance(
+  company_climate_data_geometry,
+  scenario_geometry,
+  by_element = TRUE
+)
+
+company_climate_data <- company_climate_data %>%
+  sf::st_drop_geometry() %>%
+  select(company_name, geometry_id)
+
+```
+
+I load here the Climate Analytics - but with all the information : so region, hazard, scenario, period ...
+
+```{r}
+all_data_climate_analytics <- qread(here("data/all_data.qs"))
+```
+
+Then we join all the data from Climate Analytics to what we have joined, to have the full information again : our company data, along with the hazards mapped to these companies.
+
+```{r}
+company_climate_data_joined <- company_climate_data %>%
+  left_join(
+    all_data_climate_analytics %>%
+      mutate(geometry_id = as.character(geometry_id)),
+    by = c("geometry_id")
+  )
+
+company_climate_data_joined <- company_climate_data_joined %>%
+  transmute(
+    provider,
+    hazard,
+    scenario,
+    period,
+    is_reference_period = FALSE,
+    model,
+    relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
+    risk_level = NA,
+    reference = NA,
+    absolute_change = NA,
+    geometry_id
+  )
+```
+
+So we have now the company name linked to the hazards retrieved from Climate Analytics.
+
+```{r}
+company_climate_data_joined[1,]
+```
