@@ -2,14 +2,14 @@
 title: "PR coordinates to climate analytics"
 author: "Linda Delacombaz"
 date: '2022-05-12'
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-First let us 
+
 ```{r}
 library(r2dii.physical.risk)
 library(dplyr)
@@ -26,7 +26,14 @@ library(tibble)
 set.seed(123)
 ```
 
+This is a first draft of the methodology of transforming and join the companies scraped data to the Climate Analytics data, in order to have our companies information linked to climate risks data (hazards, period, scenario, ...)
+
+Climate Analytics is a non-profit organization that provides open source, interactive tools of climate changes data. (E.g We can explore on their website how climate impacts will play out over time at current emissions reductions levels and in other policy relevant scenarios, and how they will affect different areas of the selected country or province at different levels of warming).
+
+
 ## 1. Prepare company data
+
+This first part is to prepare the scraped data from Europages to a format that will enable us to join our information (company-level) to the Climate Analytics data, based on its location.
 
 We will use three companies as a first demo.
 
@@ -34,7 +41,7 @@ We will use three companies as a first demo.
 three_companies <- dplyr::slice_sample(ep_agriculture_livestock, n = 3)
 ```
 
-We then use the address information of the company and use the "|" separator to retrieve the postcode only/
+We then use the address column of the company and use the "|" separator to retrieve the postcode only.
 
 ```{r}
 three_companies <-  three_companies %>%
@@ -81,21 +88,21 @@ sf::st_crs(distinct_geo_data) <- 4326
 
 ## 2. Join the company data with Climate Analytics
 
-Here I load all the Climate Analytics data, that has only the geographical object informations. (Meaning - only the regions that has been shaped into a "square" to re-create the mapping)
+Here I load all the Climate Analytics data, that has only the geographical object informations. (Meaning - only the regions that has been shaped into a "square" to re-create a map).
 
 ```{r}
 all_data_distinct_geo_data <- qread(here("data", "all_data_distinct_geo_data.qs"))
 ```
 
-Now that we have the geographical coordinates in common, all we have to do is joining the company_data with the Climate Analytics one;
+Now that we have the geographical coordinates in common, all we have to do is joining the company_data with the Climate Analytics one : we search if our company's location (a point) is within the map (squares) created by the coordinates of Climate Analytics. 
 
 ```{r}
 company_climate_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
 ```
 
-We can already see that one of the company did not join to any of the Climate Analytics data. (TBD : coverage of Climate Analytics with the regions).
+We can see that sometimes, one or several of the companies did not join to any of the Climate Analytics data. (TBD : coverage of Climate Analytics with the regions when st::join()).
 
-We then want to have this linked to the Climate Analytics information, so we have to transform the geographical object back into a data frame.
+We then want to have this linked to the all Climate Analytics information (scenario, hazards, year,...), so we have to transform the geographical object back into a data frame.
 
 ```{r}
 company_climate_data<- company_climate_data %>%
@@ -142,12 +149,13 @@ company_climate_data_joined <- company_climate_data %>%
 company_climate_data_joined <- company_climate_data_joined %>%
   transmute(
     provider,
+    company_name,
     hazard,
     scenario,
     period,
     is_reference_period = FALSE,
     model,
-    relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
+    relative_change = risk_level,
     risk_level = NA,
     reference = NA,
     absolute_change = NA,
