@@ -11,17 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-library(r2dii.physical.risk)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(tidygeocoder)
-library(pastax.data)
 library(here)
-library(qs)
 library(fs)
 library(vroom)
-library(pak)
-library(tibble)
+library(qs)
+library(r2dii.physical.risk)
+library(pastax.data)
 
 set.seed(123)
 ```
