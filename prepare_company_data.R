@@ -2,7 +2,7 @@ library(r2dii.physical.risk)
 library(dplyr)
 library(tidyr)
 library(tidygeocoder)
-library(pastax.data)
+library(tilt)
 library(here)
 library(qs)
 library(fs)
@@ -10,9 +10,9 @@ library(vroom)
 library(pak)
 library(tibble)
 
-## re-install pastax.data regularly to be in sync with Mauro's updates
+## re-install tilt regularly to be in sync with Mauro's updates
 
-# remove.packages("pastax.data")
+# remove.packages("tilt")
 # create_github_token()
 # gitcreds::gitcreds_set()
 # pak::pkg_install("2DegreesInvesting/pastax.data")
@@ -29,26 +29,42 @@ library(tibble)
 
 ## 1. IMPORT - download the data from europages, from the package pastax.data
 
-europages <- pastax.data::ep_agriculture_livestock
+europages <- tilt::ep()
 
 ## 2. TRANSFORM- separate the address into two parts, with the | separator
 ## if there are several "|" or un-consistencies, I put them in the column called "extra"
 
-europages <-  europages %>%
-  tidyr::separate(address, into = c("address", "city", "extra"), sep="\\|", fill = "right")
+sep_europages <-  europages %>%
+  mutate(for_postcode = europages$address) %>%
+  tidyr::separate(for_postcode, into = c("address_for_postcode", "city_1", "extra"), sep="\\|", fill = "right")
 
-europages$city <- if_else(is.na(europages$extra), europages$city, europages$extra)
+sep_europages <- sep_europages %>%
+  mutate(city_1 = if_else(is.na(sep_europages$extra), sep_europages$city_1, sep_europages$extra))
 
-europages <- europages %>%
-  tidyr::separate(city, into = c("city_1","postcode") ,sep = "\\s", remove = FALSE, extra = "drop") %>%
-  dplyr::select(-c("extra", "city_1"))
+sep_europages <- sep_europages %>%
+  tidyr::separate(city_1, into = c("city_2","postcode") ,sep = "\\s", remove = FALSE, extra = "drop") %>%
+  dplyr::select(-c("extra", "city_1", "city_2", "address_for_postcode")) %>%
+  dplyr::relocate(postcode, .after = address)
 
-## 1. TIDY - remove non-existent or obsolete postcodes
+## FIXME : for the NA's postcodes, there are some addresses that does not have the | separator (e.g "21910 saulon la chapelle)
 
-tidy_europages <- europages %>%
+nas_postcodes <- sep_europages %>%
+  mutate(address_nas = sep_europages$address) %>%
+  filter(is.na(postcode)) %>%
+  tidyr::separate(address_nas, into = c("postcode_2","city_3") ,sep = "\\s", remove = FALSE, extra = "drop")
+
+sep_europages_test <- sep_europages %>%
+  left_join(nas_postcodes) %>%
+  mutate(postcode = if_else(is.na(postcode), postcode_2, postcode)) %>%
+  select(-c(postcode_2, city_3))
+
+
+## 1. TIDY - remove non-existent (five of them does not have addresses) or obsolete postcodes
+
+tidy_europages <- sep_europages_test %>%
   filter(!is.na(postcode))
 
-# this will only retrieve postcode that are numbers, hence removing the addresses that
+# This will only retrieve postcode that are numbers, hence removing the addresses that
 # does not have any postcodes.
 
 tidy_europages <-tidy_europages %>%
@@ -59,20 +75,17 @@ tidy_europages <-tidy_europages %>%
 
 # company_data_osm <- qread("data/company_data_osm.qs")
 
-#chunk the data set row by row
-chunks <- nrow(tidy_europages)
+#chunk the data set
+
+chunks <- 5000
 chunked <- tidy_europages %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
 
-
 out <- path(here(), "output")
 
-out_2 <- path(here(), "output_2")
-if (!dir_exists(out_2)) dir_create(out_2)
+if (!dir_exists(out)) dir_create(out)
 
-chunked_1 <- slice(chunked,-(1:20485))
-
-for (i in unique(chunked_1$chunk)) {
+for (i in unique(chunked$chunk)) {
 
   # 1. Pass this chunk's address into the geocode function that convert it into coordinates.
   this_chunk <- filter(chunked_1, chunk == i)
@@ -93,7 +106,7 @@ for (i in unique(chunked_1$chunk)) {
 
 }
 
-files <- dir_ls(out_2)
+files <- dir_ls(out)
 
 # split out into different part and then bind rows - could be faster / break problem into chunks
 # write function that takes the path and splits the df into n numbers
@@ -106,7 +119,7 @@ for (i in getlength(files)) {
 
   this_name <- c("company_data",i,".qs")
 
-  qsave(this_list, here("output_osm", this_name))
+  qsave(this_list, here("output_company_data", this_name))
 }
 
 list_files <- purrr::map_df(files[10382:10383], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
