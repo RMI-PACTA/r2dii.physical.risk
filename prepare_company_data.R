@@ -77,18 +77,22 @@ tidy_europages <-tidy_europages %>%
 
 #chunk the data set
 
-chunks <- 5000
-chunked <- tidy_europages %>%
+unique_postcode <- tidy_europages %>%
+  select(postcode, country) %>%
+  distinct()
+
+chunks <- 500
+chunked <- unique_postcode %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
 
-out <- path(here(), "output")
+out <- path(here(), "output_osm")
 
 if (!dir_exists(out)) dir_create(out)
 
 for (i in unique(chunked$chunk)) {
 
-  # 1. Pass this chunk's address into the geocode function that convert it into coordinates.
-  this_chunk <- filter(chunked_1, chunk == i)
+  # 1. Pass this chunk's address into the geocode function that convert it into lat and long coordinates.
+  this_chunk <- filter(chunked, chunk == i)
 
   this_result <- this_chunk %>%
     tidygeocoder::geocode(
@@ -97,12 +101,8 @@ for (i in unique(chunked$chunk)) {
     method = "osm"
   )
 
-  # 2. If this chunk converted nothing, move to the next chunk
-  osm_nothing <- (is.na(this_result$lat) && is.na(this_result$long))
-  if (osm_nothing) next()
-
-  # 3. Else, save the result to a .csv file.
-  vroom_write(this_result, path(out_2, paste0(i, ".csv")))
+  # 2. Save the results to a .csv file.
+  vroom_write(this_result, path(out, paste0(i, ".csv")))
 
 }
 
@@ -111,22 +111,20 @@ files <- dir_ls(out)
 # split out into different part and then bind rows - could be faster / break problem into chunks
 # write function that takes the path and splits the df into n numbers
 
-for (i in getlength(files)) {
+output_path <- here("ouput_company_data")
 
-  this_list <- purrr::map_df(files[i:i+1000], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
+for (i in seq(length(files))) {
 
-  i <- i+1000
+  this_list <- purrr::map_df(files[i:i+10], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
 
-  this_name <- c("company_data",i,".qs")
+  i <- i+10
 
-  qsave(this_list, here("output_company_data", this_name))
+  this_name <- paste0("company_data_",i,".qs")
+
+  qsave(this_list, path(output_path, this_name))
 }
 
-list_files <- purrr::map_df(files[10382:10383], ~readr::read_tsv(.,col_types = list(postcode = col_double())))
-
-qsave(list_files, here("company_data_100.qs"))
-qsave(list_files, here("company_data_101_1000.qs"))
-qs_files <- dir_ls(here(), regexp = "[.]qs$")
+qs_files <- dir_ls(output_path, regexp = "[.]qs$")
 
 company_data_osm <- purrr::map_df(qs_files, qs::qread)
 
