@@ -15,7 +15,7 @@ library(tibble)
 # remove.packages("tilt")
 # create_github_token()
 # gitcreds::gitcreds_set()
-# pak::pkg_install("2DegreesInvesting/pastax.data")
+# pak::pkg_install("2DegreesInvesting/tilt@*release")
 
 
 ## This script will prepare the data scraped from public data sources, like for e.g Europages or Kompass.
@@ -31,11 +31,17 @@ library(tibble)
 
 europages <- tilt::ep()
 
+sep_europages <- europages %>%
+  mutate(unique_id_per_row = row_number()) %>%
+  group_by(company_name, address) %>%
+  mutate(unique_id_per_company = cur_group_id()) %>%
+  ungroup()
+
 ## 2. TRANSFORM- separate the address into two parts, with the | separator
 ## if there are several "|" or un-consistencies, I put them in the column called "extra"
 
-sep_europages <-  europages %>%
-  mutate(for_postcode = europages$address) %>%
+sep_europages <-  sep_europages %>%
+  mutate(for_postcode = address) %>%
   tidyr::separate(for_postcode, into = c("address_for_postcode", "city_1", "extra"), sep="\\|", fill = "right")
 
 sep_europages <- sep_europages %>%
@@ -46,20 +52,26 @@ sep_europages <- sep_europages %>%
   dplyr::select(-c("extra", "city_1", "city_2", "address_for_postcode")) %>%
   dplyr::relocate(postcode, .after = address)
 
+sep_europages <- qread(here("data/sep_europages.qs"))
+
 ## FIXME : for the NA's postcodes, there are some addresses that does not have the | separator (e.g "21910 saulon la chapelle)
 
 nas_postcodes <- sep_europages %>%
-  mutate(address_nas = sep_europages$address) %>%
-  filter(is.na(postcode)) %>%
+  filter(is.na(postcode) & !is.na(address)) %>%
+  mutate(address_nas = address) %>%
   tidyr::separate(address_nas, into = c("postcode_2","city_3") ,sep = "\\s", remove = FALSE, extra = "drop")
 
 sep_europages_test <- sep_europages %>%
   left_join(nas_postcodes) %>%
   mutate(postcode = if_else(is.na(postcode), postcode_2, postcode)) %>%
-  select(-c(postcode_2, city_3))
+  select(-c(postcode_2, city_3, address_nas))
 
 
 ## 1. TIDY - remove non-existent (five of them does not have addresses) or obsolete postcodes
+
+no_addresses <- sep_europages %>%
+  select(address) %>%
+  filter(is.na(address))
 
 tidy_europages <- sep_europages_test %>%
   filter(!is.na(postcode))
@@ -70,8 +82,11 @@ tidy_europages <- sep_europages_test %>%
 tidy_europages <-tidy_europages %>%
   filter(grepl("[0-9]+", postcode))
 
+tidy_europages <- tidy_europages %>%
+  mutate(postcode = as.numeric(postcode))
+
 ## Change postcodes into coordinates using Open Street Map
-## It is a very slow process, can take up to 8 hours passing row by row the addresses.
+## It is a slow process, can take up to 6 hours passing row by row the addresses.
 
 # company_data_osm <- qread("data/company_data_osm.qs")
 
@@ -81,7 +96,7 @@ unique_postcode <- tidy_europages %>%
   select(postcode, country) %>%
   distinct()
 
-chunks <- 500
+chunks <- 150
 chunked <- unique_postcode %>%
   mutate(chunk = as.integer(cut(row_number(), chunks)))
 
@@ -111,6 +126,8 @@ files <- dir_ls(out)
 # split out into different part and then bind rows - could be faster / break problem into chunks
 # write function that takes the path and splits the df into n numbers
 
+#FIXME : the for loop does not read every files
+
 output_path <- here("ouput_company_data")
 
 for (i in seq(length(files))) {
@@ -124,11 +141,17 @@ for (i in seq(length(files))) {
   qsave(this_list, path(output_path, this_name))
 }
 
+this_list <- purrr::map_df(files, ~readr::read_tsv(.,col_types = list(postcode = col_double())))
+
+# qsave(this_list, path(output_path, "company_data.qs"))
+
+qs_files <- dir_ls(output_path, regexp = "company_data.qs")
+
 qs_files <- dir_ls(output_path, regexp = "[.]qs$")
 
 company_data_osm <- purrr::map_df(qs_files, qs::qread)
 
-qsave(company_data_osm, here("data","company_data_osm.qs"))
+# qsave(company_data_osm, here("data","company_data_osm.qs"))
 
 company_data_osm <- qread("data/company_data_osm.qs")
 
@@ -141,14 +164,24 @@ company_data <- company_data_osm %>%
     has_geo_data = dplyr::case_when(
       is.na(latitude) | is.na(longitude) ~ FALSE,
       TRUE ~ TRUE
-    )
-  )
+    ))
 
 ## create new data with only the latitude and longitude with a company_id
 
-distinct_company_data <- company_data %>%
-  dplyr::filter(has_geo_data == TRUE) %>%
-  dplyr::select(latitude, longitude, company_name)
+##FIXME : DUPLICATES because of the joining : several companies have same postcode and cities ???
+## Try with fewer rows to see what is happening there -> start with mock data set and see whats happening
+
+companies <- tidy_europages %>%
+  select(company_name, country, postcode) %>%
+  distinct()
+
+distinct_company_data <- companies %>%
+  left_join(company_data, by = c("country", "postcode")) %>%
+  dplyr::select(latitude, longitude, company_name, has_geo_data) %>%
+  filter(has_geo_data == TRUE)
+
+## coverage of 100 - 9.5 % = 90.5 %
+coverage <- (nrow(companies) - nrow(distinct_company_data))/nrow(companies)
 
 ## save the data
 qsave(distinct_company_data, here("data", "company_distinct_geo_data.qs"))

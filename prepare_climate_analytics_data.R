@@ -9,9 +9,9 @@ library(here)
 
 #distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
-distinct_geo_data <- qread(here("data", "distinct_geo_data.qs"))
+# distinct_geo_data <- qread(here("data", "company_distinct_geo_data.qs"))
 
-#distinct_geo_data <- get_distinct_geo_data()
+distinct_geo_data <- get_distinct_geo_data()
 
 # =================================
 # load list of all countries iso codes
@@ -170,8 +170,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
       # prep sumamry of parameter information
       summary <- summary %>%
-        #tidyr::pivot_wider(id_cols = "v2", names_from = "v1", values_from = "v2") %>%
         tidyr::pivot_wider(names_from = "v1", values_from = "v2") %>%
+        # tidyr::pivot_wider(id_cols = "v2", names_from = "v1", values_from = "v2") %>%
         janitor::clean_names(case = "snake")
 
       # kickout rows which contain parameter information
@@ -257,8 +257,8 @@ for (sub_indicator in unique(api_paramter$indicator)) {
           scenario == "h_cpol" ~ "ngfs_current_policies",
           scenario == "d_delfrag" ~ "ngfs_delayed_2_degrees",
           scenario == "o_1p5c" ~ "ngfs_net_zero",
-          #TRUE ~ == scenario,
-          TRUE ~ as.character(scenario)
+          TRUE ~ scenario,
+          # TRUE ~ as.character(scenario)
         ),
         model = "Ensemble", # to many models -> just say ensemble
         provider = "ClimateAnalytics"
@@ -288,10 +288,11 @@ for (sub_indicator in unique(api_paramter$indicator)) {
       sf::st_as_sf(coords = c("duplicate_long", "duplicate_lat"))
 
     # hash geometry
+
     all_data <- all_data %>%
       dplyr::mutate(geometry_id = openssl::md5(as.character(geometry)))
 
-    qsave(all_data, here("data", "all_data.qs"))
+    all_data <- qread(here("data", "cat_current_pol_climate_data.qs"))
 
     # create sf data frame based on longitude and latitude
     all_data_distinct_geo_data <- all_data %>%
@@ -341,12 +342,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
   all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
-  qsave(all_data_distinct_geo_data, here("data","all_data_distinct_geo_data.qs"))
-
-  all_data_distinct_geo_data<- qread(here("data","all_data_distinct_geo_data.qs"))
-
-  all_data <-qread(here("data","all_data.qs"))
-
+  qsave(all_data_distinct_geo_data, here("data","cat_current_policies_all_data_distinct_geo_data.qs"))
 
     #--------
     #to get the points that falls into the polygons created before
@@ -386,7 +382,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
     asset_scenario_data <- asset_scenario_data %>%
       transmute(
-        asset_id,
+        # asset_id,
         provider,
         hazard,
         scenario,
@@ -402,29 +398,30 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
 
     # save data
-    asset_scenario_data %>%
-      r2dii.physical.risk:::save_climate_data(
-        path_db_pr_climate_data = path_db_pr_climate_data,
-        use_distinct_for_assets_between_two_rasters = TRUE,
-        drop_any_NAs = FALSE
-      )
+    # asset_scenario_data %>%
+    #   r2dii.physical.risk:::save_climate_data(
+    #     # path_db_pr_climate_data = path_db_pr_climate_data,
+    #     path_db_pr_climate_data = here("data", "asset_scenario_data.qs"),
+    #     use_distinct_for_assets_between_two_rasters = TRUE,
+    #     drop_any_NAs = FALSE
+    #   )
 
     # save downloaded all data
-    all_data %>%
-      r2dii.physical.risk:::for_loops_climate_data(
-        #parent_path = fs::path(path_db_pr_climate_data_raw),
-        parent_path = fs::path("/Users/linda/Dropbox (2° Investing)/PortCheck/00_Data/01_ProcessedData/08_RiskData/climate_data/ClimateAnalytics_company_level"),
-        fns = function(data, final_path) {
-          readr::write_csv(
-            data,
-            fs::path(
-              final_path,
-              paste(scenario_sub, hazard_sub, model_sub, period_sub, sep = "_"),
-              ext = "csv"
-              )
-          )
-        }
-      )
+    # all_data %>%
+    #   r2dii.physical.risk:::for_loops_climate_data(
+    #     #parent_path = fs::path(path_db_pr_climate_data_raw),
+    #     parent_path = fs::path(here("data", "all_climate_data.qs")),
+    #     fns = function(data, final_path) {
+    #       readr::write_csv(
+    #         data,
+    #         fs::path(
+    #           final_path,
+    #           paste(scenario_sub, hazard_sub, model_sub, period_sub, sep = "_"),
+    #           ext = "csv"
+    #           )
+    #       )
+    #     }
+    #   )
 
     # determine the end time
     end_time <- Sys.time()

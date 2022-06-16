@@ -103,7 +103,6 @@ path_db_datastore_export <- fs::path(
 # PACTA project path
 pacta_project <- "IDB_Chile_Linda"
 
-
 path_db_pacta_project <- fs::path(
   r2dii.utils::dbox_port2_10proj(),
   pacta_project
@@ -227,41 +226,41 @@ climate_data <- r2dii.physical.risk:::load_climate_data(
 
     # climate analytics data
     list(
-      data_path = fs::path(path_db_pr_climate_data, "ClimateAnalytics"), # from which data provider do you want to load climate data?
-      run_prepare_script_before_loading = FALSE, # do you want to prepare it beforehand?
+      data_path = fs::path(here(), "ClimateAnalytics"), # from which data provider do you want to load climate data?
+      run_prepare_script_before_loading = TRUE, # do you want to prepare it beforehand?
       prepare_script_path = "prepare_climate_analytics_data.R", # where does the preparation script lie?
       load_data = TRUE, # do you ultimately want to load the climate data of this source?
 
-      # parameters can differ for each provider, scenrio, hazard, model and time period (if NULL, all elements of a parameter are used)
+      # parameters can differ for each provider, scenario, hazard, model and time period (if NULL, all elements of a parameter are used)
       parameter = list(
-        scenarios = "rcp",
+        scenarios = "cat",
         hazards = c(
-          "tasAdjust" # air temperature
-          #"tasminAdjust", # daily minimum air temperature
-          # "tasmaxAdjust", # daily maximum air temperature
-          #"prAdjust" # precipitation
-          #"hursAdjust", # relative humidity
-          #"prsnAdjust", # snowfall
-          #"hussAdjust", # specific humidity
-          # "sfcWindAdjust", # wind speed
-          #"ec4", # 1-in-100-year expected damage from tropical cyclones
-          #"ec2", # annual expected damage from river floods
-          #"ec3", # annual expected damage from tropical cyclones
-          #"ec1", # labour productivity due to heat stress
-          #"lec", # land fraction annually exposed to crop failures
-          # "leh", # land fraction annually exposed to heat waves
-          # "fldfrc", # land fraction annually exposed to river floods
-          # "lew", # land fraction annually exposed to wild fires,
-          # "flddph" # river flood depth
-          #"maxdis", # maximum daily river discharge
-          #"mindis", # minimum daily river discharge
-          #"dis", # river discharge
-          #"qs" # surface runoff
+          "tasAdjust", # air temperature
+          "tasminAdjust", # daily minimum air temperature
+          "tasmaxAdjust", # daily maximum air temperature
+          "prAdjust", # precipitation
+          "hursAdjust", # relative humidity
+          "prsnAdjust", # snowfall
+          "hussAdjust", # specific humidity
+          "sfcWindAdjust", # wind speed
+          "ec4", # 1-in-100-year expected damage from tropical cyclones
+          "ec2", # annual expected damage from river floods
+          "ec3", # annual expected damage from tropical cyclones
+          "ec1", # labour productivity due to heat stress
+          "lec", # land fraction annually exposed to crop failures
+          "leh", # land fraction annually exposed to heat waves
+          "fldfrc", # land fraction annually exposed to river floods
+          "lew", # land fraction annually exposed to wild fires,
+          "flddph", # river flood depth
+          "maxdis", # maximum daily river discharge
+          "mindis", # minimum daily river discharge
+          "dis", # river discharge
+          "qs" # surface runoff
         ),
         models = NULL,
         periods = c(
-          #"2030",
-          #"2050",
+          "2030",
+          "2050",
           "2100"
         )
       )
@@ -281,9 +280,10 @@ climate_data <- climate_data %>%
     is_reference_period,
     risk_level,
     absolute_change,
-    relative_change,
-    asset_id
+    relative_change
     )
+
+qsave(climate_data, here("data", "climate_data_cat.qs"))
 
 # =================================
 # load portfolio

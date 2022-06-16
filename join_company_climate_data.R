@@ -15,15 +15,12 @@ source("R/load.R")
 
 ## 1. IMPORT - from two functions that will get climate and company datasets
 
-## TODO : So there is a lot of duplicates. From 4909 after distinct() - goes to 2902 obs. it is not a problem
-## per say, as long as we then link the lat and long back to their respective companies.
-
-distinct_geo_data <- get_distinct_geo_data()
+distinct_geo_data <- get_distinct_geo_data("cat_current_pol_climate_data.qs")
 
 #this is the geo data from climate analytics, which has only coordinates in it.
-all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data.qs"))
+all_data_distinct_geo_data <- qs::qread(here("data", "cat_current_policies_all_data_distinct_geo_data.qs"))
 
-#joining the climate analytics data with the geo data from the smes - this is where I have the message error
+#joining the climate analytics data with the geo data from the smes
 
 asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
 
@@ -48,10 +45,11 @@ asset_scenario_data$dist <- sf::st_distance(
 
 asset_scenario_data <- asset_scenario_data %>%
   sf::st_drop_geometry() %>%
-  select(geometry_id)
+  select(geometry_id, company_name)
 #select(asset_id, geometry_id)
 
-all_data <- qread(here("data/all_data.qs"))
+
+all_data <- qread(here("data/cat_current_pol_climate_data.qs"))
 
 asset_scenario_data <- asset_scenario_data %>%
   left_join(
@@ -62,6 +60,7 @@ asset_scenario_data <- asset_scenario_data %>%
 
 asset_scenario_data <- asset_scenario_data %>%
   transmute(
+    company_name,
     provider,
     hazard,
     scenario,
@@ -77,11 +76,11 @@ asset_scenario_data <- asset_scenario_data %>%
 
 # save data
 
-qsave(asset_scenario_data, here("data", "asset_scenario_data.qs"))
+qsave(asset_scenario_data, here("data", "joined_climate_company_data.qs"))
 
-asset_scenario_data %>%
-  r2dii.physical.risk:::save_climate_data(
-    path_db_pr_climate_data = path_db_pr_climate_data,
-    use_distinct_for_assets_between_two_rasters = TRUE,
-    drop_any_NAs = FALSE
-  )
+# asset_scenario_data %>%
+#   r2dii.physical.risk:::save_climate_data(
+#     path_db_pr_climate_data = path_db_pr_climate_data,
+#     use_distinct_for_assets_between_two_rasters = TRUE,
+#     drop_any_NAs = FALSE
+#   )
