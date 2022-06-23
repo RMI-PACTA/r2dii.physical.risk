@@ -15,10 +15,16 @@ source("R/load.R")
 
 ## 1. IMPORT - from two functions that will get climate and company datasets
 
-distinct_geo_data <- get_distinct_geo_data("cat_current_pol_climate_data.qs")
+distinct_geo_data <- get_distinct_geo_data()
 
 #this is the geo data from climate analytics, which has only coordinates in it.
-all_data_distinct_geo_data <- qs::qread(here("data", "cat_current_policies_all_data_distinct_geo_data.qs"))
+
+# qs_files <- dir_ls(here("data", "all_data"), regexp = "[.]qs$")
+# all_data <- purrr::map_df(qs_files, qs::qread)
+
+all_data <- qread(here("data", "all_data_PR.qs"))
+
+all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data_PR.qs"))
 
 #joining the climate analytics data with the geo data from the smes
 
@@ -45,11 +51,9 @@ asset_scenario_data$dist <- sf::st_distance(
 
 asset_scenario_data <- asset_scenario_data %>%
   sf::st_drop_geometry() %>%
-  select(geometry_id, company_name)
+  select(geometry_id, company_name, id)
 #select(asset_id, geometry_id)
 
-
-all_data <- qread(here("data/cat_current_pol_climate_data.qs"))
 
 asset_scenario_data <- asset_scenario_data %>%
   left_join(
@@ -61,6 +65,7 @@ asset_scenario_data <- asset_scenario_data %>%
 asset_scenario_data <- asset_scenario_data %>%
   transmute(
     company_name,
+    id,
     provider,
     hazard,
     scenario,
@@ -76,7 +81,9 @@ asset_scenario_data <- asset_scenario_data %>%
 
 # save data
 
-qsave(asset_scenario_data, here("data", "joined_climate_company_data.qs"))
+# qsave(asset_scenario_data, here("data", "asset_scenario_data.qs"))
+
+asset_scenario_data <- qread(here("data", "asset_scenario_data.qs"))
 
 # asset_scenario_data %>%
 #   r2dii.physical.risk:::save_climate_data(
@@ -84,3 +91,47 @@ qsave(asset_scenario_data, here("data", "joined_climate_company_data.qs"))
 #     use_distinct_for_assets_between_two_rasters = TRUE,
 #     drop_any_NAs = FALSE
 #   )
+
+# PR hazards of interest
+
+## ECONOMIC DAMAGES
+
+economic_damages <- c(
+  "ec4", # 1-in-100-year expected damage from tropical cyclones
+  "ec2", # annual expected damage from river floods
+  "ec3", # annual expected damage from tropical cyclones
+  "ec1" # labour productivity due to heat stress
+)
+
+all_data_economic_damages <- all_data |>
+  filter(hazard %in% economic_damages)
+
+PR_economic_damages <- asset_scenario %>%
+  filter(hazard %in% economic_damages)
+
+freshwater <- c(
+  "maxdis", # maximum daily river discharge
+  "mindis", # minimum daily river discharge
+  "dis", # river discharge
+  "qs" # surface runoff
+)
+
+PR_freshwater <- asset_scenario_data %>%
+  filter(hazard %in% freshwater)
+
+agriculture <- c(
+  "yield_rice_co2",
+  "soilmoist",
+  "yield_soy_co2",
+  "yield_wheat_co2"
+)
+
+PR_agriculture <- asset_scenario_data %>%
+  filter(hazard %in% agriculture)
+
+
+#38490 companies out of 100534 have agriculture hazards information
+companies_agriculture <- PR_agriculture |>
+  distinct(company_name)
+
+

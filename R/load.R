@@ -1,4 +1,62 @@
-#for PASTAX project
+#for TILT project
+get_asset_scenario_data <- function(distinct_geo_data, all_data_distinct_geo_data) {
+
+  asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
+
+  asset_scenario_data <- asset_scenario_data %>%
+    filter(!is.na(geometry_id))
+
+  asset_geometry <- asset_scenario_data %>%
+    select(geometry)
+
+  scenario_geometry <- asset_scenario_data %>%
+    sf::st_drop_geometry() %>%
+    sf::st_as_sf(coords = c("long", "lat")) %>%
+    select(geometry)
+
+  sf::st_crs(scenario_geometry) <- 4326
+
+  asset_scenario_data$dist <- sf::st_distance(
+    asset_geometry,
+    scenario_geometry,
+    by_element = TRUE
+  )
+
+  asset_scenario_data <- asset_scenario_data %>%
+    sf::st_drop_geometry() %>%
+    select(geometry_id, company_name, id)
+  #select(asset_id, geometry_id)
+
+
+  asset_scenario_data <- asset_scenario_data %>%
+    left_join(
+      all_data %>%
+        mutate(geometry_id = as.character(geometry_id)),
+      by = c("geometry_id")
+    )
+
+  asset_scenario_data <- asset_scenario_data %>%
+    transmute(
+      company_name,
+      id,
+      provider,
+      hazard,
+      scenario,
+      period,
+      is_reference_period = FALSE,
+      model,
+      relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
+      risk_level = NA,
+      reference = NA,
+      absolute_change = NA,
+      geometry_id
+    )
+
+
+  return(asset_scenario_data)
+
+}
+
 get_distinct_geo_data <- function(name_file = "company_distinct_geo_data.qs") {
 
   #how to pass name_file to qread ?
@@ -7,7 +65,7 @@ get_distinct_geo_data <- function(name_file = "company_distinct_geo_data.qs") {
 
   # select relevant columns (ideally only those should be in the data actually)
   distinct_geo_data <- distinct_geo_data %>%
-    dplyr::select(longitude, latitude, company_name)
+    dplyr::select(longitude, latitude, company_name, id)
 
   # bind rows of files with geo data
   distinct_geo_data <- distinct_geo_data %>%

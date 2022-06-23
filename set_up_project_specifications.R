@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(sf)
+library(here)
 library(r2dii.physical.risk)
 
 # =================================
@@ -233,16 +234,21 @@ climate_data <- r2dii.physical.risk:::load_climate_data(
 
       # parameters can differ for each provider, scenario, hazard, model and time period (if NULL, all elements of a parameter are used)
       parameter = list(
-        scenarios = "cat",
+        scenarios = c("cat", "ngfs", "rcp"),
         hazards = c(
-          "tasAdjust", # air temperature
-          "tasminAdjust", # daily minimum air temperature
-          "tasmaxAdjust", # daily maximum air temperature
-          "prAdjust", # precipitation
-          "hursAdjust", # relative humidity
-          "prsnAdjust", # snowfall
-          "hussAdjust", # specific humidity
-          "sfcWindAdjust", # wind speed
+          # "tasAdjust", # air temperature
+          # "tasminAdjust", # daily minimum air temperature
+          # "tasmaxAdjust", # daily maximum air temperature
+          # "prAdjust", # precipitation
+          # "hursAdjust", # relative humidity
+          # "prsnAdjust", # snowfall
+          # "hussAdjust", # specific humidity
+          # "sfcWindAdjust", # wind speed
+          "yield_maize_co2",
+          "yield_rice_co2",
+          "soilmoist",
+          "yield_soy_co2",
+          "yield_wheat_co2",
           "ec4", # 1-in-100-year expected damage from tropical cyclones
           "ec2", # annual expected damage from river floods
           "ec3", # annual expected damage from tropical cyclones

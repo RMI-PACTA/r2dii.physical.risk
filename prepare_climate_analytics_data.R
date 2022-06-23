@@ -1,7 +1,14 @@
 library(r2dii.physical.risk)
-library(sf)
-library(qs)
+library(dplyr)
+library(tidyr)
+library(tidygeocoder)
+library(tilt)
 library(here)
+library(qs)
+library(sf)
+library(fs)
+library(vroom)
+source("R/load.R")
 
 # =================================
 # load distinct_geo_data which will subset the raw climate data
@@ -28,33 +35,42 @@ all_countries <- rworldmap::countryRegions %>%
 # cross parameters
 api_paramter <- tidyr::crossing(
   region = c(
+    "DEU",
+    "FRA",
+    "ESP",
+    "AUT"
     # all_countries, # explodes number of parameters but single regions have higher resolution
-    "AFRICA",
-    "EUROPE",
-    "NORTH_AMERICA",
-    "SOUTH_AMERICA",
-    "ASIA",
-    "OCEANIA",
-    "ATA" # antarctica
+    # "AFRICA",
+    # "EUROPE"
+    # "NORTH_AMERICA",
+    # "SOUTH_AMERICA",
+    # "ASIA",
+    # "OCEANIA",
+    # "ATA" # antarctica
   ),
   indicator = c(
-    "tasAdjust", # air temperature
-    "tasminAdjust", # daily minimum air temperature
-    "tasmaxAdjust", # daily maximum air temperature
-    "prAdjust", # precipitation
-    "hursAdjust", # relative humidity
-    "prsnAdjust", # snowfall
-    "hussAdjust", # specific humidity
-    "sfcWindAdjust", # wind speed
+    # "tasAdjust", # air temperature
+    # "tasminAdjust", # daily minimum air temperature
+    # "tasmaxAdjust", # daily maximum air temperature
+    # "prAdjust", # precipitation
+    # "hursAdjust", # relative humidity
+    # "prsnAdjust", # snowfall
+    # "hussAdjust", # specific humidity
+    # "sfcWindAdjust", # wind speed
+    "yield_maize_co2",
+    "yield_rice_co2",
+    "soilmoist",
+    "yield_soy_co2",
+    "yield_wheat_co2",
     "ec4", # 1-in-100-year expected damage from tropical cyclones
     "ec2", # annual expected damage from river floods
     "ec3", # annual expected damage from tropical cyclones
     "ec1", # labour productivity due to heat stress
-    "lec", # land fraction annually exposed to crop failures
-    "leh", # land fraction annually exposed to heat waves
-    "fldfrc", # land fraction annually exposed to river floods
-    "lew", # land fraction annually exposed to wild fires,
-    "flddph", # river flood depth
+    # "lec", # land fraction annually exposed to crop failures
+    # "leh", # land fraction annually exposed to heat waves
+    # "fldfrc", # land fraction annually exposed to river floods
+    # "lew", # land fraction annually exposed to wild fires
+    # "flddph", # river flood depth
     "maxdis", # maximum daily river discharge
     "mindis", # minimum daily river discharge
     "dis", # river discharge
@@ -292,7 +308,11 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_data <- all_data %>%
       dplyr::mutate(geometry_id = openssl::md5(as.character(geometry)))
 
-    all_data <- qread(here("data", "cat_current_pol_climate_data.qs"))
+    out_data <- here("data", "all_data")
+
+    if (!dir_exists(out_data)) dir_create(out_data)
+
+    qsave(all_data, path(out_data, paste0(processed_indicators, ".qs")))
 
     # create sf data frame based on longitude and latitude
     all_data_distinct_geo_data <- all_data %>%
@@ -342,7 +362,11 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
   all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
-  qsave(all_data_distinct_geo_data, here("data","cat_current_policies_all_data_distinct_geo_data.qs"))
+  out_data <- here("data", "all_data_distinct_geo_data")
+
+  if (!dir_exists(out_data)) dir_create(out_data)
+
+  qsave(all_data_distinct_geo_data, path(out_data, paste0(processed_indicators, ".qs")))
 
     #--------
     #to get the points that falls into the polygons created before
@@ -395,7 +419,6 @@ for (sub_indicator in unique(api_paramter$indicator)) {
         absolute_change = NA,
         geometry_id
       )
-
 
     # save data
     # asset_scenario_data %>%
