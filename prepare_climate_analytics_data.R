@@ -57,34 +57,34 @@ api_paramter <- tidyr::crossing(
     # "prsnAdjust", # snowfall
     # "hussAdjust", # specific humidity
     # "sfcWindAdjust", # wind speed
-    "yield_maize_co2",
-    "yield_rice_co2",
-    "soilmoist",
-    "yield_soy_co2",
-    "yield_wheat_co2",
+    # "yield_maize_co2",
+    # "yield_rice_co2",
+    # "soilmoist",
+    # "yield_soy_co2",
+    # "yield_wheat_co2",
     "ec4", # 1-in-100-year expected damage from tropical cyclones
     "ec2", # annual expected damage from river floods
     "ec3", # annual expected damage from tropical cyclones
-    "ec1", # labour productivity due to heat stress
+    "ec1" # labour productivity due to heat stress
     # "lec", # land fraction annually exposed to crop failures
     # "leh", # land fraction annually exposed to heat waves
     # "fldfrc", # land fraction annually exposed to river floods
     # "lew", # land fraction annually exposed to wild fires
     # "flddph", # river flood depth
-    "maxdis", # maximum daily river discharge
-    "mindis", # minimum daily river discharge
-    "dis", # river discharge
-    "qs" # surface runoff
+    # "maxdis", # maximum daily river discharge
+    # "mindis", # minimum daily river discharge
+    # "dis", # river discharge
+    # "qs" # surface runoff
   ),
   scenario = c(
-    "cat_current", # cat current policies
+    # "cat_current", # cat current policies
     "h_cpol", # NGFS current policies
     "d_delfrag", # NGFS delayed 2°
-    "o_1p5c", # NGFS net zero
-    "rcp26",
-    "rcp45",
-    "rcp60",
-    "rcp85"
+    "o_1p5c" # NGFS net zero
+    # "rcp26",
+    # "rcp45",
+    # "rcp60",
+    # "rcp85"
   ),
   year = c(
     2030,
@@ -308,7 +308,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
     all_data <- all_data %>%
       dplyr::mutate(geometry_id = openssl::md5(as.character(geometry)))
 
-    out_data <- here("data", "all_data")
+    out_data <- here("data", "all_data_economical_damages")
 
     if (!dir_exists(out_data)) dir_create(out_data)
 
@@ -362,7 +362,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
 
   all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
-  out_data <- here("data", "all_data_distinct_geo_data")
+  out_data <- here("data", "all_data_distinct_geo_data_economical_dam")
 
   if (!dir_exists(out_data)) dir_create(out_data)
 

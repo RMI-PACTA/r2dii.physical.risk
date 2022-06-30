@@ -10,6 +10,9 @@ library(vroom)
 library(pak)
 library(tibble)
 
+
+source("R/load.R")
+
 ## re-install tilt regularly to be in sync with Mauro's updates
 
 # remove.packages("tilt")
@@ -70,8 +73,9 @@ sep_europages_test <- sep_europages %>%
 ## 1. TIDY - remove non-existent (five of them does not have addresses) or obsolete postcodes
 
 no_addresses <- sep_europages %>%
-  select(address) %>%
-  filter(is.na(address))
+  select(address, company_name, id) %>%
+  filter(is.na(address)) |>
+  distinct()
 
 tidy_europages <- sep_europages_test %>%
   filter(!is.na(postcode))
@@ -103,6 +107,9 @@ chunked <- unique_postcode %>%
 out <- path(here(), "output_osm")
 
 if (!dir_exists(out)) dir_create(out)
+
+## TODO : pass county ? --> postcode into NUTS2 ? borders can cross NUTS2 regions / other levels than we can pass
+## only pass cities
 
 for (i in unique(chunked$chunk)) {
 
@@ -166,18 +173,17 @@ company_data <- company_data_osm %>%
       TRUE ~ TRUE
     ))
 
-## create new data with only the latitude and longitude with a company_id
-
-##FIXME : DUPLICATES because of the joining : several companies have same postcode and cities ???
-## Try with fewer rows to see what is happening there -> start with mock data set and see whats happening
+true <- company_data |>
+  filter(has_geo_data == TRUE)
+## create new data with only the latitude and longitude with a company_id. id is the unique identifer per company.
 
 companies <- tidy_europages %>%
-  select(company_name, country, postcode) %>%
+  select(company_name, country, postcode, id, company_city) %>%
   distinct()
 
 distinct_company_data <- companies %>%
   left_join(company_data, by = c("country", "postcode")) %>%
-  dplyr::select(latitude, longitude, company_name, has_geo_data) %>%
+  dplyr::select(latitude, longitude, company_name, id, has_geo_data, country, company_city) %>%
   filter(has_geo_data == TRUE)
 
 ## coverage of 100 - 9.5 % = 90.5 %

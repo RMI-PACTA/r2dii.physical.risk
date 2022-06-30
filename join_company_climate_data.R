@@ -12,85 +12,43 @@ source("R/load.R")
 ## within the polygons (the squared regions created from climate analytics), altogether with
 ## all the indicators and parameters related to the risk.
 
-
 ## 1. IMPORT - from two functions that will get climate and company datasets
 
 distinct_geo_data <- get_distinct_geo_data()
 
-#this is the geo data from climate analytics, which has only coordinates in it.
+## 2. JOIN - join the Climate Analytics data with our company data set.
 
+### PR - ECONOMICAL DAMAGES FOR NGFS SCENARIOS
+
+qs_files <- dir_ls(here("data", "all_data_economical_damages"), regexp = "[.]qs$")
+
+all_data_economical_damages <- purrr::map_df(qs_files, qs::qread)
+
+qs_files <- dir_ls(here("data", "all_data_distinct_geo_data_economical_dam"), regexp = "[.]qs$")
+
+#this is the geo data from climate analytics, which has only coordinates in it.
+all_data_distinct_geo_data_economical_damages <- purrr::map_df(qs_files, qs::qread)
+
+## FIXME : too big to join
 # qs_files <- dir_ls(here("data", "all_data"), regexp = "[.]qs$")
 # all_data <- purrr::map_df(qs_files, qs::qread)
 
-all_data <- qread(here("data", "all_data_PR.qs"))
-
-all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data_PR.qs"))
+# all_data <- qread(here("data", "all_data_PR.qs"))
+# all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data_PR.qs"))
 
 #joining the climate analytics data with the geo data from the smes
 
-asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
+asset_scenario_data <- get_asset_scenario_data(distinct_geo_data, all_data_distinct_geo_data_economical_damages, all_data_economical_damages)
 
-asset_scenario_data <- asset_scenario_data %>%
-  filter(!is.na(geometry_id))
+# Save the joined data
 
-asset_geometry <- asset_scenario_data %>%
-  select(geometry)
+# qsave(asset_scenario_data, here("data", "asset_scenario_data_economical_damages.qs"))
 
-scenario_geometry <- asset_scenario_data %>%
-  sf::st_drop_geometry() %>%
-  sf::st_as_sf(coords = c("long", "lat")) %>%
-  select(geometry)
+asset_scenario_data <- qread(here("data", "asset_scenario_data_economical_damages.qs"))
 
-sf::st_crs(scenario_geometry) <- 4326
-
-asset_scenario_data$dist <- sf::st_distance(
-  asset_geometry,
-  scenario_geometry,
-  by_element = TRUE
-)
-
-asset_scenario_data <- asset_scenario_data %>%
-  sf::st_drop_geometry() %>%
-  select(geometry_id, company_name, id)
-#select(asset_id, geometry_id)
-
-
-asset_scenario_data <- asset_scenario_data %>%
-  left_join(
-    all_data %>%
-      mutate(geometry_id = as.character(geometry_id)),
-    by = c("geometry_id")
-  )
-
-asset_scenario_data <- asset_scenario_data %>%
-  transmute(
-    company_name,
-    id,
-    provider,
-    hazard,
-    scenario,
-    period,
-    is_reference_period = FALSE,
-    model,
-    relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
-    risk_level = NA,
-    reference = NA,
-    absolute_change = NA,
-    geometry_id
-  )
-
-# save data
-
-# qsave(asset_scenario_data, here("data", "asset_scenario_data.qs"))
-
-asset_scenario_data <- qread(here("data", "asset_scenario_data.qs"))
-
-# asset_scenario_data %>%
-#   r2dii.physical.risk:::save_climate_data(
-#     path_db_pr_climate_data = path_db_pr_climate_data,
-#     use_distinct_for_assets_between_two_rasters = TRUE,
-#     drop_any_NAs = FALSE
-#   )
+companies <- asset_scenario_data |>
+  select(company_name, id) |>
+  distinct()
 
 # PR hazards of interest
 
@@ -105,6 +63,8 @@ economic_damages <- c(
 
 all_data_economic_damages <- all_data |>
   filter(hazard %in% economic_damages)
+
+get_asset_scenario_data(distinct_geo_data, )
 
 PR_economic_damages <- asset_scenario %>%
   filter(hazard %in% economic_damages)
