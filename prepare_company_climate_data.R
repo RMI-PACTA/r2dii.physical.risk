@@ -1,18 +1,24 @@
 library(r2dii.physical.risk)
+library(dplyr)
+library(tidyr)
+library(tidygeocoder)
+library(tilt)
 library(here)
 library(qs)
-library(readr)
-library(dplyr)
+library(sf)
+library(fs)
+library(vroom)
+source("R/load.R")
 
+# =================================
+# load distinct_geo_data which will subset the raw climate data
+# =================================
 
-## This script is a first draft where a page from climate analytics is downloaded, read and saved, using
-## the qs package.
-## Transformation on these data will be to create sf objects, to be then join with the company data,
-## in another script (function).
+#distinct_geo_data <- r2dii.physical.risk:::load_distinct_geo_data()
 
-#TODO : should this script exist or should we give the climate analytics data directly?
-#One positive point of scraping it locally could be that the data is up to date with the climate analytics
-# latests updates
+# distinct_geo_data <- qread(here("data", "company_distinct_geo_data.qs"))
+
+distinct_geo_data <- get_distinct_geo_data()
 
 # =================================
 # load list of all countries iso codes
@@ -29,33 +35,42 @@ all_countries <- rworldmap::countryRegions %>%
 # cross parameters
 api_paramter <- tidyr::crossing(
   region = c(
+    "DEU",
+    "FRA",
+    "ESP",
+    "AUT"
     # all_countries, # explodes number of parameters but single regions have higher resolution
-    "AFRICA",
-    "EUROPE",
-    "NORTH_AMERICA",
-    "SOUTH_AMERICA",
-    "ASIA",
-    "OCEANIA",
-    "ATA" # antarctica
+    # "AFRICA",
+    # "EUROPE"
+    # "NORTH_AMERICA",
+    # "SOUTH_AMERICA",
+    # "ASIA",
+    # "OCEANIA",
+    # "ATA" # antarctica
   ),
   indicator = c(
-    "tasAdjust", # air temperature
-    "tasminAdjust", # daily minimum air temperature
-    "tasmaxAdjust", # daily maximum air temperature
-    "prAdjust", # precipitation
-    "hursAdjust", # relative humidity
-    "prsnAdjust", # snowfall
-    "hussAdjust", # specific humidity
-    "sfcWindAdjust", # wind speed
+    # "tasAdjust", # air temperature
+    # "tasminAdjust", # daily minimum air temperature
+    # "tasmaxAdjust", # daily maximum air temperature
+    # "prAdjust", # precipitation
+    # "hursAdjust", # relative humidity
+    # "prsnAdjust", # snowfall
+    # "hussAdjust", # specific humidity
+    # "sfcWindAdjust", # wind speed
+    "yield_maize_co2",
+    "yield_rice_co2",
+    "soilmoist",
+    "yield_soy_co2",
+    "yield_wheat_co2",
     "ec4", # 1-in-100-year expected damage from tropical cyclones
     "ec2", # annual expected damage from river floods
     "ec3", # annual expected damage from tropical cyclones
     "ec1", # labour productivity due to heat stress
-    "lec", # land fraction annually exposed to crop failures
-    "leh", # land fraction annually exposed to heat waves
-    "fldfrc", # land fraction annually exposed to river floods
-    "lew", # land fraction annually exposed to wild fires,
-    "flddph", # river flood depth
+    # "lec", # land fraction annually exposed to crop failures
+    # "leh", # land fraction annually exposed to heat waves
+    # "fldfrc", # land fraction annually exposed to river floods
+    # "lew", # land fraction annually exposed to wild fires
+    # "flddph", # river flood depth
     "maxdis", # maximum daily river discharge
     "mindis", # minimum daily river discharge
     "dis", # river discharge
@@ -142,7 +157,7 @@ for (sub_indicator in unique(api_paramter$indicator)) {
   # =================================
 
   # scrape data
-for (sub_link in api_paramter_sub$link[1]) {
+  for (sub_link in api_paramter_sub$link) {
 
     # add an estimate of how many links have been downloaded
     processed_links <- processed_links + 1
@@ -151,7 +166,7 @@ for (sub_link in api_paramter_sub$link[1]) {
     message(paste0("Processing link Nr.", processed_links, " of ", nrow(api_paramter)))
     print(sub_link)
 
-    # filter api_parameter to get the relevant parameters for each links
+    # filter api_paramater to get the relevant parameters for each links
     api_paramter_sub_sub <- api_paramter_sub %>%
       dplyr::filter(link == sub_link)
 
@@ -172,6 +187,7 @@ for (sub_link in api_paramter_sub$link[1]) {
       # prep sumamry of parameter information
       summary <- summary %>%
         tidyr::pivot_wider(names_from = "v1", values_from = "v2") %>%
+        # tidyr::pivot_wider(id_cols = "v2", names_from = "v1", values_from = "v2") %>%
         janitor::clean_names(case = "snake")
 
       # kickout rows which contain parameter information
@@ -235,7 +251,6 @@ for (sub_link in api_paramter_sub$link[1]) {
     # ensure that there is always a small break between downloading data
     Sys.sleep(1)
   }
-}
 
   # kickput out the starting row of the target data frame
   all_data <- all_data %>%
@@ -249,6 +264,7 @@ for (sub_link in api_paramter_sub$link[1]) {
   median_diff_longs <- median(diff_longs, na.rm = TRUE)
   cat(crayon::red("Using", median_diff_longs, "as median long", "\n"))
 
+
   if (nrow(all_data > 0)) {
     all_data <- all_data %>%
       mutate(
@@ -257,8 +273,8 @@ for (sub_link in api_paramter_sub$link[1]) {
           scenario == "h_cpol" ~ "ngfs_current_policies",
           scenario == "d_delfrag" ~ "ngfs_delayed_2_degrees",
           scenario == "o_1p5c" ~ "ngfs_net_zero",
-          #TRUE ~ == scenario,
-          TRUE ~ as.character(scenario)
+          TRUE ~ scenario,
+          # TRUE ~ as.character(scenario)
         ),
         model = "Ensemble", # to many models -> just say ensemble
         provider = "ClimateAnalytics"
@@ -288,8 +304,15 @@ for (sub_link in api_paramter_sub$link[1]) {
       sf::st_as_sf(coords = c("duplicate_long", "duplicate_lat"))
 
     # hash geometry
+
     all_data <- all_data %>%
       dplyr::mutate(geometry_id = openssl::md5(as.character(geometry)))
+
+    out_data <- here("data", "all_data")
+
+    if (!dir_exists(out_data)) dir_create(out_data)
+
+    qsave(all_data, path(out_data, paste0(processed_indicators, ".qs")))
 
     # create sf data frame based on longitude and latitude
     all_data_distinct_geo_data <- all_data %>%
@@ -339,5 +362,103 @@ for (sub_link in api_paramter_sub$link[1]) {
 
     all_data_distinct_geo_data <- st_sf(all_data_distinct_geo_data, st_sfc(all_data_distinct_geo_data_polygons), crs = 4326)
 
-    qsave(all_data_distinct_geo_data, here(path_desktop, "all_data_distinct_geo_data.qs"))
+    out_data <- here("data", "all_data_distinct_geo_data")
+
+    if (!dir_exists(out_data)) dir_create(out_data)
+
+    qsave(all_data_distinct_geo_data, path(out_data, paste0(processed_indicators, ".qs")))
+
+    #--------
+    #to get the points that falls into the polygons created before
+    asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
+
+    asset_scenario_data <- asset_scenario_data %>%
+      filter(!is.na(geometry_id))
+
+    asset_geometry <- asset_scenario_data %>%
+      select(geometry)
+
+    scenario_geometry <- asset_scenario_data %>%
+      sf::st_drop_geometry() %>%
+      sf::st_as_sf(coords = c("long", "lat")) %>%
+      select(geometry)
+
+    sf::st_crs(scenario_geometry) <- 4326
+
+    asset_scenario_data$dist <- sf::st_distance(
+      asset_geometry,
+      scenario_geometry,
+      by_element = TRUE
+    )
+
+    asset_scenario_data <- asset_scenario_data %>%
+      sf::st_drop_geometry() %>%
+      select(geometry_id)
+    #select(asset_id, geometry_id)
+
+
+    asset_scenario_data <- asset_scenario_data %>%
+      left_join(
+        all_data %>%
+          mutate(geometry_id = as.character(geometry_id)),
+        by = c("geometry_id")
+      )
+
+    asset_scenario_data <- asset_scenario_data %>%
+      transmute(
+        # asset_id,
+        provider,
+        hazard,
+        scenario,
+        period,
+        is_reference_period = FALSE,
+        model,
+        relative_change = risk_level, # TODO: maybe change name of the variable in the beginning already
+        risk_level = NA,
+        reference = NA,
+        absolute_change = NA,
+        geometry_id
+      )
+
+    # save data
+    # asset_scenario_data %>%
+    #   r2dii.physical.risk:::save_climate_data(
+    #     # path_db_pr_climate_data = path_db_pr_climate_data,
+    #     path_db_pr_climate_data = here("data", "asset_scenario_data.qs"),
+    #     use_distinct_for_assets_between_two_rasters = TRUE,
+    #     drop_any_NAs = FALSE
+    #   )
+
+    # save downloaded all data
+    # all_data %>%
+    #   r2dii.physical.risk:::for_loops_climate_data(
+    #     #parent_path = fs::path(path_db_pr_climate_data_raw),
+    #     parent_path = fs::path(here("data", "all_climate_data.qs")),
+    #     fns = function(data, final_path) {
+    #       readr::write_csv(
+    #         data,
+    #         fs::path(
+    #           final_path,
+    #           paste(scenario_sub, hazard_sub, model_sub, period_sub, sep = "_"),
+    #           ext = "csv"
+    #           )
+    #       )
+    #     }
+    #   )
+
+    # determine the end time
+    end_time <- Sys.time()
+
+    # calculate how long it took
+    duration <- as.double(end_time) - as.double(start_time)
+    all_duration <- c(all_duration, duration)
+
+    # estimate how many minutes are left based on current processing time
+    minutes_left <- round((length(unique(api_paramter$indicator)) - processed_indicators) * mean(all_duration, na.rm = TRUE) / 60, 0)
+
+    # print estimated processing time which is left
+    message("Roughly ", minutes_left, " minutes left")
   }
+
+  Sys.sleep(2)
+}
