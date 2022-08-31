@@ -1,5 +1,5 @@
 #for TILT project
-get_asset_scenario_data <- function(distinct_geo_data, all_data_distinct_geo_data) {
+get_asset_scenario_data <- function(distinct_geo_data, all_data_distinct_geo_data, all_data) {
 
   asset_scenario_data <- sf::st_join(distinct_geo_data, all_data_distinct_geo_data)
 
@@ -24,7 +24,7 @@ get_asset_scenario_data <- function(distinct_geo_data, all_data_distinct_geo_dat
 
   asset_scenario_data <- asset_scenario_data %>%
     sf::st_drop_geometry() %>%
-    select(geometry_id, company_name, id)
+    select(geometry_id, company_name, id, country, company_city)
   #select(asset_id, geometry_id)
 
 
@@ -38,6 +38,8 @@ get_asset_scenario_data <- function(distinct_geo_data, all_data_distinct_geo_dat
   asset_scenario_data <- asset_scenario_data %>%
     transmute(
       company_name,
+      country.x,
+      company_city,
       id,
       provider,
       hazard,
@@ -65,7 +67,7 @@ get_distinct_geo_data <- function(name_file = "company_distinct_geo_data.qs") {
 
   # select relevant columns (ideally only those should be in the data actually)
   distinct_geo_data <- distinct_geo_data %>%
-    dplyr::select(longitude, latitude, company_name, id)
+    dplyr::select(longitude, latitude, company_name, id, country, company_city)
 
   # bind rows of files with geo data
   distinct_geo_data <- distinct_geo_data %>%

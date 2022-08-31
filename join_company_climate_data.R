@@ -1,8 +1,10 @@
 library(r2dii.physical.risk)
 library(sf)
+library(fs)
 library(qs)
 library(here)
 library(dplyr)
+library(ggplot2)
 
 source("R/load.R")
 
@@ -16,18 +18,14 @@ source("R/load.R")
 
 distinct_geo_data <- get_distinct_geo_data()
 
-## 2. JOIN - join the Climate Analytics data with our company data set.
+qs_files <- dir_ls(here("data", "all_data"), regexp = "[.]qs$")
 
-### PR - ECONOMICAL DAMAGES FOR NGFS SCENARIOS
+all_data <- purrr::map_df(qs_files, qs::qread)
 
-qs_files <- dir_ls(here("data", "all_data_economical_damages"), regexp = "[.]qs$")
-
-all_data_economical_damages <- purrr::map_df(qs_files, qs::qread)
-
-qs_files <- dir_ls(here("data", "all_data_distinct_geo_data_economical_dam"), regexp = "[.]qs$")
+qs_files_geo_data <- dir_ls(here("data", "all_data_distinct_geo_data"), regexp = "[.]qs$")
 
 #this is the geo data from climate analytics, which has only coordinates in it.
-all_data_distinct_geo_data_economical_damages <- purrr::map_df(qs_files, qs::qread)
+all_data_distinct_geo_data <- purrr::map_df(qs_files_geo_data, qs::qread)
 
 ## FIXME : too big to join
 # qs_files <- dir_ls(here("data", "all_data"), regexp = "[.]qs$")
@@ -36,9 +34,30 @@ all_data_distinct_geo_data_economical_damages <- purrr::map_df(qs_files, qs::qre
 # all_data <- qread(here("data", "all_data_PR.qs"))
 # all_data_distinct_geo_data <- qs::qread(here("data", "all_data_distinct_geo_data_PR.qs"))
 
+## 2. JOIN - join the Climate Analytics data with our company data set.
+
+### PR - AGRICULTURE for RCPs scenarios
+
+agriculture <- c(
+  "yield_rice_co2",
+  "soilmoist",
+  "yield_soy_co2",
+  "yield_wheat_co2"
+)
+
+ngfs_scenarios <- c(
+  "ngfs_delayed_2_degrees",
+  "ngfs_current_policies",
+  "ngfs_net_zero"
+)
+
+all_data_agriculture <- all_data |>
+  filter(hazard %in% agriculture) |>
+  filter(scenario %in% rcp_scenarios)
+
 #joining the climate analytics data with the geo data from the smes
 
-asset_scenario_data <- get_asset_scenario_data(distinct_geo_data, all_data_distinct_geo_data_economical_damages, all_data_economical_damages)
+asset_scenario_data <- get_asset_scenario_data(distinct_geo_data, all_data_distinct_geo_data, all_data)
 
 # Save the joined data
 
@@ -95,3 +114,39 @@ companies_agriculture <- PR_agriculture |>
   distinct(company_name)
 
 
+## ANNA ECKSCHLAGER
+distinct_geo_data <- distinct_geo_data |>
+  sample_n(3)
+
+asset_scenario_data <- get_asset_scenario_data(distinct_geo_data, all_data_distinct_geo_data, all_data)
+
+
+anna_ngfs <- asset_scenario_data |>
+  filter(scenario %in% ngfs_scenarios)
+
+company_indicator_output <- anna_ngfs |>
+  select(company_name, country.x, company_city, hazard, scenario, period, relative_change) |>
+  mutate(
+    hazard = case_when(
+      hazard == "soilmoist" ~ "soil moisture",
+      hazard == "qs" ~ "surface runoff",
+      hazard == "mindis" ~ "minimum daily river discharge",
+      hazard == "maxdis" ~ "maximum daily river discharge",
+      hazard == "ec1" ~ "labour productivity due to heat stress",
+      hazard == "ec3" ~ "annual expected damage from tropical cyclones",
+      hazard == "dis" ~ "river discharge",
+      TRUE ~ as.character(hazard)
+    )) |>
+  rename(country = country.x)
+
+
+company_indicator_30 <- company_indicator_output |>
+  filter(period == 2030) |>
+  filter(scenario == 'ngfs_net_zero')
+
+
+company_indicator_30  %>%
+  ggplot(aes(x = hazard, y = relative_change, fill = relative_change)) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(vars(scenario, period))
